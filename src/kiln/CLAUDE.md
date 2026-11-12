@@ -95,6 +95,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 ### `cards/`
 - `Card` (Card, CardHeader, MediaCard, InteractiveCard) — Plain surface with CardHeader; MediaCard and InteractiveCard (selectable) too
 - `ExpandableCard` — A card that grows into its own detail view; press Esc or the cross to send it back
+- `FloatingCard` — A card that hangs in the air: bobs at rest, leans towards the pointer, drifts against the page; contents stay interactive
 - `PricingCard` (BillingToggle, PricingCard) — Plans with a billing switch; the prices roll to their new figures
 - `TiltCard` (TiltCard, TiltLayer) — A card that leans towards the pointer in 3D, with layers floating above its surface
 

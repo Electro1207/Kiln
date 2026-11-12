@@ -1,5 +1,5 @@
 import type { Category } from "../types";
-import { AnimatedListDemo, BeamDemo, BorderBeamDemo, CompareDemo, DockDemo, MagneticDemo, MultiStepDemo, OrbitDemo, ParallaxDemo, PlaceholderDemo, RevealDemo, ScrollStoryDemo, ScrollTimelineDemo, ScrollWordsDemo, ScrambleDemo, ScrollProgressDemo, StickyDemo, TextAnimateDemo, TiltDemo, TypewriterDemo, WordRotateDemo } from "./parts/effects";
+import { AnimatedListDemo, BeamDemo, BorderBeamDemo, CompareDemo, DockDemo, MagneticDemo, MultiStepDemo, OrbitDemo, ParallaxDemo, FloatingCardDemo, PlaceholderDemo, RevealDemo, ScrollStoryDemo, ScrollTimelineDemo, ScrollWordsDemo, ScrambleDemo, ScrollProgressDemo, StickyDemo, TextAnimateDemo, TiltDemo, TypewriterDemo, WordRotateDemo } from "./parts/effects";
 
 export const category: Category = {
   id: "effects",
@@ -13,6 +13,7 @@ export const category: Category = {
     { id: "reveal", name: "Reveal", summary: "Wraps anything and lets it rise into place, with a fade, the first time it scrolls into view. Stagger siblings with delay.", files: ["src/kiln/components/effects/Reveal.tsx", "src/kiln/components/shared/useLoop.ts", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: RevealDemo },
     { id: "dock", name: "Dock", summary: "macOS magnification by transform only: icons swell, neighbours part, the bar widens.", files: ["src/kiln/components/effects/Dock.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: DockDemo },
     { id: "tilt-card", name: "Tilt card", summary: "A card that leans towards the pointer in 3D, with layers floating above its surface.", files: ["src/kiln/components/cards/TiltCard.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: TiltDemo },
+    { id: "floating-card", name: "Floating card", summary: "A card that hangs in the air: it bobs at rest, leans towards the pointer and can drift against the page. Anything inside stays interactive.", files: ["src/kiln/components/cards/FloatingCard.tsx", "src/kiln/motion.ts", "src/kiln/components/shared/useLoop.ts", "src/kiln/cn.ts"], Demo: FloatingCardDemo },
     { id: "compare-slider", name: "Compare slider", summary: "Before and after with a handle you drag or move with the arrow keys.", files: ["src/kiln/components/media/CompareSlider.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: CompareDemo },
     { id: "magnetic-button", name: "Magnetic button", summary: "A button that leans gently towards the pointer before you reach it.", files: ["src/kiln/components/buttons/MagneticButton.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: MagneticDemo },
     { id: "animated-beam", name: "Animated beam", summary: "Curved connectors with a light travelling along them, drawn as a moving dash.", files: ["src/kiln/components/effects/AnimatedBeam.tsx", "src/kiln/components/shared/useLoop.ts", "src/kiln/cn.ts"], Demo: BeamDemo },

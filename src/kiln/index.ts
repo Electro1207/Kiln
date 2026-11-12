@@ -40,6 +40,7 @@ export { ToggleButton } from "./components/buttons/ToggleButton";
 // cards
 export { type CardProps, Card, CardHeader, type MediaCardProps, MediaCard, type InteractiveCardIcons, interactiveCardIcons, type InteractiveCardProps, InteractiveCard } from "./components/cards/Card";
 export { type ExpandableItem, type ExpandableCardsIcons, expandableCardsIcons, type ExpandableCardsLabels, expandableCardsLabels, ExpandableCards } from "./components/cards/ExpandableCard";
+export { type FloatingCardProps, FloatingCard } from "./components/cards/FloatingCard";
 export { type Billing, type BillingToggleLabels, billingToggleLabels, BillingToggle, type PricingCardIcons, pricingCardIcons, type PricingCardLabels, pricingCardLabels, type PricingCardProps, PricingCard } from "./components/cards/PricingCard";
 export { type TiltCardProps, TiltCard, TiltLayer } from "./components/cards/TiltCard";
 
