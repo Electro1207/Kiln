@@ -381,10 +381,11 @@ Group id: `text-effects` · Folder: `text-effects/` · 4 entries
 | Scramble text | `scramble-text` | `ScrambleText.tsx`, `src/kiln/components/useLoop.ts` |
 
 ### Effects
-Group id: `effects` · Folder: `effects/` · 6 entries
+Group id: `effects` · Folder: `effects/` · 7 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
+| Reveal | `reveal` | `Reveal.tsx`, `src/kiln/components/shared/useLoop.ts` |
 | Dock | `dock` | `Dock.tsx` |
 | Animated beam | `animated-beam` | `AnimatedBeam.tsx`, `src/kiln/components/useLoop.ts` |
 | Orbiting circles | `orbiting-circles` | `OrbitingCircles.tsx`, `src/kiln/components/useLoop.ts` |
