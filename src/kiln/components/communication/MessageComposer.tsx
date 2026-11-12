@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "reac
 import { AnimatePresence, animate, motion, useMotionValue } from "motion/react";
 import { ArrowUp, FileText, Image as ImageIcon, Paperclip, X } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { fade, spring, springFirm, springSnappy } from "../../motion";
 
 export type Attachment = { id: string; name: string; size: number; kind: "image" | "file" };
@@ -47,8 +48,14 @@ export interface MessageComposerIcons {
 export const messageComposerIcons: MessageComposerIcons = { attach: <Paperclip />, image: <ImageIcon />, file: <FileText />, remove: <X />, send: <ArrowUp /> };
 
 export function MessageComposer({
-  onSend, placeholder = "Write a message", maxRows = 8, className, label = "Message", labels, icons,
+  value, defaultValue = "", onChange, onSend, placeholder = "Write a message", maxRows = 8, className, label = "Message", labels, icons,
 }: {
+  /** Controlled text. Leave out to let the composer keep its own; it clears after a send. */
+  value?: string;
+  /** Where uncontrolled text starts. Default empty. */
+  defaultValue?: string;
+  /** Called with the new text, controlled or not. */
+  onChange?: (text: string) => void;
   onSend: (text: string, attachments: Attachment[]) => void;
   placeholder?: string;
   maxRows?: number;
@@ -61,7 +68,7 @@ export function MessageComposer({
 }) {
   const l = { ...messageComposerLabels, ...labels };
   const ic = useMemo(() => ({ ...messageComposerIcons, ...icons }), [icons]);
-  const [text, setText] = useState("");
+  const [text, setText] = useControllable(value, defaultValue, onChange);
   const [files, setFiles] = useState<Attachment[]>([]);
   const area = useRef<HTMLTextAreaElement>(null);
   const picker = useRef<HTMLInputElement>(null);
