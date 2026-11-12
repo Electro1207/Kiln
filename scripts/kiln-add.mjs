@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /* Zero-dependency installer for Kiln's copy-in registry. No shadcn, no npm install needed.
      node scripts/kiln-add.mjs alert dialog tabs
-     curl -fsSL https://kiln.pages.dev/kiln-add.mjs | node - alert dialog
+     curl -fsSL https://usekiln.pages.dev/kiln-add.mjs | node - alert dialog
    Fetches <site>/r/<name>.json (and everything it depends on), writes each file to its
    target path under the current directory, and prints the npm packages to install.
    Options: --site <url> (or env KILN_SITE), --dir <path>, --overwrite, --list. */
 import { closeSync, constants, existsSync, mkdirSync, openSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { dirname, resolve, sep } from "node:path";
 
-const DEFAULT_SITE = "https://kiln.pages.dev"; // keep in step with KILN_SITE in src/gallery/site.ts
+const DEFAULT_SITE = "https://usekiln.pages.dev"; // keep in step with KILN_SITE in src/gallery/site.ts
 const args = process.argv.slice(2);
 const flag = (n) => { const i = args.indexOf(n); if (i < 0) return undefined; const v = args[i + 1]; args.splice(i, 2); return v; };
 const bool = (n) => { const i = args.indexOf(n); if (i < 0) return false; args.splice(i, 1); return true; };

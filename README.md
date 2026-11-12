@@ -2,7 +2,7 @@
 
 Kiln is a set of about 200 animated React components that work in light and dark mode. It's built on React 19, Tailwind v4, Motion and lucide-react.
 
-You can see every component working in the gallery at https://kiln.pages.dev, where each one also has a Code tab with its install commands. (The address is set once, as `KILN_SITE` in `src/gallery/site.ts`.)
+You can see every component working in the gallery at https://usekiln.pages.dev, where each one also has a Code tab with its install commands. (The address is set once, as `KILN_SITE` in `src/gallery/site.ts`.)
 
 There are two ways to use it. Install the npm package `@electro1207/kiln`, or copy just the components you want into your own project. Either way, the words on screen are yours: titles, labels and messages all come from props and children, so you never need to edit Kiln's source to change text.
 
@@ -96,8 +96,8 @@ Each component is served as `<site>/r/<id>.json`, where `<id>` is the component'
 2. Add components:
 
    ```bash
-   npx shadcn@latest add https://kiln.pages.dev/r/alert.json
-   npx shadcn@latest add https://kiln.pages.dev/r/dialog.json https://kiln.pages.dev/r/tabs.json
+   npx shadcn@latest add https://usekiln.pages.dev/r/alert.json
+   npx shadcn@latest add https://usekiln.pages.dev/r/dialog.json https://usekiln.pages.dev/r/tabs.json
    ```
 
    Each one brings `kiln-base` and any other Kiln components it uses, and installs `motion` and `lucide-react`. Files you already have are skipped if they're identical.
@@ -116,7 +116,7 @@ Each component is served as `<site>/r/<id>.json`, where `<id>` is the component'
 This needs nothing but Node:
 
 ```bash
-curl -fsSL https://kiln.pages.dev/kiln-add.mjs | node - alert dialog tabs
+curl -fsSL https://usekiln.pages.dev/kiln-add.mjs | node - alert dialog tabs
 ```
 
 From a checkout of this repo you can run `node scripts/kiln-add.mjs alert dialog tabs` instead. It downloads the same JSON, writes the files into the current folder and prints the `npm i` command for the packages they need. It takes `--list`, `--site <url>`, `--dir <path>` and `--overwrite`. After that, set up the base as in step 3 above.
