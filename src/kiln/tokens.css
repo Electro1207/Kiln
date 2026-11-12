@@ -1,0 +1,97 @@
+/* ==========================================================================
+   Kiln tokens — the ONE file you edit to change how everything looks.
+
+   Every component reads these variables (through Tailwind utilities such as
+   bg-surface, text-ink, border-line, bg-accent). Change a value here and the
+   whole library follows, in both modes.
+
+   Light mode lives in :root. Dark mode lives in .dark (set on <html>).
+   The Theme Studio in the gallery writes a new copy of this file for you.
+   ========================================================================== */
+
+:root,
+.light {
+  /* Surfaces, from the outer frame inwards */
+  --k-ground: #f3f4f2;   /* the app frame / page background            */
+  --k-surface: #ffffff;  /* sheets, cards, popovers                     */
+  --k-raised: #eeefec;   /* wells, inputs at rest, hovered rows         */
+  --k-active: #e4e5e2;   /* pressed / selected neutral                  */
+  --k-elevated: #ffffff; /* a pill or thumb rising out of a raised track */
+
+  /* Lines */
+  --k-line: #e2e4e0;     /* card and sheet edges                        */
+  --k-line-strong: #c6c9c4; /* form-control borders                     */
+
+  /* Text */
+  --k-ink: #141413;      /* body text                                   */
+  --k-muted: #5b5e5a;    /* secondary text                              */
+  --k-faint: #8a8d89;    /* placeholders, disabled                      */
+
+  /* Brand */
+  --k-accent: #1b6c80;       /* primary actions, selected states        */
+  --k-accent-hover: #155a6b;
+  --k-accent-soft: #e2eff1;  /* tinted backgrounds of selected things   */
+  --k-focus-edge: #297482;   /* border of the field being typed in      */
+  --k-focus-wash: #c5e0e6;   /* 3px halo around it                       */
+  --k-on-accent: #ffffff;    /* text on the accent                      */
+
+  /* Buttons — change these to restyle every button without touching the accent */
+  --k-btn-primary: #1b6c80;      --k-btn-primary-hover: #175a6b;   --k-btn-primary-ink: #ffffff;
+  --k-btn-secondary: #e6e7e5;    --k-btn-secondary-hover: #dddedc; --k-btn-secondary-ink: #141413;
+  --k-btn-danger: #c4242a;       --k-btn-danger-hover: #ae2025;    --k-btn-danger-ink: #ffffff;
+
+  /* Signals */
+  --k-positive: #1e7b4f;  --k-positive-soft: #dcf5e6;
+  --k-negative: #c4242a;  --k-negative-soft: #fde8e6;
+  --k-warning: #8a4b0b;   --k-warning-soft: #fdf3dc;
+  --k-info: #2f63b0;      --k-info-soft: #e4edfa;
+
+  /* Shape */
+  --k-radius-control: 8px;  /* buttons, inputs                          */
+  --k-radius-card: 12px;    /* cards, menus                             */
+  --k-radius-sheet: 18px;   /* sheets, dialogs                          */
+
+  /* Floating things only (menus, dialogs, toasts). Nothing at rest. */
+  --k-float-shadow: 0 1px 2px rgb(20 20 19 / 0.06), 0 12px 32px -8px rgb(20 20 19 / 0.18);
+  --k-scrim: rgb(20 20 19 / 0.32);
+  --k-tour-scrim: rgb(14 16 17 / 0.5);  /* the page dimmed around a tour spotlight */
+
+  color-scheme: light;
+}
+
+.dark {
+  --k-ground: #0f1011;
+  --k-surface: #17181a;
+  --k-raised: #1f2023;
+  --k-active: #2a2b2f;
+  --k-elevated: #303136;
+
+  --k-line: #27292c;
+  --k-line-strong: #3b3d42;
+
+  --k-ink: #ededea;
+  --k-muted: #a3a29c;
+  --k-faint: #6d6c67;
+
+  --k-accent: #5fb4c6;
+  --k-accent-hover: #7cc4d3;
+  --k-accent-soft: #15333a;
+  --k-focus-edge: #64686a;   /* in dark the focus is a quiet light edge, not a coloured one */
+  --k-focus-wash: #2c2e30;
+  --k-on-accent: #071a1f;
+
+  --k-btn-primary: #327d8d;      --k-btn-primary-hover: #398ea0;   --k-btn-primary-ink: #ffffff;
+  --k-btn-secondary: #2a2b2b;    --k-btn-secondary-hover: #353636; --k-btn-secondary-ink: #ededea;
+  --k-btn-danger: #d23f3e;       --k-btn-danger-hover: #d75453;    --k-btn-danger-ink: #ffffff;
+
+  --k-positive: #4cc488;  --k-positive-soft: #10301f;
+  --k-negative: #f0706f;  --k-negative-soft: #3a1617;
+  --k-warning: #e8b04f;   --k-warning-soft: #33250c;
+  --k-info: #7fa9ec;      --k-info-soft: #16243b;
+
+  --k-float-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -8px rgb(0 0 0 / 0.6);
+  --k-scrim: rgb(0 0 0 / 0.55);
+  --k-tour-scrim: rgb(0 0 0 / 0.62);
+
+  color-scheme: dark;
+}
