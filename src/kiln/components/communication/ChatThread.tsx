@@ -2,6 +2,7 @@ import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState, type Fo
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { easeOut, fade, springSoft } from "../../motion";
 import { Avatar } from "../data-display/Avatar";
 import { useLoop } from "../shared/useLoop";
@@ -49,6 +50,12 @@ export type ChatThreadProps = {
   me: string;
   /** Name of whoever is typing right now, or null. */
   typing?: string | null;
+  /** Controlled draft text. Leave out to let the box keep its own; it clears after a send. */
+  value?: string;
+  /** Where the uncontrolled draft starts. Default empty. */
+  defaultValue?: string;
+  /** Called with the new draft text, controlled or not. */
+  onChange?: (text: string) => void;
   onSend?: (text: string) => void;
   /** Height of the scrolling area. Default 420px. */
   height?: number;
@@ -109,7 +116,7 @@ function groupMessages(messages: ChatMessage[]): Group[] {
  * rise in from the composer. If you have scrolled up when something arrives,
  * a pill offers to take you down to it instead of yanking the view.
  */
-export function ChatThread({ messages, me, typing, onSend, height = 420, placeholder = "Message", className, labels, icons }: ChatThreadProps) {
+export function ChatThread({ messages, me, typing, value, defaultValue = "", onChange, onSend, height = 420, placeholder = "Message", className, labels, icons }: ChatThreadProps) {
   const l = { ...chatThreadLabels, ...labels };
   const ic = useMemo(() => ({ ...chatThreadIcons, ...icons }), [icons]);
   const scroller = useRef<HTMLDivElement>(null);
@@ -119,7 +126,7 @@ export function ChatThread({ messages, me, typing, onSend, height = 420, placeho
   const following = useRef(true);
   const lastTop = useRef(0);
   const [unseen, setUnseen] = useState(0);
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useControllable(value, defaultValue, onChange);
   const groups = groupMessages(messages);
   const draftId = useId();
 
