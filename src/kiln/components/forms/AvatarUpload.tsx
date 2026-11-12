@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Camera, Trash2, Upload } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { fade, springSoft } from "../../motion";
 import { Button } from "../buttons/Button";
 import { ImageCropper, type ImageCropperHandle, type ImageCropperLabels } from "./ImageCropper";
@@ -53,11 +54,14 @@ export const avatarUploadIcons: AvatarUploadIcons = { upload: <Upload />, sample
  * the saved picture cross-fades into the avatar.
  */
 export function AvatarUpload({
-  value, onChange, name, size = 96, className, sample, labels, cropperLabels, icons,
+  value: valueProp, defaultValue = null, onChange: onChangeProp, name, size = 96, className, sample, labels, cropperLabels, icons,
 }: {
-  /** Current picture as a URL or data URL; null shows initials. */
-  value: string | null;
-  onChange: (dataUrl: string | null) => void;
+  /** Controlled picture as a URL or data URL; null shows initials. Leave out to let the component keep its own. */
+  value?: string | null;
+  /** Where an uncontrolled avatar starts. Default null (initials). */
+  defaultValue?: string | null;
+  /** Called with the saved picture as a data URL, or null when removed. */
+  onChange?: (dataUrl: string | null) => void;
   /** Used for the initials and the accessible name. */
   name: string;
   size?: number;
@@ -73,6 +77,7 @@ export function AvatarUpload({
 }) {
   const l = { ...avatarUploadLabels, ...labels };
   const ic = { ...avatarUploadIcons, ...icons };
+  const [value, onChange] = useControllable<string | null>(valueProp, defaultValue, onChangeProp);
   const file = useRef<HTMLInputElement>(null);
   const cropper = useRef<ImageCropperHandle>(null);
   const [editing, setEditing] = useState<string | null>(null);
