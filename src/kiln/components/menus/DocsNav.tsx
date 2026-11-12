@@ -2,6 +2,7 @@ import { memo, useCallback, useDeferredValue, useEffect, useId, useLayoutEffect,
 import { motion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { easeOut, fade, springSnappy } from "../../motion";
 import { ScrollArea } from "../primitives/ScrollArea";
 import { SearchField } from "../text-input/SearchField";
@@ -42,8 +43,10 @@ export const docsNavLabels: DocsNavLabels = {
 
 export type DocsNavProps = {
   sections: DocsNavSection[];
-  /** The active item or group id. Its group opens, and its row is kept in view. */
+  /** The active item or group id. Its group opens, and its row is kept in view. Leave out to let the nav track the last row picked. */
   value?: string;
+  /** Where the uncontrolled active id starts. Default none. */
+  defaultValue?: string;
   /** Called on a plain click. Modified clicks (new tab) follow the href as usual. */
   onSelect?: (id: string, groupId: string) => void;
   /** Shows a filter field. The shortcut key focuses it from anywhere on the page. */
@@ -101,12 +104,13 @@ export interface DocsNavIcons {
 export const docsNavIcons: DocsNavIcons = { expand: <ChevronRight /> };
 
 export function DocsNav({
-  sections, value, onSelect, searchable = true, shortcut = "/", placeholder, emptyText,
+  sections, value: valueProp, defaultValue, onSelect, searchable = true, shortcut = "/", placeholder, emptyText,
   header, footer, rowHeight = 32, groupClick = "link", storageKey, labels, icons, className, "aria-label": ariaLabelProp,
 }: DocsNavProps) {
   const l = useMemo(() => ({ ...docsNavLabels, ...labels }), [labels]);
   const ic = useMemo(() => ({ ...docsNavIcons, ...icons }), [icons]);
   const ariaLabel = ariaLabelProp ?? l.sidebar;
+  const [value, setValue] = useControllable<string | undefined>(valueProp, defaultValue);
   const groups = useMemo(() => sections.flatMap((s) => s.groups), [sections]);
   const activeGroup = useMemo(
     () => groups.find((g) => g.id === value || g.items?.some((i) => i.id === value))?.id,
@@ -186,10 +190,12 @@ export function DocsNav({
   });
   const select = useCallback((e: MouseEvent, id: string, groupId: string) => {
     const f = onSelectRef.current;
-    if (!f || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    setValue(id);
+    if (!f) return;
     e.preventDefault();
     f(id, groupId);
-  }, []);
+  }, [setValue]);
 
   const toggle = useCallback((id: string) =>
     setOpen((o) => {
@@ -218,6 +224,7 @@ export function DocsNav({
             onKeyDown={(e) => {
               if (e.key === "Enter" && firstHit) {
                 const a = viewport.current?.querySelector<HTMLAnchorElement>(`[data-nav-id="${CSS.escape(firstHit.id)}"]`);
+                setValue(firstHit.id);
                 if (onSelect) onSelect(firstHit.id, firstHit.g);
                 else a?.click();
                 setQuery("");
