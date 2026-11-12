@@ -2,6 +2,7 @@ import { Fragment, useLayoutEffect, useMemo, useRef, useState, type ReactNode } 
 import { motion } from "motion/react";
 import { ChevronsUpDown } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { fade } from "../../motion";
 import { SegmentedControl } from "../buttons/SegmentedControl";
 
@@ -122,7 +123,12 @@ export type DiffViewerProps = {
   filename: string;
   /** Unchanged lines kept around each change before the rest folds away. */
   context?: number;
+  /** Where the uncontrolled view starts. Narrow containers still start unified until someone picks. */
   defaultView?: "split" | "unified";
+  /** Controlled view. Leave out to let the viewer keep its own. */
+  view?: "split" | "unified";
+  /** Called with the view someone picks, controlled or not. */
+  onViewChange?: (view: "split" | "unified") => void;
   className?: string;
   /** Override any UI text. Merged over `diffViewerLabels`. */
   labels?: Partial<DiffViewerLabels>;
@@ -135,11 +141,11 @@ export type DiffViewerProps = {
  * the words that changed are marked; long unchanged stretches fold away and open
  * in place.
  */
-export function DiffViewer({ oldText, newText, filename, context = 3, defaultView = "split", className, labels, icons }: DiffViewerProps) {
+export function DiffViewer({ oldText, newText, filename, context = 3, defaultView = "split", view: viewProp, onViewChange, className, labels, icons }: DiffViewerProps) {
   const l = { ...diffViewerLabels, ...labels };
   const ic = { ...diffViewerIcons, ...icons };
   // Until someone picks a view, narrow containers (phones) get unified: split needs two readable columns.
-  const [chosen, setChosen] = useState<"split" | "unified" | null>(null);
+  const [chosen, setChosen] = useControllable<"split" | "unified" | null>(viewProp, null, (v) => v && onViewChange?.(v));
   const [narrow, setNarrow] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
