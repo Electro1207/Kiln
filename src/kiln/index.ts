@@ -223,6 +223,7 @@ export { type VirtualGroup, type VirtualListProps, VirtualList } from "./compone
 
 // text-effects
 export { type ScrambleTextProps, ScrambleText } from "./components/text-effects/ScrambleText";
+export { type ScrollWordsProps, ScrollWords } from "./components/text-effects/ScrollWords";
 export { type TextAnimateProps, TextAnimate } from "./components/text-effects/TextAnimate";
 export { type TypewriterProps, Typewriter } from "./components/text-effects/Typewriter";
 export { type WordRotateProps, WordRotate } from "./components/text-effects/WordRotate";

@@ -20,6 +20,7 @@ import { BorderBeam } from "../../../kiln/components/effects/BorderBeam";
 import { ScrollProgress } from "../../../kiln/components/wayfinding/ScrollProgress";
 import { StickyScrollReveal } from "../../../kiln/components/effects/StickyScrollReveal";
 import { Parallax } from "../../../kiln/components/effects/Parallax";
+import { ScrollWords } from "../../../kiln/components/text-effects/ScrollWords";
 import { cn } from "../../../kiln/cn";
 import { Magnetic } from "../../../kiln/components/buttons/MagneticButton";
 import { MultiStepLoader } from "../../../kiln/components/status/MultiStepLoader";
@@ -439,6 +440,22 @@ export function ParallaxDemo() {
             </Parallax>
           ))}
         </div>
+        <div className="h-72" />
+      </div>
+    </Stage>
+  );
+}
+
+const SPEECH =
+  "May the Force be with you. I’ll be back. Roads? Where we’re going, we don’t need roads. Life, uh, finds a way. There is no spoon. Who you gonna call?";
+
+export function ScrollWordsDemo() {
+  const box = useBox();
+  return (
+    <Stage className="flex-col items-stretch">
+      <div ref={box} className={cn(BOX, "h-80 max-w-2xl px-6")}>
+        <div className="grid h-60 place-items-center text-sm text-muted">Scroll down</div>
+        <ScrollWords container={box} text={SPEECH} className="text-2xl font-semibold leading-snug tracking-[-0.015em] text-ink" />
         <div className="h-72" />
       </div>
     </Stage>
