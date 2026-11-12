@@ -1,6 +1,6 @@
 {
   "name": "@electro1207/kiln",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "About 200 animated React components for Tailwind v4 and Motion, in light and dark.",
   "keywords": ["react", "react-19", "components", "ui", "tailwindcss", "tailwind-v4", "motion", "animation", "design-system", "dark-mode", "shadcn"],
   "license": "MIT",
