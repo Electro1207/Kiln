@@ -120,7 +120,7 @@ export function Tabs({ items, value, defaultValue, onChange, variant = "underlin
         })}
       </div>
 
-      <motion.div animate={{ height }} transition={springSoft} className="relative overflow-hidden" initial={false}>
+      <motion.div animate={{ height }} transition={springSoft} className="relative overflow-clip" initial={false}>
         <AnimatePresence mode="popLayout" initial={false} custom={dir}>
           {active && (
             <motion.div
