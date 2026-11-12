@@ -272,6 +272,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 
 ### `text-effects/`
 - `ScrambleText` — A Matrix-style decode on view or hover, letter cells fixed so the line never shifts
+- `ScrollWords` — A paragraph that lights up word by word as you scroll; nothing moves, so nothing reflows
 - `TextAnimate` — Headlines that arrive word by word or letter by letter as they come into view
 - `Typewriter` — Phrases typed and deleted in turn, with a real caret that blinks only when idle
 - `WordRotate` — One word swapping in place; the cell is as wide as the longest, so nothing reflows

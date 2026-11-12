@@ -371,7 +371,7 @@ Group id: `marketing` · Folder: `marketing/` · 16 entries
 Section id: `motion`
 
 ### Text effects
-Group id: `text-effects` · Folder: `text-effects/` · 4 entries
+Group id: `text-effects` · Folder: `text-effects/` · 5 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -379,6 +379,7 @@ Group id: `text-effects` · Folder: `text-effects/` · 4 entries
 | Typewriter | `typewriter` | `Typewriter.tsx`, `src/kiln/components/useLoop.ts` |
 | Word rotate | `word-rotate` | `WordRotate.tsx`, `src/kiln/components/useLoop.ts` |
 | Scramble text | `scramble-text` | `ScrambleText.tsx`, `src/kiln/components/useLoop.ts` |
+| Scroll words | `scroll-words` | `ScrollWords.tsx`, `src/kiln/components/shared/useLoop.ts` |
 
 ### Effects
 Group id: `effects` · Folder: `effects/` · 8 entries
