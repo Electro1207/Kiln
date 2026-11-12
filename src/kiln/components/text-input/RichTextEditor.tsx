@@ -102,8 +102,14 @@ function cleanHTML(root: HTMLElement) {
  * (**bold**, *italic*, `code`, ~~strike~~, "- " or "1. " lists, "> " quotes).
  * Pasted content arrives as plain text. `onChange` gets clean HTML.
  */
-export function RichTextEditor({ defaultHTML = "", onChange, label: labelProp, placeholder: placeholderProp, minHeight = 160, className, labels, icons }: {
+export function RichTextEditor({ value, defaultValue, defaultHTML, onChange, label: labelProp, placeholder: placeholderProp, minHeight = 160, className, labels, icons }: {
+  /** Controlled HTML. Leave out to let the editor keep its own. */
+  value?: string;
+  /** Where the uncontrolled editor starts. Default empty. */
+  defaultValue?: string;
+  /** Same as `defaultValue`; kept for existing code. */
   defaultHTML?: string;
+  /** Called with clean HTML as it changes, controlled or not. */
   onChange?: (html: string) => void;
   label?: string;
   placeholder?: string;
@@ -123,15 +129,26 @@ export function RichTextEditor({ defaultHTML = "", onChange, label: labelProp, p
   const linkBtn = useRef<HTMLButtonElement>(null);
   const saved = useRef<Range | null>(null);
   const [state, setState] = useState<Record<string, boolean>>({});
-  const [empty, setEmpty] = useState(!defaultHTML);
+  const start = value ?? defaultValue ?? defaultHTML ?? "";
+  const [empty, setEmpty] = useState(!start);
+  const lastHTML = useRef(start);
   const [linkOpen, setLinkOpen] = useState(false);
   const [url, setUrl] = useState("");
 
   useEffect(() => {
-    if (box.current && defaultHTML) box.current.innerHTML = defaultHTML;
+    if (box.current && start) box.current.innerHTML = start;
     document.execCommand("defaultParagraphSeparator", false, "p");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // A value set from outside replaces the content; one the editor just reported matches already.
+  useEffect(() => {
+    const el = box.current;
+    if (value === undefined || !el || value === lastHTML.current) return;
+    el.innerHTML = value;
+    lastHTML.current = value;
+    setEmpty(!el.textContent?.trim() && !el.querySelector("li,blockquote"));
+  }, [value]);
 
   const inside = (n: Node | null, tag: string) => {
     for (let x: Node | null = n; x && x !== box.current; x = x.parentNode) if (x.nodeName === tag) return x as HTMLElement;
@@ -158,7 +175,8 @@ export function RichTextEditor({ defaultHTML = "", onChange, label: labelProp, p
     const el = box.current;
     if (!el) return;
     setEmpty(!el.textContent?.trim() && !el.querySelector("li,blockquote"));
-    onChange?.(cleanHTML(el));
+    lastHTML.current = cleanHTML(el);
+    onChange?.(lastHTML.current);
   };
 
   const toggleCode = () => {
