@@ -28,6 +28,10 @@ export function ButtonDemo() {
         <Btn size="md" trailing={<ArrowRight />}>Follow the white rabbit</Btn>
         <Btn size="lg" leading={<Download />}>Download the Death Star plans</Btn>
       </Variant>
+      <Variant label="As a link: pass href and it renders an anchor that looks the same">
+        <Button href="https://en.wikipedia.org/wiki/Star_Wars_opening_crawl" external trailing={<ArrowRight />}>Read the opening crawl</Button>
+        <Button href="https://en.wikipedia.org/wiki/Back_to_the_Future" external variant="outline">Check the flux capacitor</Button>
+      </Variant>
       <Variant label="Loading and disabled">
         <Button loading={loading} onClick={send} leading={<Send />}>Send to Hill Valley</Button>
         <Button disabled>You shall not pass</Button>

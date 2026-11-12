@@ -106,7 +106,7 @@ Things measured in pixels take a number:
   | Tabs | `listClassName` | the tab row |
 
 - **Overriding a built-in value.** `cn` joins classes and does not dedupe, so when two classes set the same property, the stylesheet decides which wins, not the order you wrote them in. To beat a built-in height or padding, prefer the `size` prop. Otherwise use Tailwind's important modifier, e.g. `boxClassName="h-14!"`.
-- **Rest props.** Button, IconButton, Card, Badge, Switch, Tag, Link the text inputs, Kbd, StatusDot, Separator, Skeleton, Spinner, Progress and Avatar spread any other prop (`id`, `data-*`, `aria-*`, event handlers) onto their root or their native element, and forward `ref` to it. Where the default width is `k-fill` or the height is `k-ctl-*`, a utility in `className` wins.
+- **Rest props.** Button (an `<a>` when you pass `href`, plus `external` for a new tab), IconButton, Card, Badge, Switch, Tag, Link the text inputs, Kbd, StatusDot, Separator, Skeleton, Spinner, Progress and Avatar spread any other prop (`id`, `data-*`, `aria-*`, event handlers) onto their root or their native element, and forward `ref` to it. Where the default width is `k-fill` or the height is `k-ctl-*`, a utility in `className` wins.
 
 ## 5. Labels and accessibility
 

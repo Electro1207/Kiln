@@ -1,4 +1,4 @@
-import { forwardRef, useMemo, type ReactNode } from "react";
+import { forwardRef, useMemo, type ReactElement, type ReactNode, type Ref, type RefAttributes } from "react";
 import { AnimatePresence, motion, type HTMLMotionProps } from "motion/react";
 import { cn } from "../../cn";
 import { press, spring, springSnappy } from "../../motion";
@@ -20,7 +20,7 @@ export const buttonIcons: ButtonIcons = {
   ),
 };
 
-export type ButtonProps = Omit<HTMLMotionProps<"button">, "children"> & {
+type ButtonOwnProps = {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
@@ -32,6 +32,16 @@ export type ButtonProps = Omit<HTMLMotionProps<"button">, "children"> & {
   /** Replace any built-in icon. Merged over `buttonIcons`. */
   icons?: Partial<ButtonIcons>;
 };
+
+export type ButtonProps = Omit<HTMLMotionProps<"button">, "children"> & ButtonOwnProps & { href?: undefined };
+
+/** A Button that goes somewhere: pass `href` and it renders as an `<a>` with the same look, sizes and press feel. */
+export type ButtonLinkProps = Omit<HTMLMotionProps<"a">, "children" | "href"> &
+  ButtonOwnProps & {
+    href: string;
+    /** Opens in a new tab with `rel="noreferrer"`. Explicit `target` and `rel` still win. */
+    external?: boolean;
+  };
 
 const variants: Record<ButtonVariant, string> = {
   primary: "bg-btn-primary text-btn-primary-ink hover:bg-btn-primary-hover",
@@ -47,30 +57,31 @@ const sizes: Record<ButtonSize, string> = {
   lg: "k-ctl-lg px-6 gap-2.5",
 };
 
-/** The main action. Five variants, three sizes, optional icons and a loading state that keeps its width. Extra props and `ref` go to the `<button>`. */
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = "primary", size = "md", loading = false, leading, trailing, children, className, disabled, icons, ...rest },
+type ButtonComponent = {
+  (props: ButtonProps & RefAttributes<HTMLButtonElement>): ReactElement | null;
+  (props: ButtonLinkProps & RefAttributes<HTMLAnchorElement>): ReactElement | null;
+};
+
+/** The main action. Five variants, three sizes, optional icons and a loading state that keeps its width. Extra props and `ref` go to the `<button>`; with `href` it is an `<a>` that looks the same. */
+export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps | ButtonLinkProps>(function Button(
+  { variant = "primary", size = "md", loading = false, leading, trailing, children, className, icons, ...rest },
   ref,
 ) {
   const ic = useMemo(() => ({ ...buttonIcons, ...icons }), [icons]);
-  const inert = disabled || loading;
-  return (
-    <motion.button
-      ref={ref}
-      whileTap={inert ? undefined : press}
-      transition={springSnappy}
-      disabled={inert}
-      aria-busy={loading || undefined}
-      className={cn(
-        "relative inline-flex select-none items-center justify-center whitespace-nowrap rounded-control font-medium",
-        "transition-[background-color,color,opacity,border-color] duration-200 ease-out-soft",
-        disabled && "opacity-50",
-        variants[variant],
-        sizes[size],
-        className,
-      )}
-      {...rest}
-    >
+  const link = typeof rest.href === "string";
+  const { disabled, ...buttonRest } = rest as Omit<ButtonProps, keyof ButtonOwnProps>;
+  const inert = (!link && Boolean(disabled)) || loading;
+  const classes = cn(
+    "relative inline-flex select-none items-center justify-center whitespace-nowrap rounded-control font-medium",
+    "transition-[background-color,color,opacity,border-color] duration-200 ease-out-soft",
+    !link && disabled && "opacity-50",
+    loading && link && "pointer-events-none",
+    variants[variant],
+    sizes[size],
+    className,
+  );
+  const content = (
+    <>
       <motion.span
         className={cn("inline-flex items-center", sizes[size].split(" ").find((c) => c.startsWith("gap-")))}
         animate={loading ? { opacity: 0, scale: 0.92, filter: "blur(2px)" } : { opacity: 1, scale: 1, filter: "blur(0px)" }}
@@ -94,6 +105,36 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
           </motion.span>
         )}
       </AnimatePresence>
+    </>
+  );
+
+  if (link) {
+    const { external, ...anchor } = rest as Omit<ButtonLinkProps, keyof ButtonOwnProps>;
+    return (
+      <motion.a
+        ref={ref as Ref<HTMLAnchorElement>}
+        whileTap={inert ? undefined : press}
+        transition={springSnappy}
+        aria-busy={loading || undefined}
+        {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
+        className={classes}
+        {...anchor}
+      >
+        {content}
+      </motion.a>
+    );
+  }
+  return (
+    <motion.button
+      ref={ref as Ref<HTMLButtonElement>}
+      whileTap={inert ? undefined : press}
+      transition={springSnappy}
+      disabled={inert}
+      aria-busy={loading || undefined}
+      className={classes}
+      {...buttonRest}
+    >
+      {content}
     </motion.button>
   );
-});
+}) as ButtonComponent;
