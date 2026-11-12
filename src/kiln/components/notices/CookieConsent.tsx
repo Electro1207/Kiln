@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { useControllable } from "../../controllable";
 import { easeOut, fade, springFirm, springSoft } from "../../motion";
 import { Button } from "../buttons/Button";
 import { Switch } from "../choice-controls/Switch";
@@ -43,8 +44,19 @@ export const cookieConsentLabels: CookieConsentLabels = {
 };
 
 export type CookieConsentProps = {
-  open: boolean;
+  /** Controlled visibility. Leave out to let the card show itself and hide after a decision. */
+  open?: boolean;
+  /** Whether the uncontrolled card starts visible. Default true. */
+  defaultOpen?: boolean;
+  /** Called when the card wants to hide, which is after a decision. */
+  onOpenChange?: (open: boolean) => void;
   categories: ConsentCategory[];
+  /** Controlled category choices. Leave out to let the card keep its own. */
+  value?: ConsentChoice;
+  /** Where the uncontrolled choices start. Default only the required categories on. */
+  defaultValue?: ConsentChoice;
+  /** Called when a category is switched, controlled or not. */
+  onChange?: (choice: ConsentChoice) => void;
   onDecide: (choice: ConsentChoice) => void;
   title?: ReactNode;
   children?: ReactNode;
@@ -58,11 +70,22 @@ export type CookieConsentProps = {
  * A consent card in the bottom corner. Equal weight for Accept and Reject;
  * "Choose" opens the categories in place, the card growing upwards.
  */
-export function CookieConsent({ open, categories, onDecide, title, children, policy, labels }: CookieConsentProps) {
+export function CookieConsent({
+  open: openProp, defaultOpen = true, onOpenChange, categories, value, defaultValue, onChange, onDecide, title, children, policy, labels,
+}: CookieConsentProps) {
   const l = { ...cookieConsentLabels, ...labels };
   const [manage, setManage] = useState(false);
-  const [choice, setChoice] = useState<ConsentChoice>(() => Object.fromEntries(categories.map((c) => [c.id, !!c.required])));
+  const [open, setOpen] = useControllable(openProp, defaultOpen, onOpenChange);
+  const [choice, setChoice] = useControllable<ConsentChoice>(
+    value,
+    defaultValue ?? Object.fromEntries(categories.map((c) => [c.id, !!c.required])),
+    onChange,
+  );
   const all = (v: boolean) => Object.fromEntries(categories.map((c) => [c.id, c.required ? true : v]));
+  const decide = (c: ConsentChoice) => {
+    onDecide(c);
+    setOpen(false);
+  };
 
   return (
     <Portal>
@@ -98,7 +121,7 @@ export function CookieConsent({ open, categories, onDecide, title, children, pol
                           size="sm"
                           checked={!!choice[c.id]}
                           disabled={c.required}
-                          onCheckedChange={(v) => setChoice((s) => ({ ...s, [c.id]: v }))}
+                          onCheckedChange={(v) => setChoice({ ...choice, [c.id]: v })}
                           label={c.label}
                           description={c.description}
                           className="w-full"
@@ -112,13 +135,13 @@ export function CookieConsent({ open, categories, onDecide, title, children, pol
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
               {manage ? (
-                <Button size="sm" onClick={() => onDecide(choice)} className="flex-1 sm:flex-none">
+                <Button size="sm" onClick={() => decide(choice)} className="flex-1 sm:flex-none">
                   {l.save}
                 </Button>
               ) : (
                 <>
-                  <Button size="sm" onClick={() => onDecide(all(true))} className="flex-1 sm:flex-none">{l.acceptAll}</Button>
-                  <Button size="sm" variant="secondary" onClick={() => onDecide(all(false))} className="flex-1 sm:flex-none">{l.rejectAll}</Button>
+                  <Button size="sm" onClick={() => decide(all(true))} className="flex-1 sm:flex-none">{l.acceptAll}</Button>
+                  <Button size="sm" variant="secondary" onClick={() => decide(all(false))} className="flex-1 sm:flex-none">{l.rejectAll}</Button>
                 </>
               )}
               <Button size="sm" variant="ghost" onClick={() => setManage((m) => !m)} aria-expanded={manage}>
