@@ -16,7 +16,7 @@ Required props are kept to what the component can't guess. Everything else has a
 
 ## 2. State: controlled or uncontrolled
 
-Every stateful component works both ways.
+Every input works both ways. The exceptions are listed under "Always controlled" and "Keeps its own state" below.
 
 - **Uncontrolled.** Leave out the value prop. The component keeps its own state; pass a `default…` prop to set where it starts.
 - **Controlled.** Pass the value prop and its change handler, and the component shows exactly what you give it.
@@ -36,16 +36,23 @@ Components use the shared hook `useControllable(value, defaultValue, onChange)` 
 
 | Kind of state | Value | Start value | Change handler | Components |
 | --- | --- | --- | --- | --- |
-| A chosen value | `value` | `defaultValue` | `onChange(value)` | Select, Combobox, RadioGroup, SegmentedControl, CheckboxGroup, ColorSwatches, Slider (`number[]`), NumberField, TagInput, OTPInput, Tabs, Accordion (open ids; start with `defaultOpen`), ChipFilter (`string[]`, or `string \| null` with `multiple={false}`), PhoneInput (`{ country, national }`), CurrencyInput (cents or `null`), DatePicker (`Date \| null`), Calendar (`Date | null`, or `{ start, end }` with `mode="range"`; also `defaultMonth`), DateRangePicker (`{ start, end }`), TimePicker (`{ hours, minutes }`), InlineEdit, SizePicker, SidebarNav (active id), CategoryFilters |
-| Several values at once | `filters` / `query` / `sort` | `defaultFilters` / `defaultQuery` / `defaultSort` | `onFiltersChange` / `onQueryChange` / `onSortChange` | FilterBar |
-| A list of rows or ids | `rows` / `selected` | `defaultRows` / `defaultSelected` | `onChange(rows)` / `onSelectedChange(set)` | KeyValueEditor, StackedList (passing any of the three turns its checkboxes on) |
+| A chosen value | `value` | `defaultValue` | `onChange(value)` | Select, Combobox, RadioGroup, SegmentedControl, CheckboxGroup, ColorSwatches, Slider (`number[]`), NumberField, TagInput, OTPInput, Tabs, Accordion (open ids; start with `defaultOpen`), ChipFilter (`string[]`, or `string \| null` with `multiple={false}`), PhoneInput (`{ country, national }`), CurrencyInput (cents or `null`), DatePicker (`Date \| null`), Calendar (`Date | null`, or `{ start, end }` with `mode="range"`; also `defaultMonth`), DateRangePicker (`{ start, end }`), TimePicker (`{ hours, minutes }`), InlineEdit, SizePicker, SidebarNav (active id), DocsNav (active id; change handler is `onSelect(id, groupId)`), CategoryFilters, Rating (number, 0 for none), ColorPicker and ColorPickerPanel (hex string), AvatarUpload (URL or `null`), ProductGallery (index), BillingToggle (`"monthly" \| "yearly"`), CompareSlider (0 to 100), Carousel (index), FeatureTabs (index), ExpandableCards (open id or `null`), AppShell (active nav id; change handler is `onNavigate(id)`), MessageActions (`"up" \| "down" \| null`; handler is `onFeedback`), CalendarMonth (`Date`), RichTextEditor (HTML), MessageComposer, ChatThread, CommentFeed, PlaceholderInput (draft text; the box clears after a send), NotificationPreferences (`{ [eventId]: { [channelId]: boolean } }`), TreeView (selected id or `null`; handler is `onSelect(id, node)`) |
+| Several values at once | `filters` / `query` / `sort` | `defaultFilters` / `defaultQuery` / `defaultSort` | `onFiltersChange` / `onQueryChange` / `onSortChange` | FilterBar. DataGrid also takes `query`, `sort`, `page` and `selected` (`defaultQuery` and so on; `onQueryChange`, `onSortChange`, `onPageChange`, `onSelectedChange`), Table takes `selected` and `sort`, ReviewsSummary takes `sort`, JSONViewer takes `expanded` (a set of paths such as `$.crew[0]`) and `query`, TreeView takes `expanded` (folder ids), and PromptInput takes `model` (`defaultModel`, `onModelChange`) and `attachments` (`defaultAttachments`, `onAttachmentsChange`) next to its `value` |
+| A list of rows or ids | `rows` / `selected` | `defaultRows` / `defaultSelected` | `onChange(rows)` / `onSelectedChange(set)` | KeyValueEditor, StackedList (passing any of the three turns its checkboxes on), Table and DataGrid (`selected`), CommentThread (`comments` / `defaultComments` / `onChange`), CartDrawer (`lines` / `defaultLines` / `onChange`), KanbanBoard (`columns` / `defaultColumns` / `onChange`), SortableList (`items` / `defaultItems` / `onReorder`) |
 | A page | `page` | `defaultPage` | `onChange(page)` | Pagination |
 | On/off | `checked` | `defaultChecked` | `onCheckedChange(bool)` | Switch, Checkbox (also accepts `"indeterminate"`) |
 | Pressed | `pressed` | `defaultPressed` | `onPressedChange(bool)` | ToggleButton |
-| Open/closed | `open` | `defaultOpen` (Select) | `onOpenChange(bool)` | Select, Popover (open is optional). Dialog, Drawer, AlertDialog and CommandPalette are always controlled. |
+| Open/closed | `open` | `defaultOpen` | `onOpenChange(bool)` | Select, Popover, Reasoning (opens and folds with `thinking`), CookieConsent (shows itself and hides after a decision; its `value` / `defaultValue` / `onChange` hold the category choices). Overlays are always controlled; see below. |
 | Text in a native input | `value` | `defaultValue` | `onChange(event)` **and** `onValueChange(text)` | TextField, Textarea, PasswordField, SearchField |
 | Text with mentions | `value` (`@[Name](id)` tokens) | `defaultValue` | `onValueChange(text)`; `onChange({ text, mentions })` is unchanged | MentionsTextarea |
+| A view mode | `view` | `defaultView` | `onViewChange(view)` | DiffViewer (`"split" \| "unified"`) |
 | Playback | `playing` / `volume` (0 to 100) / `muted` / `currentTime` (seconds) | `defaultPlaying` / `defaultVolume` / `defaultMuted` / `defaultCurrentTime` | `onPlayingChange` / `onVolumeChange` / `onMutedChange` / `onTimeChange` | MediaPlayer |
+
+**Always controlled.** These overlays and notices are shown or hidden by your code, so they take `open` (and `onOpenChange` where they can close themselves) with no `defaultOpen`: Dialog, Drawer, AlertDialog, CommandPalette, SpotlightSearch, KeyboardShortcutsSheet, ProductTour, CartDrawer (its cart `lines` still work both ways), ProductQuickView and Banner.
+
+**Keeps its own state.** These whole flows and widgets hold their state inside and report through a callback such as `onSubmit`, `onSend`, `onChange` or `onOpenFile`, so there is no value prop to pass: AuthForms, CheckoutForm, OnboardingWizard, BookingSlots, FileManager, FileDropzone, SignaturePad, ImageCropper, Lightbox, ResizablePanels (`defaultSize`, `onResize`), LogStream, Terminal, WeekCalendar, NotificationCenter, OrderHistory and SplitButton.
+
+**Display only.** A `value` here is data to show, not something the user edits: Progress, ProgressRing, Meter, Stat, GaugeChart, NumberTicker, DescriptionList, CopyButton (`value` is the text it copies), PricingCard (`billing` picks the price shown; change it with BillingToggle), Stepper (`current`), Navbar (`current`), MultiStepLoader and the charts.
 
 Components that wrap a native `<input>` or `<textarea>` also take every native attribute: `name`, `required`, `autoComplete`, `onKeyDown`, `aria-*` and so on. Their `onChange` keeps the native signature, so form libraries work unchanged. `onValueChange` gives you the plain string.
 
@@ -148,7 +155,7 @@ Things measured in pixels take a number:
 <Accordion items={faq} type="multiple" defaultOpen={["shipping"]} />
 ```
 
-**Overlays** (always controlled: you decide when they open)
+**Overlays** (Dialog is always controlled: you decide when it opens. Popover can keep its own state.)
 
 ```tsx
 <Dialog open={open} onOpenChange={setOpen} title="Eject the warp core?" footer={<Button onClick={eject}>Eject</Button>} />

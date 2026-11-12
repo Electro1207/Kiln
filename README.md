@@ -224,7 +224,7 @@ Inputs, Select, Slider, Progress, Tabs and similar components stretch to fill th
 
 ## Controlled and uncontrolled
 
-Every component that holds state works both ways. If you leave out the value prop, the component keeps track of its own state, and `defaultChecked`, `defaultValue` and similar props set where it starts. If you pass the value and its change handler, it shows exactly what you give it.
+Every input works both ways, and so does anything else you can sort, select, expand or page through. If you leave out the value prop, the component keeps track of its own state, and `defaultChecked`, `defaultValue` and similar props set where it starts. If you pass the value and its change handler, it shows exactly what you give it.
 
 ```tsx
 <Switch label="Wi-Fi" defaultChecked onCheckedChange={save} />             // uncontrolled
@@ -233,7 +233,7 @@ const [on, setOn] = useState(true);
 <Switch label="Wi-Fi" checked={on} onCheckedChange={setOn} />              // controlled
 ```
 
-Dialog, Drawer, AlertDialog and CommandPalette are always controlled: you pass `open` and `onOpenChange`. `docs/API.md` lists the prop names for each component. For your own components, `useControllable(value, defaultValue, onChange)` gives you the same behaviour.
+Dialogs, drawers and other overlays are always controlled: you pass `open` and `onOpenChange`. A few whole flows, like checkout and sign-in, keep their own state and tell you through a callback such as `onSubmit`. `docs/API.md` lists the prop names for each component and which ones are exceptions. For your own components, `useControllable(value, defaultValue, onChange)` gives you the same behaviour.
 
 ## For AI agents
 
