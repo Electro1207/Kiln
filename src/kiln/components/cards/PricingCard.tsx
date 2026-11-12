@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { motion } from "motion/react";
 import { Check } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { fade } from "../../motion";
 import { Button } from "../buttons/Button";
 import { NumberTicker } from "../data-display/NumberTicker";
@@ -20,14 +21,19 @@ export interface BillingToggleLabels {
 export const billingToggleLabels: BillingToggleLabels = { billingPeriod: "Billing period", monthly: "Monthly", yearly: "Yearly" };
 
 /** Monthly / yearly switch with a sliding thumb. */
-export function BillingToggle({ value, onChange, saving, labels }: {
-  value: Billing;
-  onChange: (b: Billing) => void;
+export function BillingToggle({ value: valueProp, defaultValue = "monthly", onChange: onChangeProp, saving, labels }: {
+  /** Controlled billing period. Leave out to let the toggle keep its own. */
+  value?: Billing;
+  /** Where an uncontrolled toggle starts. Default `"monthly"`. */
+  defaultValue?: Billing;
+  /** Called with the new period, controlled or not. */
+  onChange?: (b: Billing) => void;
   saving?: string;
   /** Override any UI text. Merged over `billingToggleLabels`. */
   labels?: Partial<BillingToggleLabels>;
 }) {
   const l = { ...billingToggleLabels, ...labels };
+  const [value, onChange] = useControllable<Billing>(valueProp, defaultValue, onChangeProp);
   const opts: { id: Billing; label: string }[] = [
     { id: "monthly", label: l.monthly },
     { id: "yearly", label: l.yearly },
