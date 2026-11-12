@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent as RPointerEvent } from "react";
 import { animate, motion, useMotionValue, type PanInfo } from "motion/react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { fade, springSoft } from "../../motion";
 import type { ProductImage } from "./commerce";
 
@@ -25,11 +26,14 @@ export const productGalleryLabels: ProductGalleryLabels = {
  * keyboard, the arrow keys. Pictures cross-fade; nothing slides across another.
  */
 export function ProductGallery({
-  images, value, onChange, zoom = 2.2, className, ratio = 1, labels,
+  images, value, defaultValue = 0, onChange, zoom = 2.2, className, ratio = 1, labels,
 }: {
   images: ProductImage[];
   /** Controlled index; leave out to let the gallery keep its own. */
   value?: number;
+  /** Where an uncontrolled gallery starts. Default 0. */
+  defaultValue?: number;
+  /** Called with the new index, controlled or not. */
   onChange?: (i: number) => void;
   /** Magnification under the pointer. 1 turns it off. */
   zoom?: number;
@@ -41,13 +45,8 @@ export function ProductGallery({
 }) {
   const l = { ...productGalleryLabels, ...labels };
   const id = useId();
-  const [inner, setInner] = useState(0);
-  const index = value ?? inner;
-  const go = (i: number) => {
-    const n = (i + images.length) % images.length;
-    if (value === undefined) setInner(n);
-    onChange?.(n);
-  };
+  const [index, setIndex] = useControllable(value, defaultValue, onChange);
+  const go = (i: number) => setIndex((i + images.length) % images.length);
 
   // Zoom lens: the magnified copy is scaled and translated so the point under
   // the pointer stays under the pointer. Transform only.
