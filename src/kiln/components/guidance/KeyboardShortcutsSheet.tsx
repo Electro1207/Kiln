@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Search } from "lucide-react";
 import { cn } from "../../cn";
 import { Dialog } from "../overlays/Dialog";
@@ -21,6 +21,12 @@ export const keyboardShortcutsSheetLabels: KeyboardShortcutsSheetLabels = {
   then: "then",
 };
 
+export interface KeyboardShortcutsSheetIcons {
+  /** Filter field. */
+  search: ReactNode;
+}
+export const keyboardShortcutsSheetIcons: KeyboardShortcutsSheetIcons = { search: <Search /> };
+
 export type KeyboardShortcutsSheetProps = {
   groups: ShortcutGroup[];
   open: boolean;
@@ -30,6 +36,8 @@ export type KeyboardShortcutsSheetProps = {
   title?: string;
   /** Override any UI text. Merged over `keyboardShortcutsSheetLabels`. */
   labels?: Partial<KeyboardShortcutsSheetLabels>;
+  /** Replace any built-in icon. Merged over `keyboardShortcutsSheetIcons`. */
+  icons?: Partial<KeyboardShortcutsSheetIcons>;
 };
 
 const isTyping = (t: EventTarget | null) => {
@@ -46,8 +54,9 @@ function Key({ k }: { k: string }) {
 }
 
 /** The list of keyboard shortcuts, in groups, with a filter. "?" opens it. */
-export function KeyboardShortcutsSheet({ groups, open, onOpenChange, listen = true, title = "Keyboard shortcuts", labels }: KeyboardShortcutsSheetProps) {
+export function KeyboardShortcutsSheet({ groups, open, onOpenChange, listen = true, title = "Keyboard shortcuts", labels, icons }: KeyboardShortcutsSheetProps) {
   const l = { ...keyboardShortcutsSheetLabels, ...labels };
+  const ic = { ...keyboardShortcutsSheetIcons, ...icons };
   const [q, setQ] = useState("");
 
   useEffect(() => {
@@ -62,9 +71,11 @@ export function KeyboardShortcutsSheet({ groups, open, onOpenChange, listen = tr
     return () => window.removeEventListener("keydown", onKey);
   }, [listen, onOpenChange]);
 
-  useEffect(() => {
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (!open) setQ("");
-  }, [open]);
+  }
 
   const shown = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -77,7 +88,7 @@ export function KeyboardShortcutsSheet({ groups, open, onOpenChange, listen = tr
   return (
     <Dialog open={open} onOpenChange={onOpenChange} title={title} size="lg">
       <label className="mb-4 flex h-9 items-center gap-2 rounded-control bg-raised px-3 focus-within:ring-2 focus-within:ring-accent">
-        <Search className="size-4 text-muted" aria-hidden />
+        <span className="inline-flex text-muted [&>svg]:size-4" aria-hidden>{ic.search}</span>
         <span className="sr-only">{l.filter}</span>
         <input
           data-autofocus

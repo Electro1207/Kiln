@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, ChevronDown, RotateCcw, Truck } from "lucide-react";
 import { cn } from "../../cn";
@@ -75,7 +75,19 @@ const textSwap = (show: boolean) => (show ? { duration: 0.18, delay: 0.08, ease:
  * Past orders. Each shows its status, items and two actions: tracking folds
  * open beneath the order, and reorder confirms in place.
  */
-export function OrderHistory({ orders, onReorder, currency = "USD", locale, labels }: {
+export interface OrderHistoryIcons {
+  /** Track button. */
+  track: ReactNode;
+  /** Chevron on the track button; turns over when open. */
+  expand: ReactNode;
+  /** Buy again button. */
+  reorder: ReactNode;
+  /** Confirmation after buying again. */
+  added: ReactNode;
+}
+export const orderHistoryIcons: OrderHistoryIcons = { track: <Truck />, expand: <ChevronDown />, reorder: <RotateCcw />, added: <Check /> };
+
+export function OrderHistory({ orders, onReorder, currency = "USD", locale, labels, icons }: {
   orders: Order[];
   onReorder: (order: Order) => Promise<void> | void;
   currency?: string;
@@ -83,16 +95,19 @@ export function OrderHistory({ orders, onReorder, currency = "USD", locale, labe
   locale?: string;
   /** Override any UI text. Merged over `orderHistoryLabels`. */
   labels?: Partial<OrderHistoryLabels>;
+  /** Replace any built-in icon. Merged over `orderHistoryIcons`. */
+  icons?: Partial<OrderHistoryIcons>;
 }) {
   const l = { ...orderHistoryLabels, ...labels };
+  const ic = useMemo(() => ({ ...orderHistoryIcons, ...icons }), [icons]);
   return (
     <ul className="flex w-full flex-col gap-4">
-      {orders.map((o) => <OrderCard key={o.id} order={o} onReorder={onReorder} currency={currency} locale={locale} l={l} />)}
+      {orders.map((o) => <OrderCard key={o.id} order={o} onReorder={onReorder} currency={currency} locale={locale} l={l} ic={ic} />)}
     </ul>
   );
 }
 
-function OrderCard({ order: o, onReorder, currency, locale, l }: { order: Order; onReorder: (o: Order) => Promise<void> | void; currency: string; locale?: string; l: OrderHistoryLabels }) {
+function OrderCard({ order: o, onReorder, currency, locale, l, ic }: { order: Order; onReorder: (o: Order) => Promise<void> | void; currency: string; locale?: string; l: OrderHistoryLabels; ic: OrderHistoryIcons }) {
   const [open, setOpen] = useState(false);
   const [re, setRe] = useState<"idle" | "busy" | "done">("idle");
   const t = useRef<number | undefined>(undefined);
@@ -134,8 +149,8 @@ function OrderCard({ order: o, onReorder, currency, locale, l }: { order: Order;
 
       <div className="flex flex-wrap gap-2 px-4 pb-4 sm:px-5">
         {o.tracking && o.status !== "cancelled" && (
-          <Button size="sm" variant="secondary" leading={<Truck />} aria-expanded={open} onClick={() => setOpen((v) => !v)}
-            trailing={<motion.span initial={false} animate={{ rotate: open ? 180 : 0 }} transition={springSnappy} className="grid"><ChevronDown /></motion.span>}>
+          <Button size="sm" variant="secondary" leading={ic.track} aria-expanded={open} onClick={() => setOpen((v) => !v)}
+            trailing={<motion.span initial={false} animate={{ rotate: open ? 180 : 0 }} transition={springSnappy} className="grid [&>svg]:size-6">{ic.expand}</motion.span>}>
             <span className="grid [&>*]:[grid-area:1/1]">
               <motion.span initial={false} animate={{ opacity: open ? 0 : 1 }} transition={textSwap(!open)} aria-hidden={open}>{l.trackOrder}</motion.span>
               <motion.span initial={false} animate={{ opacity: open ? 1 : 0 }} transition={textSwap(open)} aria-hidden={!open}>{l.hideTracking}</motion.span>
@@ -144,8 +159,8 @@ function OrderCard({ order: o, onReorder, currency, locale, l }: { order: Order;
         )}
         <Button size="sm" variant="ghost" loading={re === "busy"} onClick={reorder}>
           <span className="grid justify-items-center [&>*]:[grid-area:1/1]">
-            <motion.span className="inline-flex items-center gap-1.5" initial={false} animate={{ opacity: re === "done" ? 0 : 1 }} transition={textSwap(re !== "done")} aria-hidden={re === "done"}><RotateCcw className="size-4" /> {l.buyAgain}</motion.span>
-            <motion.span className="inline-flex items-center gap-1.5 text-positive" initial={false} animate={{ opacity: re === "done" ? 1 : 0 }} transition={textSwap(re === "done")} aria-hidden={re !== "done"}><Check className="size-4" /> {l.addedToCart}</motion.span>
+            <motion.span className="inline-flex items-center gap-1.5" initial={false} animate={{ opacity: re === "done" ? 0 : 1 }} transition={textSwap(re !== "done")} aria-hidden={re === "done"}><span className="inline-flex [&>svg]:size-4">{ic.reorder}</span> {l.buyAgain}</motion.span>
+            <motion.span className="inline-flex items-center gap-1.5 text-positive" initial={false} animate={{ opacity: re === "done" ? 1 : 0 }} transition={textSwap(re === "done")} aria-hidden={re !== "done"}><span className="inline-flex [&>svg]:size-4">{ic.added}</span> {l.addedToCart}</motion.span>
           </span>
         </Button>
         <span className="sr-only" aria-live="polite">{re === "done" ? l.reorderAnnounce(o.id) : ""}</span>

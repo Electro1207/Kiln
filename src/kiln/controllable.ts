@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 /** The size scale every control shares. `md` is always the default. */
 export type Size = "sm" | "md" | "lg";
@@ -18,9 +18,11 @@ export function useControllable<T>(value: T | undefined, defaultValue: T, onChan
   const controlled = value !== undefined;
   const current = controlled ? value : inner;
   const latest = useRef(current);
-  latest.current = current;
   const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
+  useLayoutEffect(() => {
+    latest.current = current;
+    onChangeRef.current = onChange;
+  });
   const set = useCallback(
     (next: T | ((prev: T) => T)) => {
       const v = typeof next === "function" ? (next as (prev: T) => T)(latest.current) : next;

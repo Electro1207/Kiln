@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown, CreditCard, Lock, Tag as TagIcon } from "lucide-react";
 import { cn } from "../../cn";
@@ -142,8 +142,20 @@ export const checkoutFormLabels: CheckoutFormLabels = {
  * in view. The payment fields are display only: this component never takes
  * card details. Wire a real payment provider's own fields in their place.
  */
+export interface CheckoutFormIcons {
+  /** Place-order button and the demo-card banner. */
+  secure: ReactNode;
+  /** Beside the demo card number. */
+  card: ReactNode;
+  /** Inside the promo code field. */
+  promo: ReactNode;
+  /** Chevron on the mobile summary toggle; turns over when open. */
+  expand: ReactNode;
+}
+export const checkoutFormIcons: CheckoutFormIcons = { secure: <Lock />, card: <CreditCard />, promo: <TagIcon />, expand: <ChevronDown /> };
+
 export function CheckoutForm({
-  lines, delivery, countries, taxRate, currency = "USD", checkPromo, onPlaceOrder, paymentSlot, labels,
+  lines, delivery, countries, taxRate, currency = "USD", checkPromo, onPlaceOrder, paymentSlot, labels, icons,
 }: {
   lines: CartLine[];
   delivery: DeliveryOption[];
@@ -157,8 +169,11 @@ export function CheckoutForm({
   paymentSlot?: ReactNode;
   /** Override any UI text. Merged over `checkoutFormLabels`. */
   labels?: Partial<CheckoutFormLabels>;
+  /** Replace any built-in icon. Merged over `checkoutFormIcons`. */
+  icons?: Partial<CheckoutFormIcons>;
 }) {
   const l = { ...checkoutFormLabels, ...labels };
+  const ic = useMemo(() => ({ ...checkoutFormIcons, ...icons }), [icons]);
   const [f, setF] = useState({ email: "", name: "", address: "", city: "", postcode: "", country: countries[0]?.value ?? "" });
   const [errors, setErrors] = useState<Partial<Record<keyof typeof f, string>>>({});
   const [method, setMethod] = useState(delivery[0].id);
@@ -185,11 +200,11 @@ export function CheckoutForm({
     setState("done");
   };
 
-  const summary = <Summary lines={lines} t={t} money={money} promo={promo} setPromo={setPromo} checkPromo={checkPromo} shippingLabel={opt.label} l={l} />;
+  const summary = <Summary lines={lines} t={t} money={money} promo={promo} setPromo={setPromo} checkPromo={checkPromo} shippingLabel={opt.label} l={l} ic={ic} />;
 
   return (
     <form onSubmit={submit} noValidate className="grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-10">
-      <MobileSummary total={money(t.total)} l={l}>{summary}</MobileSummary>
+      <MobileSummary total={money(t.total)} l={l} ic={ic}>{summary}</MobileSummary>
 
       <div className="flex min-w-0 flex-col gap-8">
         <Section title={l.contact}>
@@ -221,11 +236,11 @@ export function CheckoutForm({
         </Section>
 
         <Section title={l.payment}>
-          {paymentSlot ?? <DemoCard l={l} />}
+          {paymentSlot ?? <DemoCard l={l} ic={ic} />}
         </Section>
 
         <div className="flex flex-col gap-3">
-          <Button type="submit" size="lg" loading={state === "placing"} disabled={state === "done"} className="w-full" leading={<Lock />}>
+          <Button type="submit" size="lg" loading={state === "placing"} disabled={state === "done"} className="w-full" leading={ic.secure}>
             {state === "done" ? l.orderPlaced : l.placeOrder(money(t.total))}
           </Button>
           <AnimatePresence initial={false}>
@@ -255,16 +270,16 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 /** Looks like card fields so the flow reads true, but holds no inputs at all. */
-function DemoCard({ l }: { l: CheckoutFormLabels }) {
+function DemoCard({ l, ic }: { l: CheckoutFormLabels; ic: CheckoutFormIcons }) {
   const box = "flex h-10 items-center gap-2 rounded-control border border-line bg-raised px-3 text-sm text-muted tabular";
   return (
     <div className="flex flex-col gap-4 rounded-card bg-surface p-4">
       <p className="flex items-center gap-2 rounded-control bg-warning-soft px-3 py-2 text-[13px] font-medium text-warning">
-        <Lock className="size-3.5 shrink-0" aria-hidden /> {l.demoBanner}
+        <span className="inline-flex shrink-0 [&>svg]:size-3.5" aria-hidden>{ic.secure}</span> {l.demoBanner}
       </p>
       <div className="flex flex-col gap-2" aria-label={l.demoCardGroup} role="group">
         <span className="text-sm font-medium text-ink">{l.cardNumber}</span>
-        <div className={box} aria-readonly="true"><CreditCard className="size-4 shrink-0" aria-hidden /> 4242 4242 4242 4242</div>
+        <div className={box} aria-readonly="true"><span className="inline-flex shrink-0 [&>svg]:size-4" aria-hidden>{ic.card}</span> 4242 4242 4242 4242</div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-2" role="group" aria-label={l.demoExpiryGroup}>
@@ -281,8 +296,9 @@ function DemoCard({ l }: { l: CheckoutFormLabels }) {
   );
 }
 
-function Summary({ lines, t, money, promo, setPromo, checkPromo, shippingLabel, l }: {
+function Summary({ lines, t, money, promo, setPromo, checkPromo, shippingLabel, l, ic }: {
   l: CheckoutFormLabels;
+  ic: CheckoutFormIcons;
   lines: CartLine[];
   t: ReturnType<typeof cartTotals>;
   money: (n: number) => string;
@@ -321,7 +337,7 @@ function Summary({ lines, t, money, promo, setPromo, checkPromo, shippingLabel, 
         <TextField
           aria-label={l.promoCode}
           placeholder={l.promoCode}
-          leading={<TagIcon />}
+          leading={ic.promo}
           value={code}
           onChange={(e) => { setCode(e.target.value.toUpperCase()); setErr(undefined); }}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); apply(); } }}
@@ -363,14 +379,14 @@ function Line({ label, value }: { label: string; value: string }) {
   );
 }
 
-function MobileSummary({ total, children, l }: { total: string; children: ReactNode; l: CheckoutFormLabels }) {
+function MobileSummary({ total, children, l, ic }: { total: string; children: ReactNode; l: CheckoutFormLabels; ic: CheckoutFormIcons }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="rounded-sheet bg-surface lg:hidden">
       <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-sm">
         <span className="flex items-center gap-2 font-medium text-accent">
           {open ? l.hideSummary : l.showSummary}
-          <motion.span initial={false} animate={{ rotate: open ? 180 : 0 }} transition={springSnappy} className="grid"><ChevronDown className="size-4" /></motion.span>
+          <motion.span initial={false} animate={{ rotate: open ? 180 : 0 }} transition={springSnappy} className="grid [&>svg]:size-4">{ic.expand}</motion.span>
         </span>
         <span className="font-semibold text-ink tabular">{total}</span>
       </button>

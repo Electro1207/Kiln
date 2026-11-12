@@ -1,13 +1,16 @@
 import { forwardRef, useId, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
-import { springFirm } from "../../motion";
+import { easeOut, springFirm } from "../../motion";
 import { useControllable, type Size } from "../../controllable";
 
 /** How far the thumb grows into a pill while pressed, in px. */
 const STRETCH = 5;
 /** A touch quicker than springFirm: a switch is a small, frequent control. */
 const thumbSpring = { ...springFirm, visualDuration: 0.36 };
+/** The press stretch is a tween, not a spring: a spring keeps the speed of an interrupted press
+    and overshoots when the toggle lands mid-stretch, which reads as a bounce. */
+const stretchEase = { duration: 0.2, ease: easeOut };
 
 const sizes = {
   sm: { track: "h-5 w-8", thumb: 16, travel: 12, pad: 2 },
@@ -73,14 +76,14 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
         animate={{ x: checked ? s.travel : 0 }}
         transition={thumbSpring}
       >
-        <motion.span className="absolute left-0 top-0 rounded-full bg-white" style={{ width: s.thumb, height: s.thumb }} initial={false} animate={{ x: a }} transition={thumbSpring} />
-        <motion.span className="absolute left-0 top-0 rounded-full bg-white" style={{ width: s.thumb, height: s.thumb }} initial={false} animate={{ x: b }} transition={thumbSpring} />
+        <motion.span className="absolute left-0 top-0 rounded-full bg-white" style={{ width: s.thumb, height: s.thumb }} initial={false} animate={{ x: a }} transition={stretchEase} />
+        <motion.span className="absolute left-0 top-0 rounded-full bg-white" style={{ width: s.thumb, height: s.thumb }} initial={false} animate={{ x: b }} transition={stretchEase} />
         <motion.span
           className="absolute top-0 bg-white"
           style={{ left: r, width: 1, height: s.thumb, originX: 0 }}
           initial={false}
           animate={{ x: a, scaleX: Math.max(b - a, 0.001) }}
-          transition={thumbSpring}
+          transition={stretchEase}
         />
       </motion.span>
     </button>

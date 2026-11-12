@@ -6,9 +6,28 @@ You can see every component working in the gallery at https://usekiln.pages.dev,
 
 There are two ways to use it. Install the npm package `@electro1207/kiln`, or copy just the components you want into your own project. Either way, the words on screen are yours: titles, labels and messages all come from props and children, so you never need to edit Kiln's source to change text.
 
+## Why Kiln
+
+I started Kiln while using AI to build full-stack apps faster. The code came together quickly, but the interface didn't: good UI and UX was always the slow part. There are other component libraries, but many of them keep their best pieces behind a paywall.
+
+Kiln is free, all of it. It's a passion project, made so anyone can ship a product that looks and feels good without paying for the parts that make it so.
+
+## About
+
+Kiln is built and maintained by one person, and it isn't for sale. If you need a feature, ask for it and I'll try to add it as soon as I can.
+
+## Requests, bugs and questions
+
+Everything goes through GitHub, which is free. You only need a GitHub account.
+
+- **Found a bug?** [Open a bug report](https://github.com/Electro1207/Kiln/issues/new?template=bug_report.yml).
+- **Want a component or a change?** [Request a feature](https://github.com/Electro1207/Kiln/issues/new?template=feature_request.yml).
+- **Have a question or an idea to talk through?** [Start a discussion](https://github.com/Electro1207/Kiln/discussions).
+- **Found a security problem?** [Report it privately](https://github.com/Electro1207/Kiln/security/advisories/new) instead of opening an issue.
+
 ## Contents
 
-[Install from npm](#install-from-npm) · [Copy components in](#copy-components-in) · [Usage](#usage) · [Theming](#theming) · [Sizing and className](#sizing-and-classname) · [Controlled and uncontrolled](#controlled-and-uncontrolled) · [For AI agents](#for-ai-agents) · [Develop this repo](#develop-this-repo) · [Contributing](#contributing) · [Licence](#licence) · [Security](#security)
+[Why Kiln](#why-kiln) · [Requests](#requests-bugs-and-questions) · [Install from npm](#install-from-npm) · [Copy components in](#copy-components-in) · [Usage](#usage) · [Theming](#theming) · [Sizing and className](#sizing-and-classname) · [Controlled and uncontrolled](#controlled-and-uncontrolled) · [For AI agents](#for-ai-agents) · [Develop this repo](#develop-this-repo) · [Contributing](#contributing) · [Licence](#licence) · [Security](#security)
 
 ## Install from npm
 
@@ -150,6 +169,20 @@ import { Pagination, paginationLabels } from "@electro1207/kiln";
 ```
 
 If a component also has a dedicated prop for the same text (`placeholder`, `emptyText`, `label`, `aria-label`), that prop wins. A few components memoise their rows, so give them a `labels` object that doesn't change between renders, such as a module constant or a `useMemo`. `docs/API.md`, section 7, lists the components and the rules. Each component's props are documented in its source file, or in its `.d.ts` file if you installed from npm.
+
+### The `icons` prop
+
+The same goes for icons a component draws itself, such as a close button's cross, a chevron, the tick in a checkbox or the star in a rating. Each component that draws some has an optional `icons` prop, plus an exported type, `XIcons`, and its defaults, `xIcons`. Pass any element and only that icon changes. Kiln sizes and colours it for you, so you don't pass a size, and your icon follows the text colour as long as it uses `currentColor`.
+
+```tsx
+import { Alert, Rating } from "@electro1207/kiln";
+import { Heart, Zap } from "lucide-react";
+
+<Alert tone="warning" title="Don't cross the streams" icons={{ warning: <Zap /> }} />
+<Rating value={4} icons={{ star: <Heart fill="currentColor" />, starOff: <Heart /> }} />
+```
+
+A dedicated prop such as `icon`, `leading` or `trailing` still wins over `icons`. Pass a stable object to components that memoise their rows, as with `labels`. The theme toggle's sun and moon is the one thing you can't swap, because the two shapes morph into each other. `docs/API.md`, section 8, lists the components and their slots.
 
 ## Theming
 

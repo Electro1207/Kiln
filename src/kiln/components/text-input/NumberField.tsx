@@ -1,9 +1,18 @@
-import { useId, useRef, useState, type ReactNode } from "react";
+import { useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Minus, Plus } from "lucide-react";
 import { cn } from "../../cn";
 import { springSnappy } from "../../motion";
 import { useControllable, type Size } from "../../controllable";
+
+/** Icons used by NumberField. Pass a partial via `icons` to replace them. */
+export interface NumberFieldIcons {
+  /** Decrease button. */
+  decrease: ReactNode;
+  /** Increase button. */
+  increase: ReactNode;
+}
+export const numberFieldIcons: NumberFieldIcons = { decrease: <Minus />, increase: <Plus /> };
 
 /** Text used by NumberField. Pass a partial via `labels` to translate or reword. */
 export interface NumberFieldLabels {
@@ -23,7 +32,7 @@ const nfSizes: Record<Size, { box: string; btn: string; text: string }> = {
 
 /** A number input with stepper buttons and arrow-key stepping. Controlled with `value` + `onChange`, or uncontrolled with `defaultValue`. */
 export function NumberField({
-  value: valueProp, defaultValue, onChange: onChangeProp, min = -Infinity, max = Infinity, step = 1, label, suffix, size = "md", className, labels,
+  value: valueProp, defaultValue, onChange: onChangeProp, min = -Infinity, max = Infinity, step = 1, label, suffix, size = "md", className, labels, icons,
 }: {
   /** Controlled number. Leave out and use `defaultValue` to let the field keep its own. */
   value?: number;
@@ -39,8 +48,11 @@ export function NumberField({
   className?: string;
   /** Override any UI text. Merged over `numberFieldLabels`. */
   labels?: Partial<NumberFieldLabels>;
+  /** Replace any built-in icon. Merged over `numberFieldIcons`. */
+  icons?: Partial<NumberFieldIcons>;
 }) {
   const l = { ...numberFieldLabels, ...labels };
+  const ic = { ...numberFieldIcons, ...icons };
   const [value, onChange] = useControllable(valueProp, defaultValue ?? (Number.isFinite(min) ? min : 0), onChangeProp);
   const sz = nfSizes[size];
   const id = useId();
@@ -48,7 +60,9 @@ export function NumberField({
   const [editing, setEditing] = useState<string | null>(null);
   const timer = useRef<number | undefined>(undefined);
   const latest = useRef(value);
-  latest.current = value;
+  useLayoutEffect(() => {
+    latest.current = value;
+  });
 
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
   const bump = (d: number) => {
@@ -82,8 +96,8 @@ export function NumberField({
       <div className={cn(sz.box, "inline-flex w-fit items-center overflow-hidden rounded-control border border-line-strong bg-surface transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/20")}>
         <motion.button type="button" aria-label={l.decrease} tabIndex={-1} disabled={value <= min} whileTap={{ scale: 0.85 }} transition={springSnappy}
           onPointerDown={(e) => { e.preventDefault(); startRepeat(-1); }} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop}
-          className={btn}>
-          <Minus className="size-4" />
+          className={cn(btn, "[&>svg]:size-4")}>
+          {ic.decrease}
         </motion.button>
         <div className={cn("relative flex h-full items-center justify-center px-1 font-medium text-ink tabular", sz.text)}>
           <input
@@ -134,8 +148,8 @@ export function NumberField({
         </div>
         <motion.button type="button" aria-label={l.increase} tabIndex={-1} disabled={value >= max} whileTap={{ scale: 0.85 }} transition={springSnappy}
           onPointerDown={(e) => { e.preventDefault(); startRepeat(1); }} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop}
-          className={btn}>
-          <Plus className="size-4" />
+          className={cn(btn, "[&>svg]:size-4")}>
+          {ic.increase}
         </motion.button>
       </div>
     </div>

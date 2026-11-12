@@ -1,8 +1,38 @@
-import { useEffect, useId, useRef, useState, type DragEvent } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, FileImage, FileText, FileArchive, File as FileIcon, UploadCloud, X, RotateCw } from "lucide-react";
 import { cn } from "../../cn";
 import { fade, spring, springFirm, springSnappy, springSoft } from "../../motion";
+
+/** Icons used by FileDropzone. Pass a partial via `icons` to replace them. */
+export interface FileDropzoneIcons {
+  /** Cloud in the drop area. */
+  upload: ReactNode;
+  /** Image file in the list. */
+  image: ReactNode;
+  /** Archive file in the list. */
+  archive: ReactNode;
+  /** Text, PDF or document file in the list. */
+  document: ReactNode;
+  /** Any other file in the list. */
+  file: ReactNode;
+  /** Tick on a finished upload. */
+  done: ReactNode;
+  /** Retry button on a failed upload. */
+  retry: ReactNode;
+  /** Remove button. */
+  remove: ReactNode;
+}
+export const fileDropzoneIcons: FileDropzoneIcons = {
+  upload: <UploadCloud />,
+  image: <FileImage />,
+  archive: <FileArchive />,
+  document: <FileText />,
+  file: <FileIcon />,
+  done: <Check />,
+  retry: <RotateCw />,
+  remove: <X />,
+};
 
 /** Text used by FileDropzone. Pass a partial via `labels` to translate or reword. */
 export interface FileDropzoneLabels {
@@ -57,6 +87,8 @@ export type FileDropzoneProps = {
   onComplete?: (file: File) => void;
   /** Override any UI text. Merged over `fileDropzoneLabels`. */
   labels?: Partial<FileDropzoneLabels>;
+  /** Replace any built-in icon. Merged over `fileDropzoneIcons`. */
+  icons?: Partial<FileDropzoneIcons>;
   className?: string;
 };
 
@@ -77,11 +109,11 @@ const simulated: UploadFn = (file, onProgress, signal) =>
     signal.addEventListener("abort", () => { window.clearInterval(t); reject(new DOMException("Aborted", "AbortError")); });
   });
 
-function iconFor(file: File) {
-  if (file.type.startsWith("image/")) return FileImage;
-  if (/zip|tar|gzip|rar|7z/.test(file.type) || /\.(zip|tar|gz|rar|7z)$/i.test(file.name)) return FileArchive;
-  if (file.type.startsWith("text/") || /pdf|document|sheet/.test(file.type)) return FileText;
-  return FileIcon;
+function iconFor(file: File): "image" | "archive" | "document" | "file" {
+  if (file.type.startsWith("image/")) return "image";
+  if (/zip|tar|gzip|rar|7z/.test(file.type) || /\.(zip|tar|gz|rar|7z)$/i.test(file.name)) return "archive";
+  if (file.type.startsWith("text/") || /pdf|document|sheet/.test(file.type)) return "document";
+  return "file";
 }
 
 function matchesAccept(file: File, accept?: string) {
@@ -102,9 +134,11 @@ export function FileDropzone({
   label,
   onComplete,
   labels,
+  icons,
   className,
 }: FileDropzoneProps) {
   const l = { ...fileDropzoneLabels, ...labels };
+  const ic = useMemo(() => ({ ...fileDropzoneIcons, ...icons }), [icons]);
   const prompt = label ?? l.prompt;
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -186,9 +220,9 @@ export function FileDropzone({
         <motion.span
           animate={over ? { y: -4 } : { y: 0 }}
           transition={springSoft}
-          className={cn("grid size-11 place-items-center rounded-full transition-colors duration-200", over ? "bg-btn-primary text-btn-primary-ink" : "bg-raised text-muted")}
+          className={cn("grid size-11 place-items-center rounded-full transition-colors duration-200", over ? "bg-btn-primary text-btn-primary-ink" : "bg-raised text-muted", "[&>svg]:size-5")}
         >
-          <UploadCloud className="size-5" />
+          {ic.upload}
         </motion.span>
         <p className="text-sm text-ink">
           {over ? l.release : (
@@ -220,7 +254,6 @@ export function FileDropzone({
       <ul className="flex flex-col gap-2" aria-live="polite">
         <AnimatePresence initial={false} mode="popLayout">
           {items.map((it) => {
-            const Icon = iconFor(it.file);
             return (
               <motion.li
                 key={it.id}
@@ -231,8 +264,8 @@ export function FileDropzone({
                 transition={spring}
                 className="flex items-center gap-3 rounded-card bg-surface p-3"
               >
-                <span className={cn("grid size-9 shrink-0 place-items-center rounded-control", it.state === "error" ? "bg-negative-soft text-negative" : "bg-raised text-muted")}>
-                  <Icon className="size-4" />
+                <span className={cn("grid size-9 shrink-0 place-items-center rounded-control", it.state === "error" ? "bg-negative-soft text-negative" : "bg-raised text-muted", "[&>svg]:size-4")}>
+                  {ic[iconFor(it.file)]}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-3">
@@ -257,12 +290,12 @@ export function FileDropzone({
                 <span className="grid size-7 shrink-0 [&>*]:[grid-area:1/1]">
                 <AnimatePresence initial={false}>
                   {it.state === "done" ? (
-                    <motion.span key="ok" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ opacity: fade, scale: springSnappy }} className="grid size-7 place-items-center rounded-full bg-positive-soft text-positive" aria-label={l.uploaded}>
-                      <Check className="size-3.5" strokeWidth={3} />
+                    <motion.span key="ok" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ opacity: fade, scale: springSnappy }} className="grid size-7 place-items-center rounded-full bg-positive-soft text-positive [&>svg]:size-3.5 [&>svg]:[stroke-width:3]" aria-label={l.uploaded}>
+                      {ic.done}
                     </motion.span>
                   ) : it.state === "error" && matchesAccept(it.file, accept) && !(maxSize && it.file.size > maxSize) ? (
-                    <motion.button key="retry" type="button" aria-label={l.retry(it.file.name)} onClick={() => retry(it)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={fade} className="grid size-7 place-items-center rounded-full text-muted transition-colors hover:bg-active hover:text-ink">
-                      <RotateCw className="size-3.5" />
+                    <motion.button key="retry" type="button" aria-label={l.retry(it.file.name)} onClick={() => retry(it)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={fade} className="grid size-7 place-items-center rounded-full text-muted transition-colors hover:bg-active hover:text-ink [&>svg]:size-3.5">
+                      {ic.retry}
                     </motion.button>
                   ) : null}
                 </AnimatePresence>
@@ -271,9 +304,9 @@ export function FileDropzone({
                   type="button"
                   aria-label={l.remove(it.file.name)}
                   onClick={() => remove(it.id)}
-                  className="grid size-7 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-active hover:text-ink"
+                  className="grid size-7 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-active hover:text-ink [&>svg]:size-3.5"
                 >
-                  <X className="size-3.5" />
+                  {ic.remove}
                 </button>
               </motion.li>
             );

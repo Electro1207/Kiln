@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Camera, Trash2, Upload } from "lucide-react";
 import { cn } from "../../cn";
@@ -38,12 +38,22 @@ export const avatarUploadLabels: AvatarUploadLabels = {
   use: "Use this picture",
 };
 
+export interface AvatarUploadIcons {
+  /** Upload button. */
+  upload: ReactNode;
+  /** Sample-picture button. */
+  sample: ReactNode;
+  /** Remove button. */
+  remove: ReactNode;
+}
+export const avatarUploadIcons: AvatarUploadIcons = { upload: <Upload />, sample: <Camera />, remove: <Trash2 /> };
+
 /**
  * A round avatar with upload, crop and remove. The cropper opens beneath it;
  * the saved picture cross-fades into the avatar.
  */
 export function AvatarUpload({
-  value, onChange, name, size = 96, className, sample, labels, cropperLabels,
+  value, onChange, name, size = 96, className, sample, labels, cropperLabels, icons,
 }: {
   /** Current picture as a URL or data URL; null shows initials. */
   value: string | null;
@@ -58,8 +68,11 @@ export function AvatarUpload({
   labels?: Partial<AvatarUploadLabels>;
   /** Text for the cropper that opens beneath the avatar. */
   cropperLabels?: Partial<ImageCropperLabels>;
+  /** Replace any built-in icon. Merged over `avatarUploadIcons`. */
+  icons?: Partial<AvatarUploadIcons>;
 }) {
   const l = { ...avatarUploadLabels, ...labels };
+  const ic = { ...avatarUploadIcons, ...icons };
   const file = useRef<HTMLInputElement>(null);
   const cropper = useRef<ImageCropperHandle>(null);
   const [editing, setEditing] = useState<string | null>(null);
@@ -100,9 +113,9 @@ export function AvatarUpload({
         </div>
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="secondary" leading={<Upload />} onClick={() => file.current?.click()}>{l.upload}</Button>
-            {sample && <Button size="sm" variant="ghost" leading={<Camera />} onClick={() => { setError(null); setEditing(sample()); }}>{l.sample}</Button>}
-            {value && <Button size="sm" variant="ghost" leading={<Trash2 />} onClick={() => onChange(null)}>{l.remove}</Button>}
+            <Button size="sm" variant="secondary" leading={ic.upload} onClick={() => file.current?.click()}>{l.upload}</Button>
+            {sample && <Button size="sm" variant="ghost" leading={ic.sample} onClick={() => { setError(null); setEditing(sample()); }}>{l.sample}</Button>}
+            {value && <Button size="sm" variant="ghost" leading={ic.remove} onClick={() => onChange(null)}>{l.remove}</Button>}
           </div>
           <p className={cn("text-[13px]", error ? "text-negative" : "text-muted")} role={error ? "alert" : undefined}>
             {error ?? l.hint}

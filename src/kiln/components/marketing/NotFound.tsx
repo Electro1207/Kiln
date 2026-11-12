@@ -7,6 +7,12 @@ export interface NotFoundLabels {
   /** aria-label of the suggestions nav. */
   popularPages: string;
 }
+/** Icons used by NotFound. Pass a partial via `icons` to swap any of them. */
+export interface NotFoundIcons {
+  /** The arrow at the end of each suggestion. */
+  arrow: ReactNode;
+}
+export const notFoundIcons: NotFoundIcons = { arrow: <ArrowRight /> };
 export const notFoundLabels: NotFoundLabels = { popularPages: "Popular pages" };
 
 export type NotFoundProps = {
@@ -18,12 +24,15 @@ export type NotFoundProps = {
   suggestions?: { label: string; description?: string; href: string }[];
   /** Override any UI text. Merged over `notFoundLabels`. */
   labels?: Partial<NotFoundLabels>;
+  /** Replace any built-in icon. Merged over `notFoundIcons`. */
+  icons?: Partial<NotFoundIcons>;
   className?: string;
 };
 
 /** A 404 block: the code set large, a plain sentence, a way back, and likely destinations. */
-export function NotFound({ code = "404", title, body, actions, suggestions, labels, className }: NotFoundProps) {
+export function NotFound({ code = "404", title, body, actions, suggestions, labels, icons, className }: NotFoundProps) {
   const l = { ...notFoundLabels, ...labels };
+  const ic = { ...notFoundIcons, ...icons };
   return (
     <section className={cn("@container w-full", className)}>
       <div className="grid gap-10 @4xl:grid-cols-2 @4xl:items-center">
@@ -43,7 +52,7 @@ export function NotFound({ code = "404", title, body, actions, suggestions, labe
                       <span className="block text-[15px] font-medium text-ink">{s.label}</span>
                       {s.description && <span className="mt-0.5 block text-sm text-muted">{s.description}</span>}
                     </span>
-                    <ArrowRight className="size-4 shrink-0 text-muted transition-transform duration-300 ease-out-soft group-hover/s:translate-x-1" />
+                    <span aria-hidden className="grid shrink-0 place-items-center text-muted transition-transform duration-300 ease-out-soft group-hover/s:translate-x-1 [&>svg]:size-4">{ic.arrow}</span>
                   </a>
                 </li>
               ))}

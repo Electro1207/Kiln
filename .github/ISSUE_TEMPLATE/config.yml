@@ -3,3 +3,6 @@ contact_links:
   - name: Security vulnerability
     url: https://github.com/Electro1207/Kiln/security/advisories/new
     about: Please report security problems privately, not as an issue.
+  - name: Questions and ideas
+    url: https://github.com/Electro1207/Kiln/discussions
+    about: Ask a question or talk through an idea before it becomes a request.

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { animate, motion, useMotionValue, type PanInfo } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "../../cn";
@@ -36,12 +36,24 @@ export type CarouselProps = {
   gap?: number;
   /** Override any UI text. Merged over `carouselLabels`. */
   labels?: Partial<CarouselLabels>;
+  /** Replace any built-in icon. Merged over `carouselIcons`. */
+  icons?: Partial<CarouselIcons>;
   className?: string;
 };
 
 /** Drag with momentum, snaps to a slide, arrows and keyboard too. */
-export function Carousel({ slides, label, perView = 2, gap = 16, labels, className }: CarouselProps) {
+/** Icons used by Carousel. Pass a partial via `icons` to swap any of them. */
+export interface CarouselIcons {
+  /** Previous slide button. */
+  previous: ReactNode;
+  /** Next slide button. */
+  next: ReactNode;
+}
+export const carouselIcons: CarouselIcons = { previous: <ChevronLeft />, next: <ChevronRight /> };
+
+export function Carousel({ slides, label, perView = 2, gap = 16, labels, icons, className }: CarouselProps) {
   const l = { ...carouselLabels, ...labels };
+  const ic = useMemo(() => ({ ...carouselIcons, ...icons }), [icons]);
   const uid = useId();
   const viewport = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -65,9 +77,14 @@ export function Carousel({ slides, label, perView = 2, gap = 16, labels, classNa
   const minX = Math.min(0, -(slides.length * stride - gap - width));
   const posFor = useCallback((i: number) => Math.max(minX, -i * stride), [minX, stride]);
 
+  // Re-seat the track only when the size changes, not on every index change (that would cut the spring).
+  const reseat = useRef(() => {});
   useLayoutEffect(() => {
-    if (width) x.set(posFor(Math.min(index, maxIndex)));
-  }, [width, pv]);
+    reseat.current = () => {
+      if (width) x.set(posFor(Math.min(index, maxIndex)));
+    };
+  });
+  useLayoutEffect(() => reseat.current(), [width, pv]);
 
   const go = (i: number, velocity = 0) => {
     const next = Math.max(0, Math.min(maxIndex, i));
@@ -143,10 +160,10 @@ export function Carousel({ slides, label, perView = 2, gap = 16, labels, classNa
         </div>
         <div className="flex gap-2">
           <ArrowBtn label={l.previous} disabled={index === 0} onClick={() => go(index - 1)}>
-            <ChevronLeft className="size-4" />
+            {ic.previous}
           </ArrowBtn>
           <ArrowBtn label={l.next} disabled={index >= maxIndex} onClick={() => go(index + 1)}>
-            <ChevronRight className="size-4" />
+            {ic.next}
           </ArrowBtn>
         </div>
       </div>
@@ -166,7 +183,7 @@ function ArrowBtn({ label, disabled, onClick, children }: { label: string; disab
       onClick={onClick}
       whileTap={disabled ? undefined : { scale: 0.9 }}
       transition={springSnappy}
-      className="grid size-9 place-items-center rounded-full border border-line-strong bg-surface text-ink transition-[opacity,background-color] hover:bg-raised disabled:opacity-40"
+      className="grid size-9 place-items-center rounded-full border border-line-strong bg-surface text-ink transition-[opacity,background-color] hover:bg-raised disabled:opacity-40 [&>svg]:size-4"
     >
       {children}
     </motion.button>

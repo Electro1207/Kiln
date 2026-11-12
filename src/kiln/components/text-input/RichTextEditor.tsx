@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { Bold, Code, Italic, Link2, List, ListOrdered, Quote, Strikethrough, Underline } from "lucide-react";
 import { cn } from "../../cn";
@@ -7,6 +7,30 @@ import { AnchoredLayer, panelClass } from "../shared/Anchored";
 import { Button } from "../buttons/Button";
 
 export type Cmd = "bold" | "italic" | "underline" | "strikeThrough" | "insertUnorderedList" | "insertOrderedList" | "quote" | "code" | "link";
+
+/** Icons used by RichTextEditor, one per toolbar command. Pass a partial via `icons` to replace them. */
+export interface RichTextEditorIcons {
+  bold: ReactNode;
+  italic: ReactNode;
+  underline: ReactNode;
+  strikeThrough: ReactNode;
+  code: ReactNode;
+  link: ReactNode;
+  insertUnorderedList: ReactNode;
+  insertOrderedList: ReactNode;
+  quote: ReactNode;
+}
+export const richTextEditorIcons: RichTextEditorIcons = {
+  bold: <Bold />,
+  italic: <Italic />,
+  underline: <Underline />,
+  strikeThrough: <Strikethrough />,
+  code: <Code />,
+  link: <Link2 />,
+  insertUnorderedList: <List />,
+  insertOrderedList: <ListOrdered />,
+  quote: <Quote />,
+};
 
 /** Text used by RichTextEditor. Pass a partial via `labels` to translate or reword. */
 export interface RichTextEditorLabels {
@@ -44,16 +68,16 @@ export const richTextEditorLabels: RichTextEditorLabels = {
 const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
 const mod = isMac ? "⌘" : "Ctrl+";
 
-const TOOLS: { cmd: Cmd; label: string; icon: ReactNode; keys?: string }[] = [
-  { cmd: "bold", label: "Bold", icon: <Bold />, keys: `${mod}B` },
-  { cmd: "italic", label: "Italic", icon: <Italic />, keys: `${mod}I` },
-  { cmd: "underline", label: "Underline", icon: <Underline />, keys: `${mod}U` },
-  { cmd: "strikeThrough", label: "Strikethrough", icon: <Strikethrough />, keys: `${mod}Shift+X` },
-  { cmd: "code", label: "Inline code", icon: <Code />, keys: `${mod}E` },
-  { cmd: "link", label: "Link", icon: <Link2 />, keys: `${mod}K` },
-  { cmd: "insertUnorderedList", label: "Bulleted list", icon: <List /> },
-  { cmd: "insertOrderedList", label: "Numbered list", icon: <ListOrdered /> },
-  { cmd: "quote", label: "Quote", icon: <Quote /> },
+const TOOLS: { cmd: Cmd; label: string; keys?: string }[] = [
+  { cmd: "bold", label: "Bold", keys: `${mod}B` },
+  { cmd: "italic", label: "Italic", keys: `${mod}I` },
+  { cmd: "underline", label: "Underline", keys: `${mod}U` },
+  { cmd: "strikeThrough", label: "Strikethrough", keys: `${mod}Shift+X` },
+  { cmd: "code", label: "Inline code", keys: `${mod}E` },
+  { cmd: "link", label: "Link", keys: `${mod}K` },
+  { cmd: "insertUnorderedList", label: "Bulleted list" },
+  { cmd: "insertOrderedList", label: "Numbered list" },
+  { cmd: "quote", label: "Quote" },
 ];
 
 /** Strip what contentEditable leaves behind and return tidy HTML. */
@@ -78,7 +102,7 @@ function cleanHTML(root: HTMLElement) {
  * (**bold**, *italic*, `code`, ~~strike~~, "- " or "1. " lists, "> " quotes).
  * Pasted content arrives as plain text. `onChange` gets clean HTML.
  */
-export function RichTextEditor({ defaultHTML = "", onChange, label: labelProp, placeholder: placeholderProp, minHeight = 160, className, labels }: {
+export function RichTextEditor({ defaultHTML = "", onChange, label: labelProp, placeholder: placeholderProp, minHeight = 160, className, labels, icons }: {
   defaultHTML?: string;
   onChange?: (html: string) => void;
   label?: string;
@@ -87,8 +111,11 @@ export function RichTextEditor({ defaultHTML = "", onChange, label: labelProp, p
   className?: string;
   /** Override any UI text. Merged over `richTextEditorLabels`. */
   labels?: Partial<RichTextEditorLabels>;
+  /** Replace any built-in icon. Merged over `richTextEditorIcons`. */
+  icons?: Partial<RichTextEditorIcons>;
 }) {
   const l = { ...richTextEditorLabels, ...labels, tools: { ...richTextEditorLabels.tools, ...labels?.tools } };
+  const ic = useMemo(() => ({ ...richTextEditorIcons, ...icons }), [icons]);
   const label = labelProp ?? l.label;
   const placeholder = placeholderProp ?? l.placeholder;
   const id = useId();
@@ -143,7 +170,7 @@ export function RichTextEditor({ defaultHTML = "", onChange, label: labelProp, p
     const el = document.createElement("code");
     el.className = "rounded-[4px] bg-raised px-1 py-0.5 font-mono text-[0.9em]";
     if (r.collapsed) { el.textContent = "​"; r.insertNode(el); }
-    else el.append(r.extractContents()), r.insertNode(el);
+    else { el.append(r.extractContents()); r.insertNode(el); }
     const after = document.createRange();
     after.selectNodeContents(el);
     after.collapse(false);
@@ -299,7 +326,7 @@ export function RichTextEditor({ defaultHTML = "", onChange, label: labelProp, p
                 >
                   {/* Each tool owns its pressed fill; it fades in place. */}
                   <motion.span aria-hidden className="pointer-events-none absolute inset-0 rounded-[7px] bg-btn-secondary" initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} />
-                  <span className="relative z-[1] grid">{t.icon}</span>
+                  <span className="relative z-[1] grid">{ic[t.cmd]}</span>
                 </button>
               </span>
             );

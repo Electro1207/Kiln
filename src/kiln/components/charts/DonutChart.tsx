@@ -52,11 +52,10 @@ export function DonutChart({ data, title, centreLabel, format = String, size = 2
   const c = 50, r = 50 - (thickness / size) * 50;
   const sw = (thickness / size) * 100;
 
-  let acc = 0;
   const segs = data.map((d, i) => {
-    const a0 = (acc / total) * 360;
-    acc += d.value;
-    const a1 = (acc / total) * 360;
+    const before = data.slice(0, i).reduce((s, x) => s + x.value, 0);
+    const a0 = (before / total) * 360;
+    const a1 = ((before + d.value) / total) * 360;
     return { ...d, i, a0, a1 };
   });
 

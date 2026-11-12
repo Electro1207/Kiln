@@ -65,18 +65,50 @@ export interface ToastLabels {
 }
 export const toastLabels: ToastLabels = { region: "Notifications", dismiss: "Dismiss notification" };
 
+/** Icons used by ToastProvider. Pass a partial via `icons` to swap any of them. */
+export interface ToastIcons {
+  /** Success variant. */
+  success: ReactNode;
+  /** Error variant. */
+  error: ReactNode;
+  /** Warning variant. */
+  warning: ReactNode;
+  /** Info variant. */
+  info: ReactNode;
+  /** Loading variant; the wrapper spins it. */
+  loading: ReactNode;
+  /** Close button on each toast. */
+  close: ReactNode;
+}
+export const toastIcons: ToastIcons = {
+  success: <CircleCheck />,
+  error: <CircleAlert />,
+  warning: <TriangleAlert />,
+  info: <Info />,
+  loading: (
+    <svg viewBox="0 0 16 16" aria-hidden>
+      <circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="1.75" />
+      <path d="M14.25 8A6.25 6.25 0 0 0 8 1.75" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+    </svg>
+  ),
+  close: <X />,
+};
+
 /**
  * Holds the toast stack, bottom-right (bottom-centre on phones). The newest is
  * in front and two older ones peek behind it. Hovering anywhere over the stack
  * fans it out; leaving folds it back. Timers pause while it is open or the tab
  * is hidden. Swipe a toast to the right to dismiss it.
  */
-export function ToastProvider({ children, labels }: {
+export function ToastProvider({ children, labels, icons }: {
   children: ReactNode;
   /** Override any UI text. Merged over `toastLabels`. */
   labels?: Partial<ToastLabels>;
+  /** Replace any built-in icon. Merged over `toastIcons`. */
+  icons?: Partial<ToastIcons>;
 }) {
   const l = { ...toastLabels, ...labels };
+  const ic = useMemo(() => ({ ...toastIcons, ...icons }), [icons]);
   const [toasts, setToasts] = useState<ToastRecord[]>([]);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -148,6 +180,7 @@ export function ToastProvider({ children, labels }: {
                   onHeight={report}
                   onDismiss={dismiss}
                   dismissLabel={l.dismiss}
+                  icons={ic}
                 />
               ))}
             </AnimatePresence>
@@ -158,14 +191,14 @@ export function ToastProvider({ children, labels }: {
   );
 }
 
-const glyphs: Record<Exclude<ToastVariant, "neutral" | "loading">, ReactNode> = {
-  success: <CircleCheck className="size-4 text-positive" strokeWidth={2.2} />,
-  error: <CircleAlert className="size-4 text-negative" strokeWidth={2.2} />,
-  warning: <TriangleAlert className="size-4 text-warning" strokeWidth={2.2} />,
-  info: <Info className="size-4 text-info" strokeWidth={2.2} />,
+const glyphTone: Record<Exclude<ToastVariant, "neutral" | "loading">, string> = {
+  success: "text-positive",
+  error: "text-negative",
+  warning: "text-warning",
+  info: "text-info",
 };
 
-function Glyph({ variant }: { variant: ToastVariant }) {
+function Glyph({ variant, icons }: { variant: ToastVariant; icons: ToastIcons }) {
   if (variant === "neutral") return null;
   return (
     <span className="grid h-5 w-4 shrink-0 place-items-center [&>*]:[grid-area:1/1]">
@@ -176,27 +209,25 @@ function Glyph({ variant }: { variant: ToastVariant }) {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.6 }}
           transition={springSoft}
-          className="grid place-items-center"
+          className={cn("grid place-items-center [&>svg]:size-4 [&>svg]:[stroke-width:2.2]", variant !== "loading" && glyphTone[variant])}
         >
-          {variant === "loading" ? <LoadingGlyph /> : glyphs[variant]}
+          {variant === "loading" ? <LoadingGlyph>{icons.loading}</LoadingGlyph> : icons[variant]}
         </motion.span>
       </AnimatePresence>
     </span>
   );
 }
 
-function LoadingGlyph() {
+function LoadingGlyph({ children }: { children: ReactNode }) {
   return (
-    <motion.svg
-      viewBox="0 0 16 16"
-      className="size-4 text-muted"
+    <motion.span
+      className="grid text-muted [&>svg]:size-4"
       animate={{ rotate: 360 }}
       transition={{ duration: 0.8, ease: "linear", repeat: Infinity }}
       aria-hidden
     >
-      <circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="1.75" />
-      <path d="M14.25 8A6.25 6.25 0 0 0 8 1.75" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-    </motion.svg>
+      {children}
+    </motion.span>
   );
 }
 
@@ -209,9 +240,10 @@ type ItemProps = {
   onHeight: (id: string, h: number) => void;
   onDismiss: (id: string) => void;
   dismissLabel: string;
+  icons: ToastIcons;
 };
 
-function ToastItem({ toast, index, expanded, frontH, offset, onHeight, onDismiss, dismissLabel }: ItemProps) {
+function ToastItem({ toast, index, expanded, frontH, offset, onHeight, onDismiss, dismissLabel, icons }: ItemProps) {
   const { id, title, description, variant = "neutral", action, version } = toast;
   const duration = toast.duration ?? (variant === "loading" ? Infinity : 5000);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -242,13 +274,13 @@ function ToastItem({ toast, index, expanded, frontH, offset, onHeight, onDismiss
 
   // A fresh timer for every version of the toast; paused while the stack is open or the tab is hidden.
   const remaining = useRef(duration);
-  const [timerKey, setTimerKey] = useState(version);
-  if (timerKey !== version) {
-    setTimerKey(version);
-    remaining.current = duration;
-  }
+  const timerKey = useRef(version);
   const paused = expanded || hidden;
   useEffect(() => {
+    if (timerKey.current !== version) {
+      timerKey.current = version;
+      remaining.current = duration;
+    }
     if (paused || !Number.isFinite(remaining.current)) return;
     const start = Date.now();
     const t = window.setTimeout(() => onDismiss(id), Math.max(remaining.current, 0));
@@ -256,7 +288,7 @@ function ToastItem({ toast, index, expanded, frontH, offset, onHeight, onDismiss
       window.clearTimeout(t);
       remaining.current -= Date.now() - start;
     };
-  }, [paused, timerKey, id, onDismiss]);
+  }, [paused, version, duration, id, onDismiss]);
 
   const front = index === 0;
   const shown = expanded || index < SHOWN_COLLAPSED;
@@ -302,7 +334,7 @@ function ToastItem({ toast, index, expanded, frontH, offset, onHeight, onDismiss
           transition={expanded || front ? fade : { duration: 0.08, ease: easeOut }}
           className="flex items-start gap-3 px-4 py-3.5"
         >
-          <Glyph variant={variant} />
+          <Glyph variant={variant} icons={icons} />
           <div className="grid min-w-0 flex-1 [&>*]:[grid-area:1/1]">
             <AnimatePresence initial={false}>
               <motion.div
@@ -336,11 +368,11 @@ function ToastItem({ toast, index, expanded, frontH, offset, onHeight, onDismiss
         onClick={() => onDismiss(id)}
         className={cn(
           "absolute -left-1.5 -top-1.5 grid size-5 place-items-center rounded-full border border-line bg-surface text-muted",
-          "opacity-0 transition-[opacity,color] duration-150 hover:text-ink focus-visible:opacity-100 group-hover:opacity-100 pointer-coarse:hidden",
+          "opacity-0 transition-[opacity,color] duration-150 hover:text-ink focus-visible:opacity-100 group-hover:opacity-100 pointer-coarse:hidden [&>svg]:size-3 [&>svg]:[stroke-width:2.5]",
           !(front || expanded) && "pointer-events-none",
         )}
       >
-        <X className="size-3" strokeWidth={2.5} />
+        {icons.close}
       </button>
     </motion.li>
   );

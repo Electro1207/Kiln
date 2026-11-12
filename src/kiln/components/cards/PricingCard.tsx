@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { motion } from "motion/react";
 import { Check } from "lucide-react";
 import { cn } from "../../cn";
@@ -61,6 +62,13 @@ export function BillingToggle({ value, onChange, saving, labels }: {
   );
 }
 
+/** Icons used by PricingCard. Pass a partial via `icons` to replace any. */
+export interface PricingCardIcons {
+  /** Beside each feature. */
+  check: ReactNode;
+}
+export const pricingCardIcons: PricingCardIcons = { check: <Check /> };
+
 /** Text used by PricingCard. Pass a partial via `labels` to translate or reword. */
 export interface PricingCardLabels {
   /** Badge on a `featured` plan. */
@@ -89,11 +97,14 @@ export type PricingCardProps = {
   locale?: string;
   /** Override any UI text. Merged over `pricingCardLabels`. */
   labels?: Partial<PricingCardLabels>;
+  /** Replace any built-in icon. Merged over `pricingCardIcons`. */
+  icons?: Partial<PricingCardIcons>;
 };
 
 /** One plan in a pricing table: name, price, features and a call to action. `featured` raises it. */
-export function PricingCard({ name, description, price, billing, currency = "EUR", features, cta, featured, onSelect, className, locale, labels }: PricingCardProps) {
+export function PricingCard({ name, description, price, billing, currency = "EUR", features, cta, featured, onSelect, className, locale, labels, icons }: PricingCardProps) {
   const l = { ...pricingCardLabels, ...labels };
+  const ic = { ...pricingCardIcons, ...icons };
   return (
     <div
       className={cn(
@@ -124,7 +135,7 @@ export function PricingCard({ name, description, price, billing, currency = "EUR
       <ul className="flex flex-col gap-2.5 text-sm text-ink">
         {features.map((f) => (
           <li key={f} className="flex gap-2.5">
-            <Check className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
+            <span className="mt-0.5 grid shrink-0 text-accent [&>svg]:size-4" aria-hidden>{ic.check}</span>
             {f}
           </li>
         ))}

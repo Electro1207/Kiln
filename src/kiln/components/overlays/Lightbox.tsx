@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, animate, motion, useMotionValue, useTransform, type MotionValue, type PanInfo } from "motion/react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "../../cn";
@@ -18,6 +18,17 @@ export interface LightboxLabels {
   /** "2 of 9" counter beside the caption. */
   count: (index: number, total: number) => string;
 }
+/** Icons used by Lightbox. Pass a partial via `icons` to swap any of them. */
+export interface LightboxIcons {
+  /** Close button. */
+  close: ReactNode;
+  /** Previous image. */
+  previous: ReactNode;
+  /** Next image. */
+  next: ReactNode;
+}
+export const lightboxIcons: LightboxIcons = { close: <X />, previous: <ChevronLeft />, next: <ChevronRight /> };
+
 export const lightboxLabels: LightboxLabels = {
   open: (alt) => `Open ${alt}`,
   close: "Close",
@@ -47,6 +58,8 @@ export type LightboxProps = {
   radius?: number;
   /** Override any UI text. Merged over `lightboxLabels`. */
   labels?: Partial<LightboxLabels>;
+  /** Replace any built-in icon. Merged over `lightboxIcons`. */
+  icons?: Partial<LightboxIcons>;
   className?: string;
 };
 
@@ -58,8 +71,9 @@ export type LightboxProps = {
  * The grow and the return are one transform (translate + scale) on the big picture,
  * measured from the thumbnail at that moment, so nothing re-lays out while it moves.
  */
-export function Lightbox({ images, rowHeight = 168, gap = 8, radius = 10, labels, className }: LightboxProps) {
+export function Lightbox({ images, rowHeight = 168, gap = 8, radius = 10, labels, icons, className }: LightboxProps) {
   const l = { ...lightboxLabels, ...labels };
+  const ic = useMemo(() => ({ ...lightboxIcons, ...icons }), [icons]);
   const [index, setIndex] = useState<number | null>(null);
   // The thumbnail standing in for the open picture is hidden, so the picture never appears twice.
   const [hidden, setHidden] = useState<number | null>(null);
@@ -119,6 +133,7 @@ export function Lightbox({ images, rowHeight = 168, gap = 8, radius = 10, labels
             index={index}
             radius={radius}
             l={l}
+            ic={ic}
             rectOf={rectOf}
             onIndex={(i) => { setIndex(i); setHidden(i); }}
             onClosed={() => { setIndex(null); setHidden(null); }}
@@ -134,12 +149,13 @@ type ViewerProps = {
   index: number;
   radius: number;
   l: LightboxLabels;
+  ic: LightboxIcons;
   rectOf: (i: number) => DOMRect | null;
   onIndex: (i: number) => void;
   onClosed: () => void;
 };
 
-function Viewer({ images, index, radius, l, rectOf, onIndex, onClosed }: ViewerProps) {
+function Viewer({ images, index, radius, l, ic, rectOf, onIndex, onClosed }: ViewerProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [closing, setClosing] = useState(false);
   const closingRef = useRef(false);
@@ -271,15 +287,15 @@ function Viewer({ images, index, radius, l, rectOf, onIndex, onClosed }: ViewerP
 
       <>
         <ViewerButton label={l.close} className="right-4 top-4" opacity={backdrop} onClick={close}>
-          <X className="size-5" />
+          {ic.close}
         </ViewerButton>
         {images.length > 1 && (
           <>
             <ViewerButton label={l.previous} className="left-3 top-1/2 -translate-y-1/2 sm:left-6" opacity={backdrop} onClick={() => step(-1)}>
-              <ChevronLeft className="size-5" />
+              {ic.previous}
             </ViewerButton>
             <ViewerButton label={l.next} className="right-3 top-1/2 -translate-y-1/2 sm:right-6" opacity={backdrop} onClick={() => step(1)}>
-              <ChevronRight className="size-5" />
+              {ic.next}
             </ViewerButton>
           </>
         )}
@@ -296,7 +312,7 @@ function ViewerButton({ label, className, opacity, onClick, children }: { label:
       onClick={onClick}
       style={{ opacity }}
       whileTap={{ scale: 0.92 }}
-      className={cn("absolute grid size-11 place-items-center rounded-full bg-surface text-ink shadow-float transition-colors hover:bg-raised", className)}
+      className={cn("absolute grid size-11 place-items-center rounded-full bg-surface text-ink shadow-float transition-colors hover:bg-raised [&>svg]:size-5", className)}
     >
       {children}
     </motion.button>

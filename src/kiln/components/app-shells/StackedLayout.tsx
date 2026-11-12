@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from "react";
+import { useId, useMemo, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Menu, X } from "lucide-react";
 import { cn } from "../../cn";
@@ -17,6 +17,15 @@ export interface StackedLayoutLabels {
 }
 export const stackedLayoutLabels: StackedLayoutLabels = { main: "Main", openMenu: "Open menu", closeMenu: "Close menu" };
 
+/** Icons used by StackedLayout. Pass a partial via `icons` to replace any. */
+export interface StackedLayoutIcons {
+  /** Opens the narrow-width menu. */
+  menu: ReactNode;
+  /** Closes it again. */
+  close: ReactNode;
+}
+export const stackedLayoutIcons: StackedLayoutIcons = { menu: <Menu />, close: <X /> };
+
 export type StackedLayoutProps = {
   brand: ReactNode;
   links: StackedLink[];
@@ -31,6 +40,8 @@ export type StackedLayoutProps = {
   className?: string;
   /** Override any UI text. Merged over `stackedLayoutLabels`. */
   labels?: Partial<StackedLayoutLabels>;
+  /** Replace any built-in icon. Merged over `stackedLayoutIcons`. */
+  icons?: Partial<StackedLayoutIcons>;
 };
 
 /**
@@ -38,8 +49,9 @@ export type StackedLayoutProps = {
  * the content on a sheet. Below 768px of its own width the links fold into a
  * panel under the bar.
  */
-export function StackedLayout({ brand, links, value, onNavigate, actions, header, children, height = 640, className, labels }: StackedLayoutProps) {
+export function StackedLayout({ brand, links, value, onNavigate, actions, header, children, height = 640, className, labels, icons }: StackedLayoutProps) {
   const l = { ...stackedLayoutLabels, ...labels };
+  const ic = useMemo(() => ({ ...stackedLayoutIcons, ...icons }), [icons]);
   const [open, setOpen] = useState(false);
   const panel = useId();
   return (
@@ -83,11 +95,11 @@ export function StackedLayout({ brand, links, value, onNavigate, actions, header
               onClick={() => setOpen((o) => !o)}
               className="grid size-9 place-items-center rounded-control text-ink transition-colors duration-200 hover:bg-raised @3xl:hidden [&>*]:[grid-area:1/1]"
             >
-              <motion.span className="grid" initial={false} animate={{ opacity: open ? 0 : 1, rotate: open ? 45 : 0 }} transition={springSoft}>
-                <Menu className="size-5" />
+              <motion.span className="grid [&>svg]:size-5" aria-hidden initial={false} animate={{ opacity: open ? 0 : 1, rotate: open ? 45 : 0 }} transition={springSoft}>
+                {ic.menu}
               </motion.span>
-              <motion.span className="grid" initial={false} animate={{ opacity: open ? 1 : 0, rotate: open ? 0 : -45 }} transition={springSoft}>
-                <X className="size-5" />
+              <motion.span className="grid [&>svg]:size-5" aria-hidden initial={false} animate={{ opacity: open ? 1 : 0, rotate: open ? 0 : -45 }} transition={springSoft}>
+                {ic.close}
               </motion.span>
             </button>
           </div>

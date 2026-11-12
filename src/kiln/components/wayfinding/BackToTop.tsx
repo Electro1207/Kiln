@@ -1,4 +1,4 @@
-import { useEffect, useState, type RefObject } from "react";
+import { useEffect, useState, type RefObject, type ReactNode } from "react";
 import { AnimatePresence, motion, useScroll, useSpring, useTransform } from "motion/react";
 import { ArrowUp } from "lucide-react";
 import { cn } from "../../cn";
@@ -11,6 +11,13 @@ export interface BackToTopLabels {
 }
 export const backToTopLabels: BackToTopLabels = { backToTop: "Back to top" };
 
+/** Icons used by BackToTop. Pass a partial via `icons` to swap any of them. */
+export interface BackToTopIcons {
+  /** The arrow in the middle of the button. */
+  up: ReactNode;
+}
+export const backToTopIcons: BackToTopIcons = { up: <ArrowUp /> };
+
 export type BackToTopProps = {
   /** The scrolling element. Defaults to the page. */
   container?: RefObject<HTMLElement | null>;
@@ -21,11 +28,14 @@ export type BackToTopProps = {
   className?: string;
   /** Override any UI text. Merged over `backToTopLabels`. */
   labels?: Partial<BackToTopLabels>;
+  /** Replace any built-in icon. Merged over `backToTopIcons`. */
+  icons?: Partial<BackToTopIcons>;
 };
 
 /** A round button that appears once you have scrolled; its ring fills with how far down you are. */
-export function BackToTop({ container, threshold = 320, position = "fixed", className, labels }: BackToTopProps) {
+export function BackToTop({ container, threshold = 320, position = "fixed", className, labels, icons }: BackToTopProps) {
   const l = { ...backToTopLabels, ...labels };
+  const ic = { ...backToTopIcons, ...icons };
   const { scrollY, scrollYProgress } = useScroll(container ? { container } : undefined);
   const [show, setShow] = useState(false);
   const progress = useSpring(scrollYProgress, { stiffness: 260, damping: 40, mass: 0.6 });
@@ -62,7 +72,7 @@ export function BackToTop({ container, threshold = 320, position = "fixed", clas
             <circle cx="24" cy="24" r="22" fill="none" stroke="var(--k-line)" strokeWidth="2" />
             <motion.circle cx="24" cy="24" r="22" fill="none" stroke="var(--k-accent)" strokeWidth="2" strokeLinecap="round" pathLength={1} strokeDasharray="1 1" style={{ strokeDashoffset: dash }} />
           </svg>
-          <ArrowUp className="relative size-4" />
+          <span className="relative grid place-items-center [&>svg]:size-4" aria-hidden>{ic.up}</span>
         </motion.button>
       )}
     </AnimatePresence>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeInOut, springFirm } from "../../motion";
@@ -17,7 +17,14 @@ export type LineChartProps = {
 
 /** A line that draws itself in once in view, with a scrubbing readout. */
 export function LineChart({ data, compare, height = 200, format = String, title, className }: LineChartProps) {
-  const [hover, setHover] = useState<number | null>(null);
+  // `at` is the last spot shown, so the marker fades out where it was; `jump` skips travel on re-entry.
+  const [cursor, setCursor] = useState({ hover: null as number | null, at: data.length - 1, jump: false });
+  const { hover, at: lastAt, jump } = cursor;
+  const setHover = (v: number | null | ((h: number | null) => number | null)) =>
+    setCursor((s) => {
+      const next = typeof v === "function" ? v(s.hover) : v;
+      return next === s.hover ? s : { hover: next, at: next ?? s.at, jump: next != null && s.hover == null };
+    });
   const box = useRef<HTMLDivElement>(null);
   const all = [...data.map((d) => d.value), ...(compare ?? [])];
   const max = Math.max(...all) * 1.1;
@@ -34,14 +41,7 @@ export function LineChart({ data, compare, height = 200, format = String, title,
     setHover(Math.max(0, Math.min(data.length - 1, i)));
   };
 
-  const last = useRef(data.length - 1);
-  const wasHidden = useRef(true);
-  const shown = hover ?? last.current;
-  const jump = wasHidden.current && hover != null;
-  useEffect(() => {
-    if (hover != null) last.current = hover;
-    wasHidden.current = hover == null;
-  });
+  const shown = lastAt;
   const readout = data[hover ?? data.length - 1];
   return (
     <figure className={cn("flex w-full flex-col gap-2", className)}>

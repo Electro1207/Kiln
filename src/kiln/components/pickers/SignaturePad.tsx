@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { Download, Eraser, Undo2 } from "lucide-react";
 import { cn } from "../../cn";
@@ -7,6 +7,17 @@ import { Button } from "../buttons/Button";
 
 type Pt = { x: number; y: number; w: number };
 type Stroke = Pt[];
+
+/** Icons used by SignaturePad. Pass a partial via `icons` to replace them. */
+export interface SignaturePadIcons {
+  /** Undo button. */
+  undo: ReactNode;
+  /** Clear button. */
+  clear: ReactNode;
+  /** Download button. */
+  download: ReactNode;
+}
+export const signaturePadIcons: SignaturePadIcons = { undo: <Undo2 />, clear: <Eraser />, download: <Download /> };
 
 /** Text used by SignaturePad. Pass a partial via `labels` to translate or reword. */
 export interface SignaturePadLabels {
@@ -66,8 +77,11 @@ export const SignaturePad = forwardRef<SignaturePadHandle, {
   downloadName?: string;
   /** Override any UI text. Merged over `signaturePadLabels`. */
   labels?: Partial<SignaturePadLabels>;
-}>(function SignaturePad({ label: labelProp, onChange, minWidth = 1.2, maxWidth = 3.6, height = 200, className, downloadName, labels }, ref) {
+  /** Replace any built-in icon. Merged over `signaturePadIcons`. */
+  icons?: Partial<SignaturePadIcons>;
+}>(function SignaturePad({ label: labelProp, onChange, minWidth = 1.2, maxWidth = 3.6, height = 200, className, downloadName, labels, icons }, ref) {
   const l = { ...signaturePadLabels, ...labels };
+  const ic = useMemo(() => ({ ...signaturePadIcons, ...icons }), [icons]);
   const label = labelProp ?? l.label;
   const canvas = useRef<HTMLCanvasElement>(null);
   const strokes = useRef<Stroke[]>([]);
@@ -251,9 +265,9 @@ export const SignaturePad = forwardRef<SignaturePadHandle, {
         />
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" variant="ghost" leading={<Undo2 />} onClick={undo} disabled={!count}>{l.undo}</Button>
-        <Button size="sm" variant="ghost" leading={<Eraser />} onClick={clear} disabled={!count}>{l.clear}</Button>
-        {downloadName && <Button size="sm" variant="secondary" leading={<Download />} onClick={download} disabled={!count} className="ml-auto">{l.download}</Button>}
+        <Button size="sm" variant="ghost" leading={ic.undo} onClick={undo} disabled={!count}>{l.undo}</Button>
+        <Button size="sm" variant="ghost" leading={ic.clear} onClick={clear} disabled={!count}>{l.clear}</Button>
+        {downloadName && <Button size="sm" variant="secondary" leading={ic.download} onClick={download} disabled={!count} className="ml-auto">{l.download}</Button>}
       </div>
     </div>
   );

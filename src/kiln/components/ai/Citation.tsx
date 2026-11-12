@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useMemo, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown, ExternalLink } from "lucide-react";
 import { cn } from "../../cn";
@@ -23,6 +23,15 @@ export const citationLabels: CitationLabels = {
   openSource: "Open source",
   usedSources: (n) => `Used ${n} ${n === 1 ? "source" : "sources"}`,
 };
+
+/** Icons used by Citation, SourceCard and Sources. Pass a partial via `icons` to replace any. */
+export interface CitationIcons {
+  /** Beside the "open source" link. */
+  external: ReactNode;
+  /** The chevron on the Sources button. */
+  expand: ReactNode;
+}
+export const citationIcons: CitationIcons = { external: <ExternalLink />, expand: <ChevronDown /> };
 
 /** The site's own name: en.wikipedia.org reads as wikipedia.org. */
 const domain = (url: string) => {
@@ -50,7 +59,7 @@ function SiteMark({ url, className }: { url: string; className?: string }) {
   );
 }
 
-function SourceCard({ s, l }: { s: Source; l: CitationLabels }) {
+function SourceCard({ s, l, ic }: { s: Source; l: CitationLabels; ic: CitationIcons }) {
   return (
     <div>
       <div className="flex items-center gap-2 text-xs text-muted">
@@ -60,27 +69,30 @@ function SourceCard({ s, l }: { s: Source; l: CitationLabels }) {
       <p className="mt-2 text-sm font-semibold leading-snug">{s.title}</p>
       {s.snippet && <p className="mt-1.5 text-[13px] leading-5 text-muted">{s.snippet}</p>}
       <a href={s.url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-[13px] font-medium text-accent hover:underline">
-        {l.openSource} <ExternalLink className="size-3" />
+        {l.openSource} <span className="grid [&>svg]:size-3" aria-hidden>{ic.external}</span>
       </a>
     </div>
   );
 }
 
 /** An inline citation chip, after the sentence it supports. Hover or focus shows the source. */
-export function Citation({ sources, className, labels }: {
+export function Citation({ sources, className, labels, icons }: {
   sources: Source[];
   className?: string;
   /** Override any UI text. Merged over `citationLabels`. */
   labels?: Partial<CitationLabels>;
+  /** Replace any built-in icon. Merged over `citationIcons`. */
+  icons?: Partial<CitationIcons>;
 }) {
   const l = { ...citationLabels, ...labels };
+  const ic = useMemo(() => ({ ...citationIcons, ...icons }), [icons]);
   const first = sources[0];
   return (
     <HoverCard
       content={
         <div className="space-y-4">
           {sources.map((s) => (
-            <SourceCard key={s.url} s={s} l={l} />
+            <SourceCard key={s.url} s={s} l={l} ic={ic} />
           ))}
         </div>
       }
@@ -104,13 +116,16 @@ export function Citation({ sources, className, labels }: {
 }
 
 /** "Used 4 sources" under an answer; opens into the list. */
-export function Sources({ sources, className, labels }: {
+export function Sources({ sources, className, labels, icons }: {
   sources: Source[];
   className?: string;
   /** Override any UI text. Merged over `citationLabels`. */
   labels?: Partial<CitationLabels>;
+  /** Replace any built-in icon. Merged over `citationIcons`. */
+  icons?: Partial<CitationIcons>;
 }) {
   const l = { ...citationLabels, ...labels };
+  const ic = useMemo(() => ({ ...citationIcons, ...icons }), [icons]);
   const [open, setOpen] = useState(false);
   const id = useId();
   return (
@@ -128,7 +143,7 @@ export function Sources({ sources, className, labels }: {
           ))}
         </span>
         {l.usedSources(sources.length)}
-        <ChevronDown className={cn("size-3.5 transition-transform duration-300 ease-out-soft", open && "rotate-180")} />
+        <span className={cn("grid transition-transform duration-300 ease-out-soft [&>svg]:size-3.5", open && "rotate-180")} aria-hidden>{ic.expand}</span>
       </button>
       <AnimatePresence initial={false}>
         {open && (

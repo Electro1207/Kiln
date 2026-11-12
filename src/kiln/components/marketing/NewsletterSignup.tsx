@@ -24,6 +24,12 @@ export interface NewsletterSignupLabels {
   /** Default success body, given the email. */
   successBody: (email: string) => string;
 }
+/** Icons used by NewsletterSignup. Pass a partial via `icons` to swap any of them. */
+export interface NewsletterSignupIcons {
+  /** The mark on the subscribed confirmation. */
+  success: ReactNode;
+}
+export const newsletterSignupIcons: NewsletterSignupIcons = { success: <Check /> };
 export const newsletterSignupLabels: NewsletterSignupLabels = {
   emailLabel: "Email address",
   placeholder: "Your email address",
@@ -47,6 +53,8 @@ export type NewsletterSignupProps = {
   variant?: "inline" | "card";
   /** Override any UI text. Merged over `newsletterSignupLabels`. */
   labels?: Partial<NewsletterSignupLabels>;
+  /** Replace any built-in icon. Merged over `newsletterSignupIcons`. */
+  icons?: Partial<NewsletterSignupIcons>;
   className?: string;
 };
 
@@ -55,9 +63,10 @@ const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /** Email sign-up with inline validation and a success state that replaces the form in place. */
 export function NewsletterSignup({
-  title, description, onSubscribe = () => wait(900), fineprint, success, variant = "inline", labels, className,
+  title, description, onSubscribe = () => wait(900), fineprint, success, variant = "inline", labels, icons, className,
 }: NewsletterSignupProps) {
   const l = { ...newsletterSignupLabels, ...labels };
+  const ic = { ...newsletterSignupIcons, ...icons };
   const id = useId();
   const [email, setEmail] = useState("");
   const [tried, setTried] = useState(false);
@@ -93,8 +102,8 @@ export function NewsletterSignup({
             animate={{ opacity: 1, y: 0, transition: { ...fade, delay: 0.12 } }}
             className="flex items-start gap-3 self-center"
           >
-            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-positive-soft text-positive">
-              <Check className="size-4" strokeWidth={2.5} />
+            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-positive-soft text-positive [&>svg]:size-4 [&>svg]:[stroke-width:2.5]">
+              {ic.success}
             </span>
             <span>
               <span className="block text-[15px] font-medium text-ink">{success?.title ?? l.successTitle}</span>

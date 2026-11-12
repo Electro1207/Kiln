@@ -9,38 +9,38 @@ export { type ThemeMode, ThemeProvider, useThemeActions, useTheme } from "./them
 
 // ai
 export { type ChatMessageLabels, chatMessageLabels, type ChatMessageProps, ChatMessage, AssistantMark } from "./components/ai/ChatMessage";
-export { type Source, type CitationLabels, citationLabels, Citation, Sources } from "./components/ai/Citation";
-export { type MessageActionsLabels, messageActionsLabels, type MessageActionsProps, MessageActions } from "./components/ai/MessageActions";
-export { type PromptAttachment, type PromptModel, type PromptInputLabels, promptInputLabels, type PromptInputProps, PromptInput } from "./components/ai/PromptInput";
-export { type ReasoningLabels, reasoningLabels, type ReasoningProps, Reasoning } from "./components/ai/Reasoning";
+export { type Source, type CitationLabels, citationLabels, type CitationIcons, citationIcons, Citation, Sources } from "./components/ai/Citation";
+export { type MessageActionsLabels, messageActionsLabels, type MessageActionsIcons, messageActionsIcons, type MessageActionsProps, MessageActions } from "./components/ai/MessageActions";
+export { type PromptAttachment, type PromptModel, type PromptInputLabels, promptInputLabels, type PromptInputProps, type PromptInputIcons, promptInputIcons, PromptInput } from "./components/ai/PromptInput";
+export { type ReasoningLabels, reasoningLabels, type ReasoningIcons, reasoningIcons, type ReasoningProps, Reasoning } from "./components/ai/Reasoning";
 export { type StreamingTextProps, StreamingText } from "./components/ai/StreamingText";
 export { type Suggestion, Suggestions } from "./components/ai/Suggestions";
-export { type ToolCallState, type ToolCallLabels, toolCallLabels, type ToolCallProps, ToolCall } from "./components/ai/ToolCall";
+export { type ToolCallState, type ToolCallLabels, toolCallLabels, type ToolCallIcons, toolCallIcons, type ToolCallProps, ToolCall } from "./components/ai/ToolCall";
 
 // app-shells
-export { type ShellNavItem, type ShellNavSection, type AppShellLabels, appShellLabels, type AppShellProps, AppShell } from "./components/app-shells/AppShell";
+export { type ShellNavItem, type ShellNavSection, type AppShellLabels, appShellLabels, type AppShellIcons, appShellIcons, type AppShellProps, AppShell } from "./components/app-shells/AppShell";
 export { type GridListAction, type PersonCard, PeopleGrid, type ProjectTile, ProjectGrid } from "./components/app-shells/GridList";
-export { type CollapsingActionsLabels, collapsingActionsLabels, type HeadingAction, CollapsingActions, CardHeading } from "./components/app-shells/HeadingParts";
+export { type CollapsingActionsIcons, collapsingActionsIcons, type CollapsingActionsLabels, collapsingActionsLabels, type HeadingAction, CollapsingActions, CardHeading } from "./components/app-shells/HeadingParts";
 export { type HeadingTab, HeadingTabs, type SectionHeadingProps, SectionHeading, type PageMeta, type PageHeadingProps, PageHeading } from "./components/app-shells/PageHeading";
-export { type StackedLink, type StackedLayoutLabels, stackedLayoutLabels, type StackedLayoutProps, StackedLayout } from "./components/app-shells/StackedLayout";
-export { type StackedListLabels, stackedListLabels, type StackedRow, StackedList } from "./components/app-shells/StackedList";
+export { type StackedLink, type StackedLayoutLabels, stackedLayoutLabels, type StackedLayoutIcons, stackedLayoutIcons, type StackedLayoutProps, StackedLayout } from "./components/app-shells/StackedLayout";
+export { type StackedListIcons, stackedListIcons, type StackedListLabels, stackedListLabels, type StackedRow, StackedList } from "./components/app-shells/StackedList";
 
 // buttons
-export { type ButtonVariant, type ButtonSize, type ButtonProps, Button } from "./components/buttons/Button";
+export { type ButtonVariant, type ButtonSize, type ButtonIcons, buttonIcons, type ButtonProps, Button } from "./components/buttons/Button";
 export { ButtonGroup } from "./components/buttons/ButtonGroup";
-export { type CopyButtonLabels, copyButtonLabels, CopyButton } from "./components/buttons/CopyButton";
+export { type CopyButtonLabels, copyButtonLabels, type CopyButtonIcons, copyButtonIcons, CopyButton } from "./components/buttons/CopyButton";
 export { type HoldButtonLabels, holdButtonLabels, HoldButton } from "./components/buttons/HoldButton";
 export { type IconButtonProps, IconButton } from "./components/buttons/IconButton";
-export { Link } from "./components/buttons/Link";
+export { type LinkIcons, linkIcons, Link } from "./components/buttons/Link";
 export { type MagneticProps, Magnetic } from "./components/buttons/MagneticButton";
 export { type Segment, type SegmentedControlProps, SegmentedControl } from "./components/buttons/SegmentedControl";
-export { type SplitButtonLabels, splitButtonLabels, type SplitAction, SplitButton } from "./components/buttons/SplitButton";
+export { type SplitButtonLabels, splitButtonLabels, type SplitButtonIcons, splitButtonIcons, type SplitAction, SplitButton } from "./components/buttons/SplitButton";
 export { ToggleButton } from "./components/buttons/ToggleButton";
 
 // cards
-export { type CardProps, Card, CardHeader, type MediaCardProps, MediaCard, type InteractiveCardProps, InteractiveCard } from "./components/cards/Card";
-export { type ExpandableItem, type ExpandableCardsLabels, expandableCardsLabels, ExpandableCards } from "./components/cards/ExpandableCard";
-export { type Billing, type BillingToggleLabels, billingToggleLabels, BillingToggle, type PricingCardLabels, pricingCardLabels, type PricingCardProps, PricingCard } from "./components/cards/PricingCard";
+export { type CardProps, Card, CardHeader, type MediaCardProps, MediaCard, type InteractiveCardIcons, interactiveCardIcons, type InteractiveCardProps, InteractiveCard } from "./components/cards/Card";
+export { type ExpandableItem, type ExpandableCardsIcons, expandableCardsIcons, type ExpandableCardsLabels, expandableCardsLabels, ExpandableCards } from "./components/cards/ExpandableCard";
+export { type Billing, type BillingToggleLabels, billingToggleLabels, BillingToggle, type PricingCardIcons, pricingCardIcons, type PricingCardLabels, pricingCardLabels, type PricingCardProps, PricingCard } from "./components/cards/PricingCard";
 export { type TiltCardProps, TiltCard, TiltLayer } from "./components/cards/TiltCard";
 
 // charts
@@ -57,32 +57,32 @@ export { type TreemapItem, TreemapChart } from "./components/charts/TreemapChart
 export { type YearDay, type YearHeatmapLabels, yearHeatmapLabels, YearHeatmap } from "./components/charts/YearHeatmap";
 
 // choice-controls
-export { type CheckedState, type CheckboxProps, Checkbox } from "./components/choice-controls/Checkbox";
+export { type CheckedState, type CheckboxIcons, checkboxIcons, type CheckboxProps, Checkbox } from "./components/choice-controls/Checkbox";
 export { type CheckOption, type CheckboxGroupLabels, checkboxGroupLabels, CheckboxGroup } from "./components/choice-controls/CheckboxGroup";
-export { type HSVA, hsvToRgb, rgbToHsv, toHex, parseColor, type ColorPickerLabels, colorPickerLabels, ColorPickerPanel, ColorPicker } from "./components/choice-controls/ColorPicker";
-export { type Swatch, ColorSwatches } from "./components/choice-controls/ColorSwatches";
+export { type HSVA, hsvToRgb, rgbToHsv, toHex, parseColor, type ColorPickerIcons, colorPickerIcons, type ColorPickerLabels, colorPickerLabels, ColorPickerPanel, ColorPicker } from "./components/choice-controls/ColorPicker";
+export { type Swatch, type ColorSwatchesIcons, colorSwatchesIcons, ColorSwatches } from "./components/choice-controls/ColorSwatches";
 export { type RadioOption, type RadioGroupProps, RadioGroup } from "./components/choice-controls/RadioGroup";
-export { type RatingLabels, ratingLabels, Rating } from "./components/choice-controls/Rating";
+export { type RatingLabels, ratingLabels, type RatingIcons, ratingIcons, Rating } from "./components/choice-controls/Rating";
 export { type SliderLabels, sliderLabels, Slider } from "./components/choice-controls/Slider";
 export { type SwitchProps, Switch } from "./components/choice-controls/Switch";
 
 // commerce
-export { type CartDrawerLabels, cartDrawerLabels, CartDrawer } from "./components/commerce/CartDrawer";
-export { type CategoryFiltersLabels, categoryFiltersLabels, type FacetOption, type Facet, type FilterValue, emptyFilters, activeChips, CategoryFilters, FilterPanel } from "./components/commerce/CategoryFilters";
-export { type DeliveryOption, type Promo, type CheckoutDetails, type CheckoutFormLabels, checkoutFormLabels, CheckoutForm } from "./components/commerce/CheckoutForm";
+export { type CartDrawerLabels, cartDrawerLabels, type CartDrawerIcons, cartDrawerIcons, CartDrawer } from "./components/commerce/CartDrawer";
+export { type CategoryFiltersLabels, categoryFiltersLabels, type FacetOption, type Facet, type FilterValue, emptyFilters, activeChips, type CategoryFiltersIcons, categoryFiltersIcons, CategoryFilters, FilterPanel } from "./components/commerce/CategoryFilters";
+export { type DeliveryOption, type Promo, type CheckoutDetails, type CheckoutFormLabels, checkoutFormLabels, type CheckoutFormIcons, checkoutFormIcons, CheckoutForm } from "./components/commerce/CheckoutForm";
 export { type InvoiceLabels, invoiceLabels, type InvoiceLine, type InvoiceParty, type InvoiceProps, Invoice } from "./components/commerce/Invoice";
-export { type OrderStatus, type Order, type OrderHistoryLabels, orderHistoryLabels, OrderHistory } from "./components/commerce/OrderHistory";
+export { type OrderStatus, type Order, type OrderHistoryLabels, orderHistoryLabels, type OrderHistoryIcons, orderHistoryIcons, OrderHistory } from "./components/commerce/OrderHistory";
 export { type ProductGalleryLabels, productGalleryLabels, ProductGallery } from "./components/commerce/ProductGallery";
-export { type QuickViewProduct, type AddToCart, type ProductQuickViewLabels, productQuickViewLabels, ProductQuickView } from "./components/commerce/ProductQuickView";
-export { type Review, type StarsLabels, starsLabels, Stars, type ReviewsSummaryLabels, reviewsSummaryLabels, ReviewsSummary } from "./components/commerce/ReviewsSummary";
+export { type QuickViewProduct, type AddToCart, type ProductQuickViewLabels, productQuickViewLabels, type ProductQuickViewIcons, productQuickViewIcons, ProductQuickView } from "./components/commerce/ProductQuickView";
+export { type Review, type StarsLabels, starsLabels, type StarsIcons, starsIcons, Stars, type ReviewsSummaryLabels, reviewsSummaryLabels, type ReviewsSummaryIcons, reviewsSummaryIcons, ReviewsSummary } from "./components/commerce/ReviewsSummary";
 export { type SizeOption, type SizePickerLabels, sizePickerLabels, SizePicker } from "./components/commerce/SizePicker";
 export { type ProductImage, type CartLine, type Totals, type TotalsOptions, cartTotals, formatMoney } from "./components/commerce/commerce";
 
 // communication
-export { type ChatMessage as ChatThreadMessage, type ChatThreadLabels, chatThreadLabels, type ChatThreadProps, ChatThread } from "./components/communication/ChatThread";
+export { type ChatMessage as ChatThreadMessage, type ChatThreadLabels, chatThreadLabels, type ChatThreadIcons, chatThreadIcons, type ChatThreadProps, ChatThread } from "./components/communication/ChatThread";
 export { type FeedEntry, type CommentFeedLabels, commentFeedLabels, CommentFeed } from "./components/communication/CommentFeed";
-export { type ReactionKind, type Comment, type CommentThreadLabels, commentThreadLabels, type CommentThreadProps, CommentThread } from "./components/communication/CommentThread";
-export { type Attachment, type MessageComposerLabels, messageComposerLabels, MessageComposer } from "./components/communication/MessageComposer";
+export { type ReactionKind, type Comment, type CommentThreadLabels, commentThreadLabels, type CommentThreadProps, type CommentThreadIcons, commentThreadIcons, CommentThread } from "./components/communication/CommentThread";
+export { type Attachment, type MessageComposerLabels, messageComposerLabels, type MessageComposerIcons, messageComposerIcons, MessageComposer } from "./components/communication/MessageComposer";
 
 // data-display
 export { type AvatarSize, type AvatarStatus, type AvatarLabels, avatarLabels, type AvatarProps, hueFor, initials, Avatar, type AvatarGroupLabels, avatarGroupLabels, type AvatarGroupProps, AvatarGroup } from "./components/data-display/Avatar";
@@ -92,15 +92,15 @@ export { type HeatStripLabels, heatStripLabels, type HeatStripProps, HeatStrip }
 export { type KbdProps, Kbd } from "./components/data-display/Kbd";
 export { type ListAction, type ListItemLabels, listItemLabels, type ListItemProps, List, ListItem } from "./components/data-display/List";
 export { type NumberTickerProps, NumberTicker } from "./components/data-display/NumberTicker";
-export { type StatProps, Stat } from "./components/data-display/Stat";
-export { type TagTone, type TagLabels, tagLabels, type TagProps, Tag, TagGroup } from "./components/data-display/Tag";
+export { type StatProps, type StatIcons, statIcons, Stat } from "./components/data-display/Stat";
+export { type TagTone, type TagLabels, tagLabels, type TagProps, type TagIcons, tagIcons, Tag, TagGroup } from "./components/data-display/Tag";
 export { type TimelineItem, Timeline } from "./components/data-display/Timeline";
 
 // dev-tools
-export { type DiffViewerLabels, diffViewerLabels, type DiffViewerProps, DiffViewer } from "./components/dev-tools/DiffViewer";
-export { type JSONViewerLabels, jsonViewerLabels, JSONViewer } from "./components/dev-tools/JSONViewer";
-export { type LogLevel, type LogEntry, type LogStreamLabels, logStreamLabels, type LogStreamProps, LogStream } from "./components/dev-tools/LogStream";
-export { type TermTone, type TermLine, type TerminalLabels, terminalLabels, type TerminalProps, Terminal } from "./components/dev-tools/Terminal";
+export { type DiffViewerLabels, diffViewerLabels, type DiffViewerIcons, diffViewerIcons, type DiffViewerProps, DiffViewer } from "./components/dev-tools/DiffViewer";
+export { type JSONViewerIcons, jsonViewerIcons, type JSONViewerLabels, jsonViewerLabels, JSONViewer } from "./components/dev-tools/JSONViewer";
+export { type LogLevel, type LogEntry, type LogStreamLabels, logStreamLabels, type LogStreamIcons, logStreamIcons, type LogStreamProps, LogStream } from "./components/dev-tools/LogStream";
+export { type TermTone, type TermLine, type TerminalLabels, terminalLabels, type TerminalProps, type TerminalIcons, terminalIcons, Terminal } from "./components/dev-tools/Terminal";
 
 // effects
 export { type AnimatedBeamProps, AnimatedBeam } from "./components/effects/AnimatedBeam";
@@ -111,83 +111,83 @@ export { type OrbitingCirclesProps, OrbitingCircles } from "./components/effects
 export { type RevealStep, type StickyScrollRevealLabels, stickyScrollRevealLabels, type StickyScrollRevealProps, StickyScrollReveal } from "./components/effects/StickyScrollReveal";
 
 // forms
-export { type AuthMode, type AuthCopy, type AuthFormsLabels, authFormsLabels, type AuthValues, AuthForms } from "./components/forms/AuthForms";
-export { type AvatarUploadLabels, avatarUploadLabels, AvatarUpload } from "./components/forms/AvatarUpload";
+export { type AuthMode, type AuthCopy, type AuthFormsLabels, authFormsLabels, type AuthFormsIcons, authFormsIcons, type AuthValues, AuthForms } from "./components/forms/AuthForms";
+export { type AvatarUploadLabels, avatarUploadLabels, type AvatarUploadIcons, avatarUploadIcons, AvatarUpload } from "./components/forms/AvatarUpload";
 export { type ImageCropperLabels, imageCropperLabels, type ImageCropperHandle, ImageCropper } from "./components/forms/ImageCropper";
-export { type InlineEditLabels, inlineEditLabels, InlineEdit } from "./components/forms/InlineEdit";
-export { type KeyValueRow, newRow, type KeyValueEditorLabels, keyValueEditorLabels, KeyValueEditor } from "./components/forms/KeyValueEditor";
+export { type InlineEditLabels, inlineEditLabels, type InlineEditIcons, inlineEditIcons, InlineEdit } from "./components/forms/InlineEdit";
+export { type KeyValueRow, newRow, type KeyValueEditorLabels, keyValueEditorLabels, type KeyValueEditorIcons, keyValueEditorIcons, KeyValueEditor } from "./components/forms/KeyValueEditor";
 export { type SaveBarLabels, saveBarLabels, SaveBar } from "./components/forms/SaveBar";
 export { SettingsSection, SettingsRow } from "./components/forms/SettingsSection";
 
 // guidance
-export { type Shortcut, type ShortcutGroup, type KeyboardShortcutsSheetLabels, keyboardShortcutsSheetLabels, type KeyboardShortcutsSheetProps, KeyboardShortcutsSheet } from "./components/guidance/KeyboardShortcutsSheet";
+export { type Shortcut, type ShortcutGroup, type KeyboardShortcutsSheetLabels, keyboardShortcutsSheetLabels, type KeyboardShortcutsSheetIcons, keyboardShortcutsSheetIcons, type KeyboardShortcutsSheetProps, KeyboardShortcutsSheet } from "./components/guidance/KeyboardShortcutsSheet";
 export { type OnboardingWizardLabels, onboardingWizardLabels, type WizardStep, type OnboardingWizardProps, OnboardingWizard } from "./components/guidance/OnboardingWizard";
-export { type TourStep, type ProductTourLabels, productTourLabels, type ProductTourProps, ProductTour } from "./components/guidance/ProductTour";
+export { type TourStep, type ProductTourLabels, productTourLabels, type ProductTourIcons, productTourIcons, type ProductTourProps, ProductTour } from "./components/guidance/ProductTour";
 
 // marketing
 export { type BentoGridProps, BentoGrid, type BentoTileProps, BentoTile } from "./components/marketing/BentoGrid";
 export { type BlogPost, type BlogListLabels, blogListLabels, type BlogListProps, BlogList } from "./components/marketing/BlogList";
 export { type CTASectionProps, CTASection } from "./components/marketing/CTASection";
 export { type ChangelogLabels, changelogLabels, type ChangeKind, type Release, type ChangelogProps, Changelog } from "./components/marketing/Changelog";
-export { type ContactSectionLabels, contactSectionLabels, type Office, type ContactValues, type ContactSectionProps, ContactSection } from "./components/marketing/ContactSection";
+export { type ContactSectionLabels, type ContactSectionIcons, contactSectionIcons, contactSectionLabels, type Office, type ContactValues, type ContactSectionProps, ContactSection } from "./components/marketing/ContactSection";
 export { type FAQSectionProps, FAQSection } from "./components/marketing/FAQSection";
 export { type FeatureSplitProps, FeatureSplit } from "./components/marketing/FeatureSplit";
 export { type FeatureTabsLabels, featureTabsLabels, type Feature, type FeatureTabsProps, FeatureTabs } from "./components/marketing/FeatureTabs";
 export { type FooterProps, Footer } from "./components/marketing/Footer";
 export { type HeroProps, Hero } from "./components/marketing/Hero";
-export { type NewsletterSignupLabels, newsletterSignupLabels, type NewsletterSignupProps, NewsletterSignup } from "./components/marketing/NewsletterSignup";
-export { type NotFoundLabels, notFoundLabels, type NotFoundProps, NotFound } from "./components/marketing/NotFound";
+export { type NewsletterSignupLabels, type NewsletterSignupIcons, newsletterSignupIcons, newsletterSignupLabels, type NewsletterSignupProps, NewsletterSignup } from "./components/marketing/NewsletterSignup";
+export { type NotFoundLabels, type NotFoundIcons, notFoundIcons, notFoundLabels, type NotFoundProps, NotFound } from "./components/marketing/NotFound";
 export { type StatItem, type StatsSectionProps, StatsSection } from "./components/marketing/StatsSection";
 export { type TeamLink, type TeamMember, type TeamGridProps, TeamGrid } from "./components/marketing/TeamGrid";
 export { type Testimonial, type TestimonialsProps, Testimonials } from "./components/marketing/Testimonials";
 
 // media
-export { type CarouselLabels, carouselLabels, type CarouselProps, Carousel } from "./components/media/Carousel";
-export { type CompareSliderLabels, compareSliderLabels, type CompareSliderProps, CompareSlider } from "./components/media/CompareSlider";
+export { type CarouselLabels, carouselLabels, type CarouselProps, type CarouselIcons, carouselIcons, Carousel } from "./components/media/Carousel";
+export { type CompareSliderLabels, compareSliderLabels, type CompareSliderProps, type CompareSliderIcons, compareSliderIcons, CompareSlider } from "./components/media/CompareSlider";
 export { type MarqueeProps, Marquee } from "./components/media/Marquee";
 export { type MasonryItem, Masonry } from "./components/media/Masonry";
-export { type MediaPlayerLabels, mediaPlayerLabels, type MediaPlayerProps, MediaPlayer } from "./components/media/MediaPlayer";
-export { type VideoRendition, type VideoChapter, type VideoPlayerLabels, videoPlayerLabels, type VideoPlayerProps, VideoPlayer } from "./components/media/VideoPlayer";
+export { type MediaPlayerLabels, mediaPlayerLabels, type MediaPlayerIcons, mediaPlayerIcons, type MediaPlayerProps, MediaPlayer } from "./components/media/MediaPlayer";
+export { type VideoRendition, type VideoChapter, type VideoPlayerLabels, videoPlayerLabels, type VideoPlayerProps, type VideoPlayerIcons, videoPlayerIcons, VideoPlayer } from "./components/media/VideoPlayer";
 
 // menus
-export { type CommandItem, type CommandPaletteLabels, commandPaletteLabels, useCommandShortcut, CommandPalette } from "./components/menus/CommandPalette";
+export { type CommandItem, type CommandPaletteLabels, commandPaletteLabels, type CommandPaletteIcons, commandPaletteIcons, useCommandShortcut, CommandPalette } from "./components/menus/CommandPalette";
 export { type ContextMenuLabels, contextMenuLabels, type ContextMenuProps, ContextMenu } from "./components/menus/ContextMenu";
-export { type DocsNavItem, type DocsNavGroup, type DocsNavSection, type DocsNavLabels, docsNavLabels, type DocsNavProps, DocsNav } from "./components/menus/DocsNav";
-export { type MenuEntry, MenuContent, type DropdownTriggerProps, type DropdownMenuProps, DropdownMenu } from "./components/menus/DropdownMenu";
-export { type FlyoutLink, type FlyoutGroup, type FlyoutItem, type FlyoutNavLabels, flyoutNavLabels, type FlyoutNavProps, FlyoutNav } from "./components/menus/FlyoutNav";
+export { type DocsNavItem, type DocsNavGroup, type DocsNavSection, type DocsNavLabels, docsNavLabels, type DocsNavProps, type DocsNavIcons, docsNavIcons, DocsNav } from "./components/menus/DocsNav";
+export { type MenuEntry, type DropdownMenuIcons, dropdownMenuIcons, MenuContent, type DropdownTriggerProps, type DropdownMenuProps, DropdownMenu } from "./components/menus/DropdownMenu";
+export { type FlyoutLink, type FlyoutGroup, type FlyoutItem, type FlyoutNavLabels, flyoutNavLabels, type FlyoutNavProps, type FlyoutNavIcons, flyoutNavIcons, FlyoutNav } from "./components/menus/FlyoutNav";
 export { type NavLink, type NavbarLabels, navbarLabels, type NavbarProps, MenuToggle, Navbar } from "./components/menus/Navbar";
-export { type SidebarItem, type SidebarSection, type SidebarNavLabels, sidebarNavLabels, type SidebarNavProps, SidebarNav } from "./components/menus/SidebarNav";
-export { type SpotlightItem, type SpotlightSearchLabels, spotlightSearchLabels, type SpotlightSearchProps, SpotlightSearch } from "./components/menus/SpotlightSearch";
+export { type SidebarItem, type SidebarSection, type SidebarNavLabels, sidebarNavLabels, type SidebarNavProps, type SidebarNavIcons, sidebarNavIcons, SidebarNav } from "./components/menus/SidebarNav";
+export { type SpotlightItem, type SpotlightSearchLabels, spotlightSearchLabels, type SpotlightSearchProps, type SpotlightSearchIcons, spotlightSearchIcons, SpotlightSearch } from "./components/menus/SpotlightSearch";
 
 // notices
-export { type AlertTone, type AlertProps, type AlertLabels, alertLabels, Alert } from "./components/notices/Alert";
-export { type BannerProps, type BannerLabels, bannerLabels, Banner } from "./components/notices/Banner";
+export { type AlertTone, type AlertProps, type AlertLabels, alertLabels, type AlertIcons, alertIcons, Alert } from "./components/notices/Alert";
+export { type BannerProps, type BannerIcons, bannerIcons, type BannerLabels, bannerLabels, Banner } from "./components/notices/Banner";
 export { type ConsentCategory, type ConsentChoice, type CookieConsentLabels, cookieConsentLabels, type CookieConsentProps, CookieConsent } from "./components/notices/CookieConsent";
-export { type FieldMessageProps, FieldMessage } from "./components/notices/FieldMessage";
-export { type NotificationBellLabels, notificationBellLabels, type NotificationBellProps, NotificationBell } from "./components/notices/NotificationBell";
-export { type Notice, type NotificationCenterLabels, notificationCenterLabels, type NotificationCenterProps, NotificationCenter } from "./components/notices/NotificationCenter";
-export { type ToastVariant, type ToastInput, type ToastApi, useToast, type ToastLabels, toastLabels, ToastProvider } from "./components/notices/Toast";
+export { type FieldMessageProps, type FieldMessageIcons, fieldMessageIcons, FieldMessage } from "./components/notices/FieldMessage";
+export { type NotificationBellIcons, notificationBellIcons, type NotificationBellLabels, notificationBellLabels, type NotificationBellProps, NotificationBell } from "./components/notices/NotificationBell";
+export { type Notice, type NotificationCenterLabels, notificationCenterLabels, type NotificationCenterProps, type NotificationCenterIcons, notificationCenterIcons, NotificationCenter } from "./components/notices/NotificationCenter";
+export { type ToastVariant, type ToastInput, type ToastApi, useToast, type ToastLabels, toastLabels, type ToastIcons, toastIcons, ToastProvider } from "./components/notices/Toast";
 export { type UndoBarLabels, undoBarLabels, type UndoItem, type UndoBarProps, UndoBar } from "./components/notices/UndoBar";
 
 // overlays
 export { type AlertDialogLabels, alertDialogLabels, type AlertDialogProps, AlertDialog } from "./components/overlays/AlertDialog";
-export { type DialogLabels, dialogLabels, type DialogProps, Dialog } from "./components/overlays/Dialog";
-export { type DrawerLabels, drawerLabels, type DrawerSide, type DrawerProps, Drawer } from "./components/overlays/Drawer";
+export { type DialogLabels, dialogLabels, type DialogIcons, dialogIcons, type DialogProps, Dialog } from "./components/overlays/Dialog";
+export { type DrawerLabels, drawerLabels, type DrawerIcons, drawerIcons, type DrawerSide, type DrawerProps, Drawer } from "./components/overlays/Drawer";
 export { type HoverCardProps, HoverCard } from "./components/overlays/HoverCard";
-export { type LightboxLabels, lightboxLabels, type LightboxImage, type LightboxProps, Lightbox } from "./components/overlays/Lightbox";
+export { type LightboxLabels, type LightboxIcons, lightboxIcons, lightboxLabels, type LightboxImage, type LightboxProps, Lightbox } from "./components/overlays/Lightbox";
 export { type PopoverProps, Popover } from "./components/overlays/Popover";
 export { type TooltipProps, Tooltip } from "./components/overlays/Tooltip";
 
 // pickers
-export { type Booking, type BookingSlotsLabels, bookingSlotsLabels, BookingSlots } from "./components/pickers/BookingSlots";
-export { type ChipOption, type ChipFilterProps, ChipFilter } from "./components/pickers/ChipFilter";
-export { type ComboboxOption, type ComboboxLabels, comboboxLabels, type ComboboxProps, Highlight, Combobox } from "./components/pickers/Combobox";
-export { startOfDay, addDays, addMonths, sameDay, formatDate, type CalendarLabels, calendarLabels, type DateRange, type CalendarProps, Calendar, type DatePickerLabels, datePickerLabels, type DatePickerProps, DatePicker, type RangePreset, type DateRangePickerLabels, dateRangePickerLabels, type DateRangePickerProps, DateRangePicker } from "./components/pickers/DatePicker";
-export { type FileDropzoneLabels, fileDropzoneLabels, type UploadFn, type FileDropzoneProps, formatBytes, FileDropzone } from "./components/pickers/FileDropzone";
-export { type SelectOption, type SelectLabels, selectLabels, type SelectProps, Select, firstEnabled } from "./components/pickers/Select";
-export { type SignaturePadLabels, signaturePadLabels, type SignaturePadHandle, SignaturePad } from "./components/pickers/SignaturePad";
-export { type TagInputLabels, tagInputLabels, type TagInputProps, TagInput } from "./components/pickers/TagInput";
-export { type Time, formatTime, type TimeWheelsLabels, timeWheelsLabels, TimeWheels, type TimePickerLabels, timePickerLabels, type TimePickerProps, TimePicker } from "./components/pickers/TimePicker";
+export { type Booking, type BookingSlotsLabels, type BookingSlotsIcons, bookingSlotsIcons, bookingSlotsLabels, BookingSlots } from "./components/pickers/BookingSlots";
+export { type ChipOption, type ChipFilterIcons, chipFilterIcons, type ChipFilterProps, ChipFilter } from "./components/pickers/ChipFilter";
+export { type ComboboxOption, type ComboboxLabels, type ComboboxIcons, comboboxIcons, comboboxLabels, type ComboboxProps, Highlight, Combobox } from "./components/pickers/Combobox";
+export { startOfDay, addDays, addMonths, sameDay, formatDate, type CalendarLabels, calendarLabels, type CalendarIcons, calendarIcons, type DateRange, type CalendarProps, Calendar, type DatePickerLabels, datePickerLabels, type DatePickerIcons, datePickerIcons, type DatePickerProps, DatePicker, type RangePreset, type DateRangePickerLabels, dateRangePickerLabels, type DateRangePickerIcons, dateRangePickerIcons, type DateRangePickerProps, DateRangePicker } from "./components/pickers/DatePicker";
+export { type FileDropzoneIcons, fileDropzoneIcons, type FileDropzoneLabels, fileDropzoneLabels, type UploadFn, type FileDropzoneProps, formatBytes, FileDropzone } from "./components/pickers/FileDropzone";
+export { type SelectOption, type SelectLabels, selectLabels, type SelectIcons, selectIcons, type SelectProps, Select, firstEnabled } from "./components/pickers/Select";
+export { type SignaturePadIcons, signaturePadIcons, type SignaturePadLabels, signaturePadLabels, type SignaturePadHandle, SignaturePad } from "./components/pickers/SignaturePad";
+export { type TagInputIcons, tagInputIcons, type TagInputLabels, tagInputLabels, type TagInputProps, TagInput } from "./components/pickers/TagInput";
+export { type Time, formatTime, type TimeWheelsLabels, timeWheelsLabels, TimeWheels, type TimePickerIcons, timePickerIcons, type TimePickerLabels, timePickerLabels, type TimePickerProps, TimePicker } from "./components/pickers/TimePicker";
 
 // primitives
 export { type AspectImageProps, AspectImage } from "./components/primitives/AspectImage";
@@ -205,7 +205,7 @@ export { Portal, useScrollLock, useModalLayer, useDismiss, useMediaQuery, useIsP
 export { type BadgeTone, type BadgeProps, Badge } from "./components/status/Badge";
 export { type EmptyStateProps, EmptyState } from "./components/status/EmptyState";
 export { type MeterLabels, meterLabels, type MeterSegment, type MeterProps, Meter } from "./components/status/Meter";
-export { type MultiStepLoaderLabels, multiStepLoaderLabels, type MultiStepLoaderProps, MultiStepLoader } from "./components/status/MultiStepLoader";
+export { type MultiStepLoaderLabels, multiStepLoaderLabels, type MultiStepLoaderIcons, multiStepLoaderIcons, type MultiStepLoaderProps, MultiStepLoader } from "./components/status/MultiStepLoader";
 export { type ProgressProps, Progress } from "./components/status/Progress";
 export { type ProgressRingProps, ProgressRing } from "./components/status/ProgressRing";
 export { type SkeletonProps, Skeleton, SkeletonText } from "./components/status/Skeleton";
@@ -213,10 +213,10 @@ export { type SpinnerLabels, spinnerLabels, type SpinnerProps, Spinner } from ".
 export { type Status, type StatusDotLabels, statusDotLabels, type StatusDotProps, StatusDot } from "./components/status/StatusDot";
 
 // tables
-export { type ComparisonPlan, type ComparisonRow, type ComparisonTableLabels, comparisonTableLabels, type ComparisonGroup, ComparisonTable } from "./components/tables/ComparisonTable";
-export { type GridColumn, type DataGridLabels, dataGridLabels, type BulkAction, type DataGridProps, DataGrid } from "./components/tables/DataGrid";
+export { type ComparisonPlan, type ComparisonRow, type ComparisonTableLabels, type ComparisonTableIcons, comparisonTableIcons, comparisonTableLabels, type ComparisonGroup, ComparisonTable } from "./components/tables/ComparisonTable";
+export { type GridColumn, type DataGridLabels, type DataGridIcons, dataGridIcons, dataGridLabels, type BulkAction, type DataGridProps, DataGrid } from "./components/tables/DataGrid";
 export { type InfiniteFeedLabels, infiniteFeedLabels, type InfiniteFeedProps, InfiniteFeed } from "./components/tables/InfiniteFeed";
-export { type TableLabels, tableLabels, type Column, type TableProps, useRowFlip, Table, TickBox } from "./components/tables/Table";
+export { type TableLabels, tableLabels, type TableIcons, tableIcons, type Column, type TableProps, useRowFlip, Table, TickBox } from "./components/tables/Table";
 export { type VirtualGroup, type VirtualListProps, VirtualList } from "./components/tables/VirtualList";
 
 // text-effects
@@ -228,34 +228,34 @@ export { type WordRotateProps, WordRotate } from "./components/text-effects/Word
 // text-input
 export { CurrencyInput } from "./components/text-input/CurrencyInput";
 export { type Mentionable, type MentionsTextareaLabels, mentionsTextareaLabels, MentionsTextarea } from "./components/text-input/MentionsTextarea";
-export { type NumberFieldLabels, numberFieldLabels, NumberField } from "./components/text-input/NumberField";
+export { type NumberFieldIcons, numberFieldIcons, type NumberFieldLabels, numberFieldLabels, NumberField } from "./components/text-input/NumberField";
 export { type OTPInputLabels, otpInputLabels, OTPInput } from "./components/text-input/OTPInput";
-export { type PasswordRule, defaultPasswordRules, type PasswordFieldLabels, passwordFieldLabels, PasswordField } from "./components/text-input/PasswordField";
-export { type Country, COUNTRIES, applyPattern, type PhoneValue, type PhoneInputLabels, phoneInputLabels, PhoneInput, toE164 } from "./components/text-input/PhoneInput";
-export { type PlaceholderInputLabels, placeholderInputLabels, type PlaceholderInputProps, PlaceholderInput } from "./components/text-input/PlaceholderInput";
-export { type Cmd, type RichTextEditorLabels, richTextEditorLabels, RichTextEditor } from "./components/text-input/RichTextEditor";
-export { type SearchFieldLabels, searchFieldLabels, SearchField } from "./components/text-input/SearchField";
-export { type TextFieldLabels, textFieldLabels, type TextFieldProps, TextField } from "./components/text-input/TextField";
+export { type PasswordRule, defaultPasswordRules, type PasswordFieldIcons, passwordFieldIcons, type PasswordFieldLabels, passwordFieldLabels, PasswordField } from "./components/text-input/PasswordField";
+export { type Country, COUNTRIES, applyPattern, type PhoneValue, type PhoneInputIcons, phoneInputIcons, type PhoneInputLabels, phoneInputLabels, PhoneInput, toE164 } from "./components/text-input/PhoneInput";
+export { type PlaceholderInputIcons, placeholderInputIcons, type PlaceholderInputLabels, placeholderInputLabels, type PlaceholderInputProps, PlaceholderInput } from "./components/text-input/PlaceholderInput";
+export { type Cmd, type RichTextEditorIcons, richTextEditorIcons, type RichTextEditorLabels, richTextEditorLabels, RichTextEditor } from "./components/text-input/RichTextEditor";
+export { type SearchFieldIcons, searchFieldIcons, type SearchFieldLabels, searchFieldLabels, SearchField } from "./components/text-input/SearchField";
+export { type TextFieldLabels, textFieldLabels, type TextFieldIcons, textFieldIcons, type TextFieldProps, TextField } from "./components/text-input/TextField";
 export { Textarea } from "./components/text-input/Textarea";
 export { countBefore, positionAfter, placeCaret } from "./components/text-input/caret";
 
 // wayfinding
-export { type AccordionItem, type AccordionProps, Accordion } from "./components/wayfinding/Accordion";
-export { type BackToTopLabels, backToTopLabels, type BackToTopProps, BackToTop } from "./components/wayfinding/BackToTop";
-export { type Crumb, type BreadcrumbsLabels, breadcrumbsLabels, type BreadcrumbsProps, Breadcrumbs } from "./components/wayfinding/Breadcrumbs";
-export { type PaginationLabels, paginationLabels, type PaginationProps, pageRange, Pagination } from "./components/wayfinding/Pagination";
+export { type AccordionIcons, accordionIcons, type AccordionItem, type AccordionProps, Accordion } from "./components/wayfinding/Accordion";
+export { type BackToTopLabels, backToTopLabels, type BackToTopIcons, backToTopIcons, type BackToTopProps, BackToTop } from "./components/wayfinding/BackToTop";
+export { type Crumb, type BreadcrumbsLabels, type BreadcrumbsIcons, breadcrumbsIcons, breadcrumbsLabels, type BreadcrumbsProps, Breadcrumbs } from "./components/wayfinding/Breadcrumbs";
+export { type PaginationLabels, type PaginationIcons, paginationIcons, paginationLabels, type PaginationProps, pageRange, Pagination } from "./components/wayfinding/Pagination";
 export { type ScrollProgressLabels, scrollProgressLabels, type ScrollProgressProps, ScrollProgress } from "./components/wayfinding/ScrollProgress";
-export { type Step, type StepperLabels, stepperLabels, type StepperProps, Stepper } from "./components/wayfinding/Stepper";
+export { type Step, type StepperLabels, type StepperIcons, stepperIcons, stepperLabels, type StepperProps, Stepper } from "./components/wayfinding/Stepper";
 export { type TabItem, type TabsProps, Tabs } from "./components/wayfinding/Tabs";
 
 // workspace
-export { type CalTone, type CalEvent, type CalendarMonthProps, type CalendarMonthLabels, calendarMonthLabels, CalendarMonth } from "./components/workspace/CalendarMonth";
-export { type FMNode, type FileManagerProps, type FileManagerLabels, fileManagerLabels, FileManager } from "./components/workspace/FileManager";
-export { type FilterField, type FilterValues, type SortOption, type SavedView, type FilterBarProps, type FilterBarLabels, filterBarLabels, FilterBar } from "./components/workspace/FilterBar";
+export { type CalTone, type CalEvent, type CalendarMonthProps, type CalendarMonthLabels, type CalendarMonthIcons, calendarMonthIcons, calendarMonthLabels, CalendarMonth } from "./components/workspace/CalendarMonth";
+export { type FMNode, type FileManagerIcons, fileManagerIcons, type FileManagerProps, type FileManagerLabels, fileManagerLabels, FileManager } from "./components/workspace/FileManager";
+export { type FilterBarIcons, filterBarIcons, type FilterField, type FilterValues, type SortOption, type SavedView, type FilterBarProps, type FilterBarLabels, filterBarLabels, FilterBar } from "./components/workspace/FilterBar";
 export { type GanttTask, type GanttChartProps, type GanttChartLabels, ganttChartLabels, GanttChart } from "./components/workspace/GanttChart";
-export { type KanbanTone, type KanbanCard, type KanbanColumn, type KanbanBoardProps, type KanbanBoardLabels, kanbanBoardLabels, moveCard, KanbanBoard } from "./components/workspace/KanbanBoard";
-export { type PrefChannel, type PrefEvent, type PrefGroup, type PrefValue, type NotificationPreferencesProps, type NotificationPreferencesLabels, notificationPreferencesLabels, NotificationPreferences } from "./components/workspace/NotificationPreferences";
+export { type KanbanTone, type KanbanCard, type KanbanColumn, type KanbanBoardProps, type KanbanBoardLabels, type KanbanBoardIcons, kanbanBoardIcons, kanbanBoardLabels, moveCard, KanbanBoard } from "./components/workspace/KanbanBoard";
+export { type PrefChannel, type PrefEvent, type PrefGroup, type PrefValue, type NotificationPreferencesIcons, notificationPreferencesIcons, type NotificationPreferencesProps, type NotificationPreferencesLabels, notificationPreferencesLabels, NotificationPreferences } from "./components/workspace/NotificationPreferences";
 export { type ResizablePanelsProps, type ResizablePanelsLabels, resizablePanelsLabels, ResizablePanels } from "./components/workspace/ResizablePanels";
-export { type SortableListProps, type SortableListLabels, sortableListLabels, SortableList } from "./components/workspace/SortableList";
-export { type TreeNode, type TreeViewProps, TreeView } from "./components/workspace/TreeView";
+export { type SortableListIcons, sortableListIcons, type SortableListProps, type SortableListLabels, sortableListLabels, SortableList } from "./components/workspace/SortableList";
+export { type TreeNode, type TreeViewIcons, treeViewIcons, type TreeViewProps, TreeView } from "./components/workspace/TreeView";
 export { type CalendarTone, type CalendarEvent, type WeekCalendarProps, type WeekCalendarLabels, weekCalendarLabels, WeekCalendar } from "./components/workspace/WeekCalendar";

@@ -1,6 +1,6 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, type ReactNode } from "react";
 import { motion } from "motion/react";
-import { LayoutGrid, Palette } from "lucide-react";
+import { Info, LayoutGrid, Palette } from "lucide-react";
 import { categories, sections } from "./registry";
 import { href, type Route } from "./useRoute";
 import { Mark } from "./Mark";
@@ -38,9 +38,7 @@ export const Sidebar = memo(function Sidebar({ route, activeEntry, onNavigate, b
   );
 
   const value =
-    route.page === "overview" ? "overview" : route.page === "studio" ? "studio" : (activeEntry ?? route.category);
-
-  const studio = route.page === "studio";
+    route.page === "overview" ? "overview" : route.page === "category" ? (activeEntry ?? route.category) : route.page;
   return (
     <DocsNav
       aria-label="Components"
@@ -66,22 +64,31 @@ export const Sidebar = memo(function Sidebar({ route, activeEntry, onNavigate, b
       }
       footer={
         <div className="space-y-2">
-          <a
-            href="#/studio"
-            onClick={(e) => { e.preventDefault(); onNavigate({ page: "studio" }); }}
-            aria-current={studio ? "page" : undefined}
-            className={cn(
-              "relative flex h-9 items-center gap-2.5 rounded-control px-3 text-[14px] transition-colors duration-200",
-              studio ? "font-medium text-ink" : "text-muted hover:bg-raised hover:text-ink",
-            )}
-          >
-            <motion.span aria-hidden initial={false} animate={{ opacity: studio ? 1 : 0 }} transition={fade} className="pointer-events-none absolute inset-0 bg-active" style={{ borderRadius: 8 }} />
-            <Palette className="relative z-[1] size-4" />
-            <span className="relative z-[1] flex-1">Theme studio</span>
-          </a>
+          <div>
+            <FooterLink on={route.page === "about"} href="#/about" icon={<Info />} onClick={() => onNavigate({ page: "about" })}>About Kiln</FooterLink>
+            <FooterLink on={route.page === "studio"} href="#/studio" icon={<Palette />} onClick={() => onNavigate({ page: "studio" })}>Theme studio</FooterLink>
+          </div>
           <ThemeSwitcher className="w-full [&>button]:flex-1 [&>button]:px-0" />
         </div>
       }
     />
   );
 });
+
+function FooterLink({ on, href, icon, onClick, children }: { on: boolean; href: string; icon: ReactNode; onClick: () => void; children: ReactNode }) {
+  return (
+    <a
+      href={href}
+      onClick={(e) => { e.preventDefault(); onClick(); }}
+      aria-current={on ? "page" : undefined}
+      className={cn(
+        "relative flex h-9 items-center gap-2.5 rounded-control px-3 text-[14px] transition-colors duration-200",
+        on ? "font-medium text-ink" : "text-muted hover:bg-raised hover:text-ink",
+      )}
+    >
+      <motion.span aria-hidden initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className="pointer-events-none absolute inset-0 bg-active" style={{ borderRadius: 8 }} />
+      <span className="relative z-[1] inline-flex [&>svg]:size-4">{icon}</span>
+      <span className="relative z-[1] flex-1">{children}</span>
+    </a>
+  );
+}

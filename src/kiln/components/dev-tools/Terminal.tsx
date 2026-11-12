@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowDown } from "lucide-react";
 import { cn } from "../../cn";
@@ -41,15 +41,24 @@ export type TerminalProps = {
   className?: string;
   /** Override any UI text. Merged over `terminalLabels`. */
   labels?: Partial<TerminalLabels>;
+  /** Replace any built-in icon. Merged over `terminalIcons`. */
+  icons?: Partial<TerminalIcons>;
 };
+
+export interface TerminalIcons {
+  /** Jump-to-latest pill. */
+  latest: ReactNode;
+}
+export const terminalIcons: TerminalIcons = { latest: <ArrowDown /> };
 
 /**
  * A terminal: scrollback with coloured spans, a prompt with a blinking caret and
  * a real input. It follows new output while you are at the bottom; scroll up and
  * it stays put, with a button to jump back to the latest line.
  */
-export function Terminal({ lines, prompt = "$", typing, onCommand, title, height = 340, className, labels }: TerminalProps) {
+export function Terminal({ lines, prompt = "$", typing, onCommand, title, height = 340, className, labels, icons }: TerminalProps) {
   const lb = { ...terminalLabels, ...labels };
+  const ic = useMemo(() => ({ ...terminalIcons, ...icons }), [icons]);
   const scroller = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState("");
@@ -159,7 +168,7 @@ export function Terminal({ lines, prompt = "$", typing, onCommand, title, height
             transition={springSoft}
             className="absolute bottom-3 right-3 inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-elevated px-3 text-xs font-medium text-ink shadow-float"
           >
-            <ArrowDown className="size-3.5" aria-hidden /> {lb.jumpToLatest}
+            <span className="inline-flex [&>svg]:size-3.5" aria-hidden>{ic.latest}</span> {lb.jumpToLatest}
           </motion.button>
         )}
       </AnimatePresence>

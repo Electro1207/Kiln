@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, animate, motion, useMotionValue } from "motion/react";
 import { ArrowUp, FileText, Image as ImageIcon, Paperclip, X } from "lucide-react";
 import { cn } from "../../cn";
@@ -32,8 +32,22 @@ export const messageComposerLabels: MessageComposerLabels = {
  * button fills in once there is something to send. Enter sends, Shift+Enter
  * starts a new line.
  */
+export interface MessageComposerIcons {
+  /** Attach button. */
+  attach: ReactNode;
+  /** Chip for an image attachment. */
+  image: ReactNode;
+  /** Chip for any other attachment. */
+  file: ReactNode;
+  /** Removes an attachment. */
+  remove: ReactNode;
+  /** Send button. */
+  send: ReactNode;
+}
+export const messageComposerIcons: MessageComposerIcons = { attach: <Paperclip />, image: <ImageIcon />, file: <FileText />, remove: <X />, send: <ArrowUp /> };
+
 export function MessageComposer({
-  onSend, placeholder = "Write a message", maxRows = 8, className, label = "Message", labels,
+  onSend, placeholder = "Write a message", maxRows = 8, className, label = "Message", labels, icons,
 }: {
   onSend: (text: string, attachments: Attachment[]) => void;
   placeholder?: string;
@@ -42,8 +56,11 @@ export function MessageComposer({
   label?: string;
   /** Override any UI text. Merged over `messageComposerLabels`. */
   labels?: Partial<MessageComposerLabels>;
+  /** Replace any built-in icon. Merged over `messageComposerIcons`. */
+  icons?: Partial<MessageComposerIcons>;
 }) {
   const l = { ...messageComposerLabels, ...labels };
+  const ic = useMemo(() => ({ ...messageComposerIcons, ...icons }), [icons]);
   const [text, setText] = useState("");
   const [files, setFiles] = useState<Attachment[]>([]);
   const area = useRef<HTMLTextAreaElement>(null);
@@ -108,12 +125,12 @@ export function MessageComposer({
                   transition={spring}
                   className="flex h-9 max-w-full items-center gap-2 rounded-control bg-raised pl-2.5 pr-1 text-[13px]"
                 >
-                  {f.kind === "image" ? <ImageIcon className="size-4 shrink-0 text-muted" /> : <FileText className="size-4 shrink-0 text-muted" />}
+                  <span className="inline-flex shrink-0 text-muted [&>svg]:size-4" aria-hidden>{f.kind === "image" ? ic.image : ic.file}</span>
                   <span className="min-w-0 truncate text-ink">{f.name}</span>
                   <span className="shrink-0 text-faint tabular">{l.fileSize(f.size)}</span>
                   <button type="button" aria-label={l.remove(f.name)} onClick={() => setFiles((all) => all.filter((x) => x.id !== f.id))}
-                    className="grid size-7 shrink-0 place-items-center rounded-md text-muted transition-colors hover:bg-active hover:text-ink">
-                    <X className="size-3.5" />
+                    className="grid size-7 shrink-0 place-items-center rounded-md text-muted transition-colors hover:bg-active hover:text-ink [&>svg]:size-3.5">
+                    {ic.remove}
                   </button>
                 </motion.li>
               ))}
@@ -123,8 +140,8 @@ export function MessageComposer({
       </AnimatePresence>
       <div className="flex items-end gap-2 p-2">
         <button type="button" aria-label={l.attach} onClick={() => picker.current?.click()}
-          className="grid size-9 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink">
-          <Paperclip className="size-[18px]" />
+          className="grid size-9 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink [&>svg]:size-[18px]">
+          {ic.attach}
         </button>
         <input ref={picker} type="file" multiple className="sr-only" tabIndex={-1} aria-hidden onChange={(e) => { add(e.target.files); e.target.value = ""; }} />
         <motion.textarea
@@ -152,8 +169,8 @@ export function MessageComposer({
             ready ? "bg-btn-primary text-btn-primary-ink hover:bg-btn-primary-hover" : "cursor-default bg-raised text-faint",
           )}
         >
-          <motion.span className="grid" initial={false} animate={{ rotate: ready ? 0 : 90 }} transition={spring}>
-            <ArrowUp className="size-[18px]" strokeWidth={2.25} />
+          <motion.span className="grid [&>svg]:size-[18px] [&>svg]:stroke-[2.25]" initial={false} animate={{ rotate: ready ? 0 : 90 }} transition={spring}>
+            {ic.send}
           </motion.span>
         </motion.button>
       </div>

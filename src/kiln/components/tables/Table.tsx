@@ -15,6 +15,17 @@ export interface TableLabels {
 }
 export const tableLabels: TableLabels = { table: "Table", selectAll: "Select all rows", selectRow: (id) => `Select row ${id}` };
 
+/** Icons used by Table. Pass a partial via `icons` to replace them. */
+export interface TableIcons {
+  /** Sort arrow in a column header; it turns over for descending. */
+  sort: ReactNode;
+  /** Tick in a selected row checkbox. */
+  check: ReactNode;
+  /** Dash in the select-all checkbox when only some rows are selected. */
+  indeterminate: ReactNode;
+}
+export const tableIcons: TableIcons = { sort: <ArrowDown />, check: <Check />, indeterminate: <Minus /> };
+
 export type Column<T> = {
   key: string;
   header: string;
@@ -39,6 +50,8 @@ export type TableProps<T> = {
   className?: string;
   /** Override any UI text. Merged over `tableLabels`. */
   labels?: Partial<TableLabels>;
+  /** Replace any built-in icon. Merged over `tableIcons`. */
+  icons?: Partial<TableIcons>;
 };
 
 type Sort = { key: string; dir: "asc" | "desc" } | null;
@@ -90,8 +103,10 @@ export function Table<T>({
   maxHeight = 420,
   className,
   labels,
+  icons,
 }: TableProps<T>) {
   const l = { ...tableLabels, ...labels };
+  const ic = useMemo(() => ({ ...tableIcons, ...icons }), [icons]);
   const [sort, setSort] = useState<Sort>(null);
   const [inner, setInner] = useState<Set<string>>(new Set());
   const selected = selectedProp ?? inner;
@@ -141,7 +156,7 @@ export function Table<T>({
           <tr>
             {selectable && (
               <th scope="col" className="sticky top-0 z-10 w-12 border-b border-line bg-surface px-4 py-0 text-left">
-                <TickBox checked={all} mixed={some} onChange={toggleAll} label={l.selectAll} />
+                <TickBox checked={all} mixed={some} onChange={toggleAll} label={l.selectAll} icons={ic} />
               </th>
             )}
             {columns.map((c) => {
@@ -173,9 +188,9 @@ export function Table<T>({
                         initial={false}
                         animate={{ opacity: active ? 1 : 0, rotate: active && sort!.dir === "desc" ? 180 : 0 }}
                         transition={springSnappy}
-                        className="inline-flex"
+                        className="inline-flex [&>svg]:size-3.5"
                       >
-                        <ArrowDown className="size-3.5" />
+                        {ic.sort}
                       </motion.span>
                     </button>
                   ) : (
@@ -198,7 +213,7 @@ export function Table<T>({
                 >
                   {selectable && (
                     <td className="border-b border-line px-4">
-                      <TickBox checked={isSel} onChange={() => toggle(id)} label={l.selectRow(id)} />
+                      <TickBox checked={isSel} onChange={() => toggle(id)} label={l.selectRow(id)} icons={ic} />
                     </td>
                   )}
                   {columns.map((c) => (
@@ -222,7 +237,8 @@ export function Table<T>({
 }
 
 /** Fill changes colour; the tick and the dash share one cell and cross-fade. */
-export function TickBox({ checked, mixed, onChange, label }: { checked: boolean; mixed?: boolean; onChange: () => void; label: string }) {
+export function TickBox({ checked, mixed, onChange, label, icons }: { checked: boolean; mixed?: boolean; onChange: () => void; label: string; icons?: Pick<TableIcons, "check" | "indeterminate"> }) {
+  const ic = icons ?? tableIcons;
   const on = checked || mixed;
   return (
     <motion.button
@@ -238,11 +254,11 @@ export function TickBox({ checked, mixed, onChange, label }: { checked: boolean;
         on ? "border-btn-primary bg-btn-primary text-btn-primary-ink" : "border-line-strong bg-surface hover:border-faint",
       )}
     >
-      <motion.span className="inline-flex" initial={false} animate={{ opacity: checked && !mixed ? 1 : 0, scale: checked && !mixed ? 1 : 0.8 }} transition={springSnappy}>
-        <Check className="size-3" strokeWidth={3} />
+      <motion.span className="inline-flex [&>svg]:size-3 [&>svg]:[stroke-width:3]" initial={false} animate={{ opacity: checked && !mixed ? 1 : 0, scale: checked && !mixed ? 1 : 0.8 }} transition={springSnappy}>
+        {ic.check}
       </motion.span>
-      <motion.span className="inline-flex" initial={false} animate={{ opacity: mixed ? 1 : 0, scale: mixed ? 1 : 0.8 }} transition={springSnappy}>
-        <Minus className="size-3" strokeWidth={3} />
+      <motion.span className="inline-flex [&>svg]:size-3 [&>svg]:[stroke-width:3]" initial={false} animate={{ opacity: mixed ? 1 : 0, scale: mixed ? 1 : 0.8 }} transition={springSnappy}>
+        {ic.indeterminate}
       </motion.span>
     </motion.button>
   );

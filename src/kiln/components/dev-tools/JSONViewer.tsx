@@ -38,6 +38,14 @@ function Mark({ text, q }: { text: string; q: string }) {
 }
 
 /** Text used by JSONViewer. Pass a partial via `labels` to translate or reword. */
+export interface JSONViewerIcons {
+  /** Chevron on a branch; turns a quarter when open. */
+  expand: ReactNode;
+  /** Search field. */
+  search: ReactNode;
+}
+export const jsonViewerIcons: JSONViewerIcons = { expand: <ChevronRight />, search: <Search /> };
+
 export interface JSONViewerLabels {
   /** Placeholder and aria-label of the search box. */
   search: string;
@@ -90,8 +98,9 @@ function Leaf({ value, q }: { value: Json; q: string }) {
  * A JSON document as a tree. Branches fold and unfold; every row can copy its
  * path or its value; search marks matches and opens the branches that hold them.
  */
-export function JSONViewer({ data: input, title, defaultDepth = 1, className, labels }: { data: unknown; title?: string; defaultDepth?: number; className?: string; /** Override any UI text. Merged over `jsonViewerLabels`. */ labels?: Partial<JSONViewerLabels> }) {
+export function JSONViewer({ data: input, title, defaultDepth = 1, className, labels, icons }: { data: unknown; title?: string; defaultDepth?: number; className?: string; /** Override any UI text. Merged over `jsonViewerLabels`. */ labels?: Partial<JSONViewerLabels>; /** Replace any built-in icon. Merged over `jsonViewerIcons`. Keep it stable between renders. */ icons?: Partial<JSONViewerIcons> }) {
   const l = useMemo(() => ({ ...jsonViewerLabels, ...labels }), [labels]);
+  const ic = useMemo(() => ({ ...jsonViewerIcons, ...icons }), [icons]);
   const data = input as Json;
   const [openSet, setOpenSet] = useState<Set<string>>(() => {
     const s = new Set<string>();
@@ -115,7 +124,6 @@ export function JSONViewer({ data: input, title, defaultDepth = 1, className, la
     return s;
   }, [data, q]);
 
-  const isOpen = (p: string) => (hits ? hits.has(p) : openSet.has(p));
   const toggle = (p: string) =>
     setOpenSet((s) => {
       const n = new Set(s);
@@ -130,7 +138,7 @@ export function JSONViewer({ data: input, title, defaultDepth = 1, className, la
     const values = new Map<string, string>();
     const walk = (key: string | number | null, v: Json, p: string, depth: number, last: boolean) => {
       const branch = v !== null && typeof v === "object";
-      const open = branch && isOpen(p);
+      const open = branch && (hits ? hits.has(p) : openSet.has(p));
       const entries = branch ? (Array.isArray(v) ? v.map((x, i) => [i, x] as const) : Object.entries(v)) : [];
       const brackets = Array.isArray(v) ? ["[", "]"] : ["{", "}"];
       const dim = hits && !hits.has(p) && p !== "$";
@@ -148,8 +156,8 @@ export function JSONViewer({ data: input, title, defaultDepth = 1, className, la
         >
           {branch ? (
             <button type="button" onClick={() => toggle(p)} aria-label={open ? l.collapse(p) : l.expand(p)} className="grid size-5 shrink-0 place-items-center rounded-[4px] text-muted hover:text-ink">
-              <motion.span className="grid" initial={false} animate={{ rotate: open ? 90 : 0 }} transition={springSnappy}>
-                <ChevronRight className="size-3.5" />
+              <motion.span className="grid [&>svg]:size-3.5" initial={false} animate={{ rotate: open ? 90 : 0 }} transition={springSnappy}>
+                {ic.expand}
               </motion.span>
             </button>
           ) : (
@@ -187,7 +195,7 @@ export function JSONViewer({ data: input, title, defaultDepth = 1, className, la
     };
     walk(null, data, "$", 0, true);
     return { rows, values };
-  }, [data, openSet, hits, q, l]);
+  }, [data, openSet, hits, q, l, ic]);
 
   const pickRow = (target: EventTarget | null) => {
     const row = (target as HTMLElement | null)?.closest?.("[data-path]") as HTMLElement | null;
@@ -201,7 +209,7 @@ export function JSONViewer({ data: input, title, defaultDepth = 1, className, la
       <div className="flex items-center gap-3 border-b border-line px-3 py-2">
         {title && <span className="truncate text-sm font-medium text-ink">{title}</span>}
         <label className="ml-auto flex h-8 w-full max-w-56 items-center gap-2 rounded-control border border-line-strong bg-surface px-2.5 text-sm transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/20">
-          <Search className="size-3.5 shrink-0 text-faint" aria-hidden />
+          <span className="inline-flex shrink-0 text-faint [&>svg]:size-3.5" aria-hidden>{ic.search}</span>
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={l.search} aria-label={l.search} className="min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-faint" />
         </label>
       </div>
@@ -245,7 +253,11 @@ function RowCopy({ what, text, l }: { what: string; text: string; l: JSONViewerL
   const [done, setDone] = useState(false);
   const t = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(t.current), []);
-  useEffect(() => setDone(false), [text]);
+  const [shownFor, setShownFor] = useState(text);
+  if (text !== shownFor) {
+    setShownFor(text);
+    setDone(false);
+  }
   return (
     <button
       type="button"

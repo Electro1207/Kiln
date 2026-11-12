@@ -1,4 +1,4 @@
-import { useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Plus, X } from "lucide-react";
 import { cn } from "../../cn";
@@ -6,6 +6,15 @@ import { useControllable, type Size } from "../../controllable";
 import { spring, springSoft } from "../../motion";
 import { AnchoredLayer, RowHighlight, optionClass } from "../shared/Anchored";
 import { Highlight } from "./Combobox";
+
+/** Icons used by TagInput. Pass a partial via `icons` to replace them. */
+export interface TagInputIcons {
+  /** Remove button on a tag. */
+  remove: ReactNode;
+  /** Plus beside the "create" suggestion. */
+  create: ReactNode;
+}
+export const tagInputIcons: TagInputIcons = { remove: <X />, create: <Plus /> };
 
 /** Text used by TagInput. Pass a partial via `labels` to translate or reword. */
 export interface TagInputLabels {
@@ -47,6 +56,8 @@ export type TagInputProps = {
   size?: Size;
   /** Override any UI text. Merged over `tagInputLabels`. */
   labels?: Partial<TagInputLabels>;
+  /** Replace any built-in icon. Merged over `tagInputIcons`. */
+  icons?: Partial<TagInputIcons>;
   className?: string;
 };
 
@@ -65,9 +76,11 @@ export function TagInput({
   placeholder,
   size = "md",
   labels,
+  icons,
   className,
 }: TagInputProps) {
   const l = { ...tagInputLabels, ...labels };
+  const ic = useMemo(() => ({ ...tagInputIcons, ...icons }), [icons]);
   const [value, onChange] = useControllable(valueProp, defaultValue, onChangeProp);
   const id = useId();
   const boxRef = useRef<HTMLDivElement>(null);
@@ -163,9 +176,9 @@ export function TagInput({
                     e.stopPropagation();
                     remove(tag);
                   }}
-                  className="grid size-5 place-items-center rounded-[4px] text-muted transition-colors hover:bg-surface/70 hover:text-ink"
+                  className="grid size-5 place-items-center rounded-[4px] text-muted transition-colors hover:bg-surface/70 hover:text-ink [&>svg]:size-3"
                 >
-                  <X className="size-3" />
+                  {ic.remove}
                 </button>
               </motion.span>
             );
@@ -224,7 +237,7 @@ export function TagInput({
               <RowHighlight on={active === i} />
               {create ? (
                 <span className="flex items-center gap-2 text-muted">
-                  <Plus className="size-4" /> {l.create} <span className="text-ink">{l.quote(labelText)}</span>
+                  <span className="inline-grid place-items-center [&>svg]:size-4" aria-hidden>{ic.create}</span> {l.create} <span className="text-ink">{l.quote(labelText)}</span>
                 </span>
               ) : (
                 <span className="truncate">

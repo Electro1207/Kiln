@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useMemo } from "react";
 import { motion } from "motion/react";
 import { Check, Minus } from "lucide-react";
 import { cn } from "../../cn";
@@ -10,6 +10,15 @@ export type PrefGroup = { label: string; events: PrefEvent[] };
 /** value[eventId][channelId] = on */
 export type PrefValue = Record<string, Record<string, boolean>>;
 
+/** Icons used by NotificationPreferences. Pass a partial via `icons` to swap any of them. */
+export interface NotificationPreferencesIcons {
+  /** The tick in a switched-on box. */
+  check: ReactNode;
+  /** The dash in a box that is on for some rows only. */
+  mixed: ReactNode;
+}
+export const notificationPreferencesIcons: NotificationPreferencesIcons = { check: <Check />, mixed: <Minus /> };
+
 export type NotificationPreferencesProps = {
   channels: PrefChannel[];
   groups: PrefGroup[];
@@ -17,6 +26,8 @@ export type NotificationPreferencesProps = {
   onChange: (v: PrefValue) => void;
   /** Override any UI text. Merged over `notificationPreferencesLabels`. */
   labels?: Partial<NotificationPreferencesLabels>;
+  /** Replace any built-in icon. Merged over `notificationPreferencesIcons`. */
+  icons?: Partial<NotificationPreferencesIcons>;
   className?: string;
 };
 
@@ -44,7 +55,7 @@ export const notificationPreferencesLabels: NotificationPreferencesLabels = {
 type Mark = boolean | "mixed";
 
 /** A small box: filled with a tick when on, a dash when some of a row or column is on. */
-function Box({ mark, label, onToggle, size = "md" }: { mark: Mark; label: string; onToggle: () => void; size?: "md" | "sm" }) {
+function Box({ mark, label, onToggle, icons, size = "md" }: { icons: NotificationPreferencesIcons; mark: Mark; label: string; onToggle: () => void; size?: "md" | "sm" }) {
   const on = mark === true;
   const mixed = mark === "mixed";
   return (
@@ -61,11 +72,11 @@ function Box({ mark, label, onToggle, size = "md" }: { mark: Mark; label: string
         "text-btn-primary-ink", on || mixed ? "border-transparent bg-btn-primary" : "border-line-strong bg-surface hover:border-faint",
       )}
     >
-      <motion.span initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className="grid">
-        <Check className={size === "md" ? "size-3" : "size-2.5"} strokeWidth={3.25} />
+      <motion.span initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className={cn("grid [&>svg]:[stroke-width:3.25]", size === "md" ? "[&>svg]:size-3" : "[&>svg]:size-2.5")}>
+        {icons.check}
       </motion.span>
-      <motion.span initial={false} animate={{ opacity: mixed ? 1 : 0 }} transition={fade} className="grid">
-        <Minus className={size === "md" ? "size-3" : "size-2.5"} strokeWidth={3.25} />
+      <motion.span initial={false} animate={{ opacity: mixed ? 1 : 0 }} transition={fade} className={cn("grid [&>svg]:[stroke-width:3.25]", size === "md" ? "[&>svg]:size-3" : "[&>svg]:size-2.5")}>
+        {icons.mixed}
       </motion.span>
     </button>
   );
@@ -78,8 +89,9 @@ const markOf = (vals: boolean[]): Mark => (vals.every(Boolean) ? true : vals.som
  * select-all. On a narrow screen each event becomes a card with its channels
  * in a row.
  */
-export function NotificationPreferences({ channels, groups, value, onChange, labels, className }: NotificationPreferencesProps) {
+export function NotificationPreferences({ channels, groups, value, onChange, labels, icons, className }: NotificationPreferencesProps) {
   const l = { ...notificationPreferencesLabels, ...labels };
+  const ic = useMemo(() => ({ ...notificationPreferencesIcons, ...icons }), [icons]);
   const events = groups.flatMap((g) => g.events);
   const get = (e: string, c: string) => !!value[e]?.[c];
 
@@ -111,7 +123,7 @@ export function NotificationPreferences({ channels, groups, value, onChange, lab
                       {c.icon}
                       {c.label}
                     </span>
-                    <Box size="sm" mark={markOf(events.map((e) => get(e.id, c.id)))} label={l.allEventsBy(c.label)} onToggle={() => toggleCol(c.id)} />
+                    <Box icons={ic} size="sm" mark={markOf(events.map((e) => get(e.id, c.id)))} label={l.allEventsBy(c.label)} onToggle={() => toggleCol(c.id)} />
                   </div>
                 </th>
               ))}
@@ -134,13 +146,13 @@ export function NotificationPreferences({ channels, groups, value, onChange, lab
                   {channels.map((c) => (
                     <td key={c.id} className="px-3 py-3.5">
                       <div className="grid place-items-center">
-                        <Box mark={get(e.id, c.id)} label={l.eventBy(e.label, c.label)} onToggle={() => setCells([[e.id, c.id]], !get(e.id, c.id))} />
+                        <Box icons={ic} mark={get(e.id, c.id)} label={l.eventBy(e.label, c.label)} onToggle={() => setCells([[e.id, c.id]], !get(e.id, c.id))} />
                       </div>
                     </td>
                   ))}
                   <td className="px-3 py-3.5">
                     <div className="grid place-items-center">
-                      <Box size="sm" mark={markOf(channels.map((c) => get(e.id, c.id)))} label={l.eventOnEveryChannel(e.label)} onToggle={() => toggleRow(e.id)} />
+                      <Box icons={ic} size="sm" mark={markOf(channels.map((c) => get(e.id, c.id)))} label={l.eventOnEveryChannel(e.label)} onToggle={() => toggleRow(e.id)} />
                     </div>
                   </td>
                 </tr>
@@ -161,12 +173,12 @@ export function NotificationPreferences({ channels, groups, value, onChange, lab
                     <span className="block text-sm text-ink">{e.label}</span>
                     {e.description && <span className="block text-[13px] text-muted">{e.description}</span>}
                   </span>
-                  <Box size="sm" mark={markOf(channels.map((c) => get(e.id, c.id)))} label={l.eventOnEveryChannel(e.label)} onToggle={() => toggleRow(e.id)} />
+                  <Box icons={ic} size="sm" mark={markOf(channels.map((c) => get(e.id, c.id)))} label={l.eventOnEveryChannel(e.label)} onToggle={() => toggleRow(e.id)} />
                 </div>
                 <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
                   {channels.map((c) => (
                     <label key={c.id} className="flex items-center gap-2 text-[13px] text-ink">
-                      <Box mark={get(e.id, c.id)} label={l.eventBy(e.label, c.label)} onToggle={() => setCells([[e.id, c.id]], !get(e.id, c.id))} />
+                      <Box icons={ic} mark={get(e.id, c.id)} label={l.eventBy(e.label, c.label)} onToggle={() => setCells([[e.id, c.id]], !get(e.id, c.id))} />
                       {c.label}
                     </label>
                   ))}

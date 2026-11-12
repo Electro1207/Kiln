@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
 import { fade, springFirm } from "../../motion";
@@ -22,11 +22,9 @@ export function NumberTicker({ value, format, locale = "en-GB", className }: Num
   const chars = text.split("");
   // Characters only need layout measuring when the count of characters changes
   // (a digit appears or goes). A plain roll measures nothing, so it costs only transforms.
-  const prevLen = useRef(chars.length);
-  const reflow = prevLen.current !== chars.length;
-  useEffect(() => {
-    prevLen.current = chars.length;
-  });
+  const [seen, setSeen] = useState({ text, len: chars.length, reflow: false });
+  if (seen.text !== text) setSeen({ text, len: chars.length, reflow: seen.len !== chars.length });
+  const reflow = seen.reflow;
   const layout = reflow ? ("position" as const) : false;
   return (
     <span className={cn("tabular inline-flex overflow-hidden leading-none", className)}>

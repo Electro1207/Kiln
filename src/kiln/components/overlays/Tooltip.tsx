@@ -1,4 +1,4 @@
-import { cloneElement, useEffect, useId, useRef, useState, type ReactElement, type ReactNode, type Ref } from "react";
+import { cloneElement, useCallback, useEffect, useId, useRef, useState, type ReactElement, type ReactNode, type Ref } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut, springSoft } from "../../motion";
@@ -33,46 +33,59 @@ export type TooltipProps = {
   className?: string;
 };
 
+/** The open-delay and close-grace timeouts, cleared on unmount. */
+function useTimers() {
+  const open = useRef<number | undefined>(undefined);
+  const close = useRef<number | undefined>(undefined);
+  const clearOpen = useCallback(() => window.clearTimeout(open.current), []);
+  const clearAll = useCallback(() => {
+    window.clearTimeout(open.current);
+    window.clearTimeout(close.current);
+  }, []);
+  const startOpen = useCallback((fn: () => void, ms: number) => {
+    open.current = window.setTimeout(fn, ms);
+  }, []);
+  const startClose = useCallback((fn: () => void, ms: number) => {
+    window.clearTimeout(close.current);
+    close.current = window.setTimeout(fn, ms);
+  }, []);
+  useEffect(() => clearAll, [clearAll]);
+  return { clearOpen, clearAll, startOpen, startClose };
+}
+
 /** A short label on hover or keyboard focus. Not for anything the user must read to act. */
 export function Tooltip({ content, children, side = "top", delay = 450, className }: TooltipProps) {
   const [open, setOpen] = useState(false);
   const [instant, setInstant] = useState(false);
-  const openTimer = useRef<number | undefined>(undefined);
-  const closeTimer = useRef<number | undefined>(undefined);
+  const timers = useTimers();
   const id = useId();
-  const { anchorRef, floatingRef, placement, floatingStyle } = useAnchored(open, side, "center", 8);
-
-  const clearTimers = () => {
-    window.clearTimeout(openTimer.current);
-    window.clearTimeout(closeTimer.current);
-  };
+  const { setAnchor, floatingRef, placement, floatingStyle } = useAnchored(open, side, "center", 8);
 
   const reallyOpen = (now: boolean) => {
     if (current && current.id !== id) current.handOver();
-    current = { id, handOver: () => { clearTimers(); setInstant(true); setOpen(false); } };
+    current = { id, handOver: () => { timers.clearAll(); setInstant(true); setOpen(false); } };
     setInstant(now);
     setOpen(true);
   };
 
   const show = () => {
-    clearTimers();
+    timers.clearAll();
     if (open) return;
     const warm = current !== null || Date.now() < warmUntil;
     if (warm) reallyOpen(true);
-    else openTimer.current = window.setTimeout(() => reallyOpen(false), delay);
+    else timers.startOpen(() => reallyOpen(false), delay);
   };
 
   const close = () => {
-    clearTimers();
+    timers.clearAll();
     setInstant(false);
     setOpen(false);
   };
 
   const hide = (grace = true) => {
-    window.clearTimeout(openTimer.current);
+    timers.clearOpen();
     if (!open) return;
-    window.clearTimeout(closeTimer.current);
-    if (grace) closeTimer.current = window.setTimeout(close, GRACE_MS);
+    if (grace) timers.startClose(close, GRACE_MS);
     else close();
   };
 
@@ -87,11 +100,9 @@ export function Tooltip({ content, children, side = "top", delay = 450, classNam
     };
   }, [open, id]);
 
-  useEffect(() => () => clearTimers(), []);
-
   const p = children.props;
   const trigger = cloneElement(children, {
-    ref: anchorRef as Ref<HTMLElement>,
+    ref: setAnchor as Ref<HTMLElement>,
     onPointerEnter: (e) => { p.onPointerEnter?.(e); if (e.pointerType === "mouse") show(); },
     onPointerLeave: (e) => { p.onPointerLeave?.(e); hide(); },
     onPointerDown: (e) => { p.onPointerDown?.(e); hide(false); },

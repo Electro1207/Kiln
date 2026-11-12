@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowDown, Columns3, X } from "lucide-react";
+import { Columns3, X } from "lucide-react";
 import { cn } from "../../cn";
 import { fade, springSnappy, springSoft } from "../../motion";
 import { Button } from "../buttons/Button";
 import { DropdownMenu } from "../menus/DropdownMenu";
 import { Pagination } from "../wayfinding/Pagination";
-import { SearchField } from "../text-input/SearchField";
+import { SearchField, type SearchFieldIcons } from "../text-input/SearchField";
 import { SegmentedControl } from "../buttons/SegmentedControl";
-import { TickBox, useRowFlip } from "./Table";
+import { TickBox, tableIcons, useRowFlip, type TableIcons } from "./Table";
 
 export type GridColumn<T> = {
   key: string;
@@ -54,6 +54,17 @@ export interface DataGridLabels {
   /** aria-label of the clear-selection button. */
   clearSelection: string;
 }
+/** Icons used by DataGrid. Pass a partial via `icons` to replace them. */
+export interface DataGridIcons extends TableIcons {
+  /** Columns menu button. */
+  columns: ReactNode;
+  /** Button that clears the row selection. */
+  clearSelection: ReactNode;
+  /** Icons for the filter field. */
+  search: Partial<SearchFieldIcons>;
+}
+export const dataGridIcons: DataGridIcons = { ...tableIcons, columns: <Columns3 />, clearSelection: <X />, search: {} };
+
 export const dataGridLabels: DataGridLabels = {
   filter: (p) => `Filter ${p}`,
   density: "Row density",
@@ -84,6 +95,8 @@ export type DataGridProps<T> = {
   className?: string;
   /** Override any UI text. Merged over `dataGridLabels`. */
   labels?: Partial<DataGridLabels>;
+  /** Replace any built-in icon. Merged over `dataGridIcons`. */
+  icons?: Partial<DataGridIcons>;
 };
 
 type Density = "compact" | "comfortable";
@@ -93,8 +106,9 @@ type Sort = { key: string; dir: "asc" | "desc" } | null;
  * A working table: filter, sort, choose columns, page through, change density
  * and act on a selection. The first column stays put while the rest scrolls.
  */
-export function DataGrid<T>({ rows, columns, rowKey, noun, caption, pageSize = 8, bulkActions = [], className, labels }: DataGridProps<T>) {
+export function DataGrid<T>({ rows, columns, rowKey, noun, caption, pageSize = 8, bulkActions = [], className, labels, icons }: DataGridProps<T>) {
   const l = { ...dataGridLabels, ...labels };
+  const ic = useMemo(() => ({ ...dataGridIcons, ...icons }), [icons]);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<Sort>(null);
   const [page, setPage] = useState(1);
@@ -127,9 +141,7 @@ export function DataGrid<T>({ rows, columns, rowKey, noun, caption, pageSize = 8
   }, [filtered, columns, sort]);
 
   const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
-  useEffect(() => {
-    if (page > pageCount) setPage(pageCount);
-  }, [page, pageCount]);
+  if (page > pageCount) setPage(pageCount);
   const pageRows = sorted.slice((page - 1) * pageSize, page * pageSize);
 
   const pageIds = pageRows.map(rowKey);
@@ -185,6 +197,7 @@ export function DataGrid<T>({ rows, columns, rowKey, noun, caption, pageSize = 8
           }}
           placeholder={l.filter(noun[1])}
           aria-label={l.filter(noun[1])}
+          icons={ic.search}
           className="min-w-0 flex-1 basis-56"
         />
         <div className="flex items-center gap-2">
@@ -219,7 +232,7 @@ export function DataGrid<T>({ rows, columns, rowKey, noun, caption, pageSize = 8
                 })),
             ]}
             trigger={({ open, ...p }) => (
-              <Button {...p} size="sm" variant="secondary" leading={<Columns3 />} className={cn(open && "bg-btn-secondary-hover")}>
+              <Button {...p} size="sm" variant="secondary" leading={ic.columns} className={cn(open && "bg-btn-secondary-hover")}>
                 {l.columns}
               </Button>
             )}
@@ -249,7 +262,7 @@ export function DataGrid<T>({ rows, columns, rowKey, noun, caption, pageSize = 8
                     >
                       {ci === 0 && (
                         <span className="mr-3 inline-flex align-middle">
-                          <TickBox checked={all} mixed={some} onChange={toggleAll} label={l.selectAll(noun[1])} />
+                          <TickBox checked={all} mixed={some} onChange={toggleAll} label={l.selectAll(noun[1])} icons={ic} />
                         </span>
                       )}
                       {c.sortValue ? (
@@ -268,9 +281,9 @@ export function DataGrid<T>({ rows, columns, rowKey, noun, caption, pageSize = 8
                             initial={false}
                             animate={{ opacity: active ? 1 : 0, rotate: active && sort!.dir === "desc" ? 180 : 0 }}
                             transition={springSnappy}
-                            className="inline-flex"
+                            className="inline-flex [&>svg]:size-3.5"
                           >
-                            <ArrowDown className="size-3.5" />
+                            {ic.sort}
                           </motion.span>
                         </button>
                       ) : (
@@ -309,7 +322,7 @@ export function DataGrid<T>({ rows, columns, rowKey, noun, caption, pageSize = 8
                         >
                           {ci === 0 ? (
                             <span className="flex items-center gap-3">
-                              <TickBox checked={isSel} onChange={() => toggle(id)} label={l.selectRow(id)} />
+                              <TickBox checked={isSel} onChange={() => toggle(id)} label={l.selectRow(id)} icons={ic} />
                               {c.render(row)}
                             </span>
                           ) : (
@@ -384,9 +397,9 @@ export function DataGrid<T>({ rows, columns, rowKey, noun, caption, pageSize = 8
                   type="button"
                   onClick={() => setSelected(new Set())}
                   aria-label={l.clearSelection}
-                  className="grid size-9 place-items-center rounded-control text-muted transition-colors duration-200 hover:bg-raised hover:text-ink"
+                  className="grid size-9 place-items-center rounded-control text-muted transition-colors duration-200 hover:bg-raised hover:text-ink [&>svg]:size-4"
                 >
-                  <X className="size-4" />
+                  {ic.clearSelection}
                 </button>
               </motion.div>
             )}

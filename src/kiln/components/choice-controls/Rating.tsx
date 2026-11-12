@@ -1,4 +1,4 @@
-import { useId, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useId, useMemo, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { useAnimate } from "motion/react";
 import { cn } from "../../cn";
 import { springBouncy } from "../../motion";
@@ -18,12 +18,26 @@ export interface RatingLabels {
 }
 export const ratingLabels: RatingLabels = { notRated: "Not rated", valueOf: (v, n) => `${v} of ${n}` };
 
+/** Icons used by Rating. Pass a partial via `icons` to replace any. */
+export interface RatingIcons {
+  /** A lit item. It takes the warning colour and fills with it. */
+  star: ReactNode;
+  /** An unlit item. It takes the muted line colour. */
+  starOff: ReactNode;
+}
+const starSvg = (
+  <svg viewBox="0 0 24 24">
+    <path d={STAR} fill="var(--star-fill, currentColor)" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+  </svg>
+);
+export const ratingIcons: RatingIcons = { star: starSvg, starOff: starSvg };
+
 /**
  * Star rating. The whole row owns the pointer: the value under it comes from the pointer's x across
  * the row, so the gaps between stars are never dead zones. A pick makes the chosen stars hop in a wave.
  */
 export function Rating({
-  value, onChange, max = 5, label = "Rating", size = "md", gap = 4, readOnly, className, labels, hideLabel, uiLabels,
+  value, onChange, max = 5, label = "Rating", size = "md", gap = 4, readOnly, className, labels, hideLabel, uiLabels, icons,
 }: {
   value: number;
   onChange?: (v: number) => void;
@@ -41,8 +55,11 @@ export function Rating({
   hideLabel?: boolean;
   /** Override any UI text. Merged over `ratingLabels`. */
   uiLabels?: Partial<RatingLabels>;
+  /** Replace the lit and unlit icon, e.g. a heart. Merged over `ratingIcons`. */
+  icons?: Partial<RatingIcons>;
 }) {
   const l = { ...ratingLabels, ...uiLabels };
+  const ic = useMemo(() => ({ ...ratingIcons, ...icons }), [icons]);
   const px = typeof size === "number" ? size : STAR_PX[size];
   const textSize = typeof size === "number" ? (size < 24 ? LABEL_TEXT.sm : size > 32 ? LABEL_TEXT.lg : LABEL_TEXT.md) : LABEL_TEXT[size];
   const id = useId();
@@ -104,18 +121,19 @@ export function Rating({
             const on = n <= shown;
             const preview = hover !== null && n > value && on;
             return (
-              <span key={n} data-star className="pointer-events-none inline-flex will-change-transform">
-                <svg viewBox="0 0 24 24" width={px} height={px} aria-hidden>
-                  <path
-                    d={STAR}
-                    className={cn(
-                      "transition-[fill,stroke] duration-150",
-                      on ? (preview ? "fill-warning/60 stroke-warning/60" : "fill-warning stroke-warning") : "fill-active stroke-line-strong",
-                    )}
-                    strokeWidth="1.2"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+              <span
+                key={n}
+                data-star
+                aria-hidden
+                style={{ width: px, height: px }}
+                className={cn(
+                  "pointer-events-none inline-flex will-change-transform [&>svg]:size-full [&_*]:transition-[fill,stroke] [&_*]:duration-150",
+                  on
+                    ? cn("[--star-fill:currentColor] [&>svg]:fill-current", preview ? "text-warning/60" : "text-warning")
+                    : "text-line-strong [--star-fill:var(--color-active)]",
+                )}
+              >
+                {on ? ic.star : ic.starOff}
               </span>
             );
           })}

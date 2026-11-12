@@ -6,22 +6,51 @@ import { fade, springSnappy, springSoft } from "../../motion";
 
 export type TreeNode = { id: string; name: string; icon?: ReactNode; children?: TreeNode[]; meta?: string };
 
+/** Icons used by TreeView. Pass a partial via `icons` to swap any of them. A node's own `icon` wins. */
+export interface TreeViewIcons {
+  /** The caret on a folder; it turns when the folder opens. */
+  chevron: ReactNode;
+  /** A closed folder. */
+  folder: ReactNode;
+  /** An open folder. */
+  folderOpen: ReactNode;
+  /** A file with no better match. */
+  file: ReactNode;
+  /** An image file. */
+  fileImage: ReactNode;
+  /** A code or data file. */
+  fileCode: ReactNode;
+  /** A text or document file. */
+  fileText: ReactNode;
+}
+export const treeViewIcons: TreeViewIcons = {
+  chevron: <ChevronRight />,
+  folder: <Folder />,
+  folderOpen: <FolderOpen />,
+  file: <File />,
+  fileImage: <FileImage />,
+  fileCode: <FileCode2 />,
+  fileText: <FileText />,
+};
+
 export type TreeViewProps = {
   nodes: TreeNode[];
   selected: string | null;
   onSelect: (id: string, node: TreeNode) => void;
   defaultExpanded?: string[];
   label: string;
+  /** Replace any built-in icon. Merged over `treeViewIcons`. */
+  icons?: Partial<TreeViewIcons>;
   className?: string;
 };
 
 type Flat = { node: TreeNode; level: number; parent: string | null; setSize: number; pos: number };
 
-function fileIcon(name: string) {
-  if (/\.(png|jpe?g|gif|svg|webp)$/i.test(name)) return FileImage;
-  if (/\.(tsx?|jsx?|css|json|py|rs)$/i.test(name)) return FileCode2;
-  if (/\.(md|txt|pdf|docx?)$/i.test(name)) return FileText;
-  return File;
+function fileIcon(name: string): "fileImage" | "fileCode" | "fileText" | "file" {
+  if (/\.(png|jpe?g|gif|svg|webp)$/i.test(name)) return "fileImage";
+  if (/\.(tsx?|jsx?|css|json|py|rs)$/i.test(name)) return "fileCode";
+  if (/\.(md|txt|pdf|docx?)$/i.test(name)) return "fileText";
+  return "file";
 }
 
 /**
@@ -29,7 +58,8 @@ function fileIcon(name: string) {
  * steps in, Left closes or steps out, Home/End jump, * opens siblings,
  * Enter/Space selects, and typing jumps to a name.
  */
-export function TreeView({ nodes, selected, onSelect, defaultExpanded = [], label, className }: TreeViewProps) {
+export function TreeView({ nodes, selected, onSelect, defaultExpanded = [], label, icons, className }: TreeViewProps) {
+  const ic = useMemo(() => ({ ...treeViewIcons, ...icons }), [icons]);
   const id = useId();
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(defaultExpanded));
   const [focusId, setFocusId] = useState<string | null>(selected ?? nodes[0]?.id ?? null);
@@ -115,7 +145,7 @@ export function TreeView({ nodes, selected, onSelect, defaultExpanded = [], labe
       const isFolder = !!node.children;
       const open = expanded.has(node.id);
       const isSel = node.id === selected;
-      const Icon = isFolder ? null : fileIcon(node.name);
+      const fileKey = isFolder ? null : fileIcon(node.name);
       return (
         <li
           key={node.id}
@@ -144,21 +174,21 @@ export function TreeView({ nodes, selected, onSelect, defaultExpanded = [], labe
           >
             <span className="grid size-4 shrink-0 place-items-center text-muted">
               {isFolder && (
-                <motion.span initial={false} animate={{ rotate: open ? 90 : 0 }} transition={springSnappy} className="grid">
-                  <ChevronRight className="size-3.5" />
+                <motion.span initial={false} animate={{ rotate: open ? 90 : 0 }} transition={springSnappy} className="grid [&>svg]:size-3.5">
+                  {ic.chevron}
                 </motion.span>
               )}
             </span>
             <span className="grid size-4 shrink-0 place-items-center text-muted [&>*]:[grid-area:1/1]">
               {isFolder ? (
                 <>
-                  <motion.span initial={false} animate={{ opacity: open ? 0 : 1 }} transition={fade} className="grid"><Folder className="size-4" /></motion.span>
-                  <motion.span initial={false} animate={{ opacity: open ? 1 : 0 }} transition={fade} className="grid"><FolderOpen className="size-4" /></motion.span>
+                  <motion.span initial={false} animate={{ opacity: open ? 0 : 1 }} transition={fade} className="grid [&>svg]:size-4">{ic.folder}</motion.span>
+                  <motion.span initial={false} animate={{ opacity: open ? 1 : 0 }} transition={fade} className="grid [&>svg]:size-4">{ic.folderOpen}</motion.span>
                 </>
               ) : node.icon ? (
                 <span className="grid [&>svg]:size-4">{node.icon}</span>
-              ) : Icon ? (
-                <Icon className="size-4" />
+              ) : fileKey ? (
+                <span className="grid [&>svg]:size-4">{ic[fileKey]}</span>
               ) : null}
             </span>
             <span className="min-w-0 flex-1 truncate">{node.name}</span>

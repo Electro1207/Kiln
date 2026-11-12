@@ -1,4 +1,4 @@
-import { forwardRef, useState, type InputHTMLAttributes } from "react";
+import { forwardRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Search, X } from "lucide-react";
 import { cn } from "../../cn";
@@ -9,6 +9,26 @@ const searchSizes: Record<Size, string> = {
   sm: "k-ctl-sm px-3",
   md: "k-ctl-md px-3.5",
   lg: "k-ctl-lg px-4",
+};
+
+/** Icons used by SearchField. Pass a partial via `icons` to replace them. */
+export interface SearchFieldIcons {
+  /** Magnifier at the start of the field. */
+  search: ReactNode;
+  /** Turning arc shown while `loading`. */
+  spinner: ReactNode;
+  /** Clear button. */
+  clear: ReactNode;
+}
+export const searchFieldIcons: SearchFieldIcons = {
+  search: <Search />,
+  spinner: (
+    <svg viewBox="0 0 16 16">
+      <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="2" />
+      <path d="M14 8a6 6 0 0 0-6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  ),
+  clear: <X />,
 };
 
 /** Text used by SearchField. Pass a partial via `labels` to translate or reword. */
@@ -33,8 +53,11 @@ export const SearchField = forwardRef<HTMLInputElement, Omit<InputHTMLAttributes
   size?: Size;
   /** Override any UI text. Merged over `searchFieldLabels`. */
   labels?: Partial<SearchFieldLabels>;
-}>(function SearchField({ value: valueProp, defaultValue = "", onValueChange: onValueProp, shortcut, loading, size = "md", className, placeholder: placeholderProp, labels, ...rest }, ref) {
+  /** Replace any built-in icon. Merged over `searchFieldIcons`. */
+  icons?: Partial<SearchFieldIcons>;
+}>(function SearchField({ value: valueProp, defaultValue = "", onValueChange: onValueProp, shortcut, loading, size = "md", className, placeholder: placeholderProp, labels, icons, ...rest }, ref) {
   const l = { ...searchFieldLabels, ...labels };
+  const ic = { ...searchFieldIcons, ...icons };
   const placeholder = placeholderProp ?? l.placeholder;
   const [value, onValueChange] = useControllable(valueProp, defaultValue, onValueProp);
   const [focused, setFocused] = useState(false);
@@ -47,13 +70,8 @@ export const SearchField = forwardRef<HTMLInputElement, Omit<InputHTMLAttributes
         className,
       )}
     >
-      <span className={cn("grid shrink-0 transition-colors duration-200", focused ? "text-accent" : "text-faint")}>
-        {loading ? (
-          <svg viewBox="0 0 16 16" className="size-4 animate-spin" aria-hidden>
-            <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="2" />
-            <path d="M14 8a6 6 0 0 0-6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        ) : <Search className="size-4" />}
+      <span aria-hidden className={cn("grid shrink-0 transition-colors duration-200 [&_svg]:size-4", focused ? "text-accent" : "text-faint")}>
+        {loading ? <span className="grid animate-spin">{ic.spinner}</span> : ic.search}
       </span>
       <input
         ref={ref}
@@ -78,8 +96,8 @@ export const SearchField = forwardRef<HTMLInputElement, Omit<InputHTMLAttributes
           {value && (
             <motion.button key="x" type="button" aria-label={l.clear} onClick={() => onValueChange("")}
               initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }} transition={springSnappy}
-              className="grid size-5 place-items-center rounded-full bg-active text-muted hover:text-ink">
-              <X className="size-3" strokeWidth={2.5} />
+              className="grid size-5 place-items-center rounded-full bg-active text-muted hover:text-ink [&>svg]:size-3 [&>svg]:[stroke-width:2.5]">
+              {ic.clear}
             </motion.button>
           )}
         </AnimatePresence>

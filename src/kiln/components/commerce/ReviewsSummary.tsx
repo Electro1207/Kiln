@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { PenLine, ThumbsUp } from "lucide-react";
 import { cn } from "../../cn";
@@ -27,20 +27,27 @@ export interface StarsLabels {
 }
 export const starsLabels: StarsLabels = { rating: (v) => `${v} out of 5 stars` };
 
+export interface StarsIcons {
+  /** One star. Drawn twice: dimmed, then in the accent colour clipped to the value. Should fill with currentColor. */
+  star: ReactNode;
+}
+export const starsIcons: StarsIcons = { star: <svg viewBox="0 0 24 24"><path d={STAR} /></svg> };
+
 /** Read-only stars that can show a fraction (4.3 fills 4 and a third). */
-export function Stars({ value, size = 16, label, labels }: { value: number; size?: number; label?: string; labels?: Partial<StarsLabels> }) {
+export function Stars({ value, size = 16, label, labels, icons }: { value: number; size?: number; label?: string; labels?: Partial<StarsLabels>; /** Replace any built-in icon. Merged over `starsIcons`. */ icons?: Partial<StarsIcons> }) {
   const l = { ...starsLabels, ...labels };
-  const id = useId();
+  const ic = { ...starsIcons, ...icons };
   return (
     <span className="inline-flex" role="img" aria-label={label ?? l.rating(value.toFixed(1))}>
       {[0, 1, 2, 3, 4].map((i) => {
         const fill = Math.max(0, Math.min(1, value - i));
         return (
-          <svg key={i} viewBox="0 0 24 24" width={size} height={size} aria-hidden>
-            <defs><clipPath id={`${id}-${i}`}><rect x="0" y="0" width={24 * fill} height="24" /></clipPath></defs>
-            <path d={STAR} className="fill-active" />
-            <path d={STAR} className="fill-warning" clipPath={`url(#${id}-${i})`} />
-          </svg>
+          <span key={i} className="relative inline-block" style={{ width: size, height: size }} aria-hidden>
+            <span className="absolute inset-0 text-active [&>svg]:size-full [&>svg]:fill-current">{ic.star}</span>
+            <span className="absolute inset-y-0 left-0 overflow-hidden text-warning" style={{ width: `${fill * 100}%` }}>
+              <span className="block [&>svg]:size-full [&>svg]:fill-current" style={{ width: size, height: size }}>{ic.star}</span>
+            </span>
+          </span>
         );
       })}
     </span>
@@ -94,7 +101,17 @@ export const reviewsSummaryLabels: ReviewsSummaryLabels = {
  * Average, distribution and the reviews themselves. The bars grow in once when
  * scrolled into view; "Helpful" votes count up in place.
  */
-export function ReviewsSummary({ reviews, onWrite, className, locale, labels }: {
+export interface ReviewsSummaryIcons {
+  /** Write-a-review button. */
+  write: ReactNode;
+  /** Helpful button. */
+  helpful: ReactNode;
+  /** The star in the rating rows; see `StarsIcons`. */
+  star: ReactNode;
+}
+export const reviewsSummaryIcons: ReviewsSummaryIcons = { write: <PenLine />, helpful: <ThumbsUp />, star: starsIcons.star };
+
+export function ReviewsSummary({ reviews, onWrite, className, locale, labels, icons }: {
   reviews: Review[];
   onWrite: () => void;
   className?: string;
@@ -102,8 +119,11 @@ export function ReviewsSummary({ reviews, onWrite, className, locale, labels }: 
   locale?: string;
   /** Override any UI text. Merged over `reviewsSummaryLabels`. */
   labels?: Partial<ReviewsSummaryLabels>;
+  /** Replace any built-in icon. Merged over `reviewsSummaryIcons`. */
+  icons?: Partial<ReviewsSummaryIcons>;
 }) {
   const l = { ...reviewsSummaryLabels, ...labels };
+  const ic = useMemo(() => ({ ...reviewsSummaryIcons, ...icons }), [icons]);
   const [sort, setSort] = useState<"helpful" | "newest">("helpful");
   const [voted, setVoted] = useState<Record<string, boolean>>({});
   const total = reviews.length;
@@ -122,7 +142,7 @@ export function ReviewsSummary({ reviews, onWrite, className, locale, labels }: 
             <span className="text-sm text-muted">{l.outOf}</span>
           </p>
           <div className="mt-2 flex items-center gap-2">
-            <Stars value={average} size={18} />
+            <Stars value={average} size={18} icons={ic} />
             <span className="text-[13px] text-muted">{l.reviews(total.toLocaleString())}</span>
           </div>
         </div>
@@ -143,7 +163,7 @@ export function ReviewsSummary({ reviews, onWrite, className, locale, labels }: 
             );
           })}
         </motion.ul>
-        <Button variant="outline" leading={<PenLine />} onClick={onWrite} className="self-start">{l.write}</Button>
+        <Button variant="outline" leading={ic.write} onClick={onWrite} className="self-start">{l.write}</Button>
       </div>
 
       <div className="flex min-w-0 flex-col gap-5">
@@ -160,7 +180,7 @@ export function ReviewsSummary({ reviews, onWrite, className, locale, labels }: 
             return (
               <li key={r.id} className="rounded-card bg-surface p-4 sm:p-5">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <Stars value={r.rating} size={14} />
+                  <Stars value={r.rating} size={14} icons={ic} />
                   <span className="text-sm font-medium text-ink">{r.title}</span>
                 </div>
                 <p className="mt-2 text-sm text-ink">{r.body}</p>
@@ -172,7 +192,7 @@ export function ReviewsSummary({ reviews, onWrite, className, locale, labels }: 
                     onClick={() => setVoted((v) => ({ ...v, [r.id]: !v[r.id] }))}
                     className={cn("inline-flex h-8 items-center gap-1.5 rounded-control px-2.5 transition-colors duration-200", on ? "bg-btn-secondary text-btn-secondary-ink" : "hover:bg-raised hover:text-ink")}
                   >
-                    <ThumbsUp className="size-3.5" aria-hidden />
+                    <span className="inline-flex [&>svg]:size-3.5" aria-hidden>{ic.helpful}</span>
                     {l.helpful}
                     <span className="grid min-w-[2ch] text-left tabular [&>*]:[grid-area:1/1]" aria-label={l.helpfulCount(count)}>
                       <motion.span initial={false} animate={{ opacity: on ? 0 : 1 }} transition={on ? { duration: 0.09, ease: easeOut } : { ...fade, delay: 0.08 }} aria-hidden>{r.helpful}</motion.span>

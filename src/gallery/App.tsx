@@ -1,14 +1,17 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Menu, Palette, Search } from "lucide-react";
+import { Lightbulb, Menu, Palette, Search } from "lucide-react";
 import { categories } from "./registry";
 import { useRoute, type Route } from "./useRoute";
 import { StudioProvider } from "./studio/store";
 import { ThemeStudio } from "./studio/ThemeStudio";
+import { About } from "./About";
 import { Overview } from "./Overview";
 import { CategoryPage } from "./CategoryPage";
 import { Sidebar } from "./Sidebar";
 import { Mark } from "./Mark";
+import { GitHubMark } from "./GitHubMark";
+import { KILN_LINKS, KILN_REPO } from "./site";
 import { ThemeToggle } from "../kiln/components/primitives/ThemeToggle";
 import { IconButton } from "../kiln/components/buttons/IconButton";
 import { Tooltip } from "../kiln/components/overlays/Tooltip";
@@ -112,7 +115,11 @@ function Shell() {
     return () => cancelAnimationFrame(frame);
   }, [route, pageKey]);
 
-  useEffect(() => setDrawer(false), [route]);
+  const [drawerRoute, setDrawerRoute] = useState(route);
+  if (route !== drawerRoute) {
+    setDrawerRoute(route);
+    setDrawer(false);
+  }
   /* Tapping the entry you are already on does not change the route, so close the drawer here too. */
   const goClose = useCallback((r: Route) => { setDrawer(false); go(r); }, [go]);
 
@@ -120,6 +127,9 @@ function Shell() {
     const list: CommandItem[] = [
       { id: "go-overview", label: "Overview", group: "Pages", onSelect: () => go({ page: "overview" }) },
       { id: "go-studio", label: "Theme studio", group: "Pages", keywords: "colours colors palette tokens", onSelect: () => go({ page: "studio" }) },
+      { id: "go-about", label: "About Kiln", group: "Pages", keywords: "why who contact request", onSelect: () => go({ page: "about" }) },
+      { id: "request-feature", label: "Request a feature", group: "Pages", keywords: "github issue idea", onSelect: () => window.open(KILN_LINKS.feature, "_blank", "noreferrer") },
+      { id: "open-github", label: "Kiln on GitHub", group: "Pages", keywords: "source repo code", onSelect: () => window.open(KILN_REPO, "_blank", "noreferrer") },
       { id: "toggle-theme", label: "Switch light / dark", group: "Pages", keywords: "theme mode", onSelect: () => toggle() },
     ];
     for (const c of categories)
@@ -156,6 +166,26 @@ function Shell() {
           <Tooltip content="Theme studio" side="bottom">
             <IconButton aria-label="Theme studio" icon={<Palette />} size="sm" onClick={() => go({ page: "studio" })} className="size-9 text-ink lg:hidden" />
           </Tooltip>
+          <a
+            href={KILN_LINKS.feature}
+            target="_blank"
+            rel="noreferrer"
+            className="hidden h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-ink transition-colors hover:bg-raised md:inline-flex"
+          >
+            <Lightbulb className="size-4" />
+            Request a feature
+          </a>
+          <Tooltip content="Kiln on GitHub" side="bottom">
+            <a
+              href={KILN_REPO}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Kiln on GitHub"
+              className="grid size-9 place-items-center rounded-full text-ink transition-colors hover:bg-raised"
+            >
+              <GitHubMark className="size-[18px]" />
+            </a>
+          </Tooltip>
           <ThemeToggle />
         </header>
 
@@ -174,6 +204,7 @@ function Shell() {
             >
               {route.page === "overview" && <Overview onNavigate={go} />}
               {route.page === "studio" && <ThemeStudio />}
+              {route.page === "about" && <About />}
               {route.page === "category" &&
                 (category ? (
                   <CategoryPage category={category} root={sheet} onActive={onSpy} />
@@ -185,7 +216,15 @@ function Shell() {
                 ))}
             </motion.main>
           </AnimatePresence>
-          <footer className="mx-auto w-full max-w-[1120px] px-4 pb-10 text-[13px] leading-relaxed text-muted sm:px-8"><p className="max-w-[75ch]">
+          <footer className="mx-auto w-full max-w-[1120px] px-4 pb-10 text-[13px] leading-relaxed text-muted sm:px-8">
+          <nav aria-label="Project links" className="mb-3 flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium text-ink">
+            <a href={KILN_REPO} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 hover:text-accent"><GitHubMark className="size-4" />GitHub</a>
+            <a href={KILN_LINKS.feature} target="_blank" rel="noreferrer" className="hover:text-accent">Request a feature</a>
+            <a href={KILN_LINKS.bug} target="_blank" rel="noreferrer" className="hover:text-accent">Report a bug</a>
+            <a href={KILN_LINKS.discussions} target="_blank" rel="noreferrer" className="hover:text-accent">Questions and ideas</a>
+            <a href="#/about" onClick={(e) => { e.preventDefault(); go({ page: "about" }); }} className="hover:text-accent">About Kiln</a>
+          </nav>
+          <p className="max-w-[75ch]">
             Kiln, an open-source component library. Photographs and video from Wikimedia Commons:{" "}
             {CREDITS.map((c, i) => (
               <span key={c.page}>
@@ -194,7 +233,8 @@ function Shell() {
               </span>
             ))}{" "}
             Some are shown in greyscale or resized. Other photographs are from picsum.photos under the Unsplash Licence; product art is drawn in code. Full list in CREDITS.md.
-          </p></footer>
+          </p>
+          </footer>
         </div>
       </div>
 

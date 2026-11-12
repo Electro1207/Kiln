@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { animate, AnimatePresence, motion, useMotionValue, useTransform, type AnimationPlaybackControls } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut, fade, springFirm } from "../../motion";
@@ -40,7 +40,9 @@ export function UndoBar({ item, onUndo, onCommit, duration = 6000, labels, class
   const resolved = useRef(new Set<string>());
   const prev = useRef<string | null>(null);
   const commitRef = useRef(onCommit);
-  commitRef.current = onCommit;
+  useLayoutEffect(() => {
+    commitRef.current = onCommit;
+  });
   useEffect(() => {
     const before = prev.current;
     if (before && before !== item?.id && !resolved.current.has(before)) {

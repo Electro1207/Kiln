@@ -1,4 +1,4 @@
-import { useId, useRef, type ReactNode } from "react";
+import { useId, useMemo, useRef, type ReactNode } from "react";
 import { AnimatePresence, motion, useDragControls, type PanInfo } from "motion/react";
 import { X } from "lucide-react";
 import { cn } from "../../cn";
@@ -11,6 +11,13 @@ export interface DialogLabels {
   close: string;
 }
 export const dialogLabels: DialogLabels = { close: "Close" };
+
+/** Icons used by Dialog. Pass a partial via `icons` to swap any of them. */
+export interface DialogIcons {
+  /** Close button. */
+  close: ReactNode;
+}
+export const dialogIcons: DialogIcons = { close: <X /> };
 
 export type DialogProps = {
   open: boolean;
@@ -29,6 +36,8 @@ export type DialogProps = {
   hideClose?: boolean;
   /** Override any UI text. Merged over `dialogLabels`. */
   labels?: Partial<DialogLabels>;
+  /** Replace any built-in icon. Merged over `dialogIcons`. */
+  icons?: Partial<DialogIcons>;
   className?: string;
 };
 
@@ -57,9 +66,11 @@ function DialogLayer({
   role = "dialog",
   hideClose,
   labels,
+  icons,
   className,
 }: DialogProps) {
   const l = { ...dialogLabels, ...labels };
+  const ic = useMemo(() => ({ ...dialogIcons, ...icons }), [icons]);
   const ref = useRef<HTMLDivElement>(null);
   const phone = useIsPhone();
   const drag = useDragControls();
@@ -136,9 +147,9 @@ function DialogLayer({
               aria-label={l.close}
               onClick={() => onOpenChange(false)}
               whileTap={{ scale: 0.9 }}
-              className="-mr-2 -mt-1 grid size-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink"
+              className="-mr-2 -mt-1 grid size-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink [&>svg]:size-4"
             >
-              <X className="size-4" />
+              {ic.close}
             </motion.button>
           )}
         </div>

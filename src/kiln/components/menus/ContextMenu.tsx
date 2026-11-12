@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState, type ReactNode } from "react";
 import { cn } from "../../cn";
-import { MenuContent, type MenuEntry } from "./DropdownMenu";
+import { MenuContent, type DropdownMenuIcons, type MenuEntry } from "./DropdownMenu";
 
 /** Text used by ContextMenu. Pass a partial via `labels` to translate or reword. */
 export interface ContextMenuLabels {
@@ -15,11 +15,13 @@ export type ContextMenuProps = {
   label?: string;
   /** Override any UI text. Merged over `contextMenuLabels`. */
   labels?: Partial<ContextMenuLabels>;
+  /** Replace any built-in icon. Merged over `dropdownMenuIcons`. */
+  icons?: Partial<DropdownMenuIcons>;
   className?: string;
 };
 
 /** Right-click (or Shift+F10 / the Menu key) anywhere inside opens a menu at the pointer. */
-export function ContextMenu({ items, children, label = "Actions", labels, className }: ContextMenuProps) {
+export function ContextMenu({ items, children, label = "Actions", labels, icons, className }: ContextMenuProps) {
   const l = { ...contextMenuLabels, ...labels };
   const areaRef = useRef<HTMLDivElement>(null);
   const point = useRef({ x: 0, y: 0 });
@@ -61,6 +63,7 @@ export function ContextMenu({ items, children, label = "Actions", labels, classN
         anchor={anchor}
         items={items}
         label={label}
+        icons={icons}
         onClose={(reason) => {
           setOpen(false);
           if (reason === "select") areaRef.current?.focus();

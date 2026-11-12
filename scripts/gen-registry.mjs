@@ -199,7 +199,7 @@ writeFileSync(join(OUT, "registry.json"), JSON.stringify({
   $schema: "https://ui.shadcn.com/schema/registry.json",
   name: "kiln",
   homepage: SITE,
-  items: sorted.map((it) => { const { $schema, ...rest } = build(it, false); return rest; }),
+  items: sorted.map((it) => { const { $schema: _schema, ...rest } = build(it, false); return rest; }),
 }, null, 2) + "\n");
 copyFileSync(join(ROOT, "scripts/kiln-add.mjs"), join(dirname(OUT), "kiln-add.mjs"));
 console.log(`gen-registry: ${entries.length} entries, ${items.size} items (${items.size - entries.length} helpers/base) -> ${rel(OUT)}/*.json, base ${SITE}`);

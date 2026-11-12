@@ -18,6 +18,8 @@ export type KanbanBoardProps = {
   renderCard?: (card: KanbanCard) => ReactNode;
   /** Override any UI text. Merged over `kanbanBoardLabels`. */
   labels?: Partial<KanbanBoardLabels>;
+  /** Replace any built-in icon. Merged over `kanbanBoardIcons`. */
+  icons?: Partial<KanbanBoardIcons>;
   className?: string;
 };
 
@@ -36,6 +38,26 @@ export interface KanbanBoardLabels {
   /** Text of an empty column. */
   empty: string;
 }
+/** Icons used by KanbanBoard. Pass a partial via `icons` to swap any of them. */
+export interface KanbanBoardIcons {
+  /** The button that opens a card's move menu. */
+  more: ReactNode;
+  /** Menu item: move to another column. */
+  moveToColumn: ReactNode;
+  /** Menu item: move to the top of the column. */
+  moveToTop: ReactNode;
+  /** Menu item: move up one place. */
+  moveUp: ReactNode;
+  /** Menu item: move down one place. */
+  moveDown: ReactNode;
+}
+export const kanbanBoardIcons: KanbanBoardIcons = {
+  more: <MoreHorizontal />,
+  moveToColumn: <MoveRight />,
+  moveToTop: <ArrowUpToLine />,
+  moveUp: <ArrowUp />,
+  moveDown: <ArrowDown />,
+};
 export const kanbanBoardLabels: KanbanBoardLabels = {
   moveToColumn: (c) => `Move to ${c}`,
   moveToTop: "Move to top",
@@ -112,8 +134,9 @@ function DefaultCard({ card }: { card: KanbanCard }) {
  * Columns of cards. Drag a card within or between columns (a long press
  * starts the drag on touch), or use its menu to move it from the keyboard.
  */
-export function KanbanBoard({ columns, onChange, renderCard, labels, className }: KanbanBoardProps) {
+export function KanbanBoard({ columns, onChange, renderCard, labels, icons, className }: KanbanBoardProps) {
   const l = { ...kanbanBoardLabels, ...labels };
+  const ic = { ...kanbanBoardIcons, ...icons };
   const boardRef = useRef<HTMLDivElement>(null);
   const listRefs = useRef(new Map<string, HTMLDivElement>());
   const cardRefs = useRef(new Map<string, HTMLDivElement>());
@@ -252,16 +275,16 @@ export function KanbanBoard({ columns, onChange, renderCard, labels, className }
       .filter((c) => c.id !== col.id)
       .map((c) => ({
         label: l.moveToColumn(c.title),
-        icon: <MoveRight />,
+        icon: ic.moveToColumn,
         onSelect: () => {
           onChange(moveCard(columns, card.id, c.id, c.cards.length));
           focusMenu(card.id);
         },
       })),
     { type: "separator" },
-    { label: l.moveToTop, icon: <ArrowUpToLine />, disabled: index === 0, onSelect: () => { onChange(moveCard(columns, card.id, col.id, 0)); focusMenu(card.id); } },
-    { label: l.moveUp, icon: <ArrowUp />, disabled: index === 0, onSelect: () => { onChange(moveCard(columns, card.id, col.id, index - 1)); focusMenu(card.id); } },
-    { label: l.moveDown, icon: <ArrowDown />, disabled: index === col.cards.length - 1, onSelect: () => { onChange(moveCard(columns, card.id, col.id, index + 1)); focusMenu(card.id); } },
+    { label: l.moveToTop, icon: ic.moveToTop, disabled: index === 0, onSelect: () => { onChange(moveCard(columns, card.id, col.id, 0)); focusMenu(card.id); } },
+    { label: l.moveUp, icon: ic.moveUp, disabled: index === 0, onSelect: () => { onChange(moveCard(columns, card.id, col.id, index - 1)); focusMenu(card.id); } },
+    { label: l.moveDown, icon: ic.moveDown, disabled: index === col.cards.length - 1, onSelect: () => { onChange(moveCard(columns, card.id, col.id, index + 1)); focusMenu(card.id); } },
   ];
 
   return (
@@ -323,9 +346,10 @@ export function KanbanBoard({ columns, onChange, renderCard, labels, className }
                             className={cn(
                               "grid size-7 place-items-center rounded-control text-muted transition-[opacity,background-color,color] duration-200 hover:bg-active hover:text-ink focus-visible:opacity-100",
                               open ? "bg-active text-ink opacity-100" : "opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100",
+                              "[&>svg]:size-4",
                             )}
                           >
-                            <MoreHorizontal className="size-4" />
+                            {ic.more}
                           </button>
                         )}
                       />

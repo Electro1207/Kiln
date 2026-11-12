@@ -5,7 +5,7 @@ import { Button } from "../../kiln/components/buttons/Button";
 import { Switch } from "../../kiln/components/choice-controls/Switch";
 import { cn } from "../../kiln/cn";
 import { springSnappy, fade } from "../../kiln/motion";
-import { useStudio } from "./store";
+import { useStudio } from "./context";
 import { buttonFills, contrast, FIELDS, PRESETS, tokensFile, type ModeKey, type Palette, type StudioTheme } from "./tokens";
 
 /** Cross-fade every colour for a moment while a whole palette swaps. */

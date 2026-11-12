@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { memo, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { motion, useMotionValue, useMotionValueEvent, useTransform } from "motion/react";
 import { Volume1, Volume2, VolumeX } from "lucide-react";
 import { cn } from "../../cn";
@@ -45,6 +45,42 @@ export const mediaPlayerLabels: MediaPlayerLabels = {
   volume: "Volume",
 };
 
+/** Icons used by MediaPlayer. Pass a partial via `icons` to swap any of them. */
+export interface MediaPlayerIcons {
+  /** Play button. `null` keeps the built-in glyph, which morphs into the pause bars. Set either slot and the two cross-fade instead. */
+  play: ReactNode;
+  /** Pause button. `null` keeps the built-in glyph, see `play`. */
+  pause: ReactNode;
+  /** Back fifteen seconds. */
+  back15: ReactNode;
+  /** Forward fifteen seconds. */
+  forward15: ReactNode;
+  /** Volume at 50 or above. */
+  volume: ReactNode;
+  /** Volume below 50. */
+  volumeLow: ReactNode;
+  /** Muted, or volume at zero. */
+  mute: ReactNode;
+}
+const skipGlyph = (dir: -1 | 1) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <g transform={dir < 0 ? "" : "translate(24 0) scale(-1 1)"}>
+      <path d="M4 12a8 8 0 1 0 2.6-5.9" />
+      <path d="M4 3.5v4.5h4.5" />
+    </g>
+    <text x="12" y="15.4" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="currentColor" stroke="none" fontFamily="IBM Plex Sans, sans-serif">15</text>
+  </svg>
+);
+export const mediaPlayerIcons: MediaPlayerIcons = {
+  play: null,
+  pause: null,
+  back15: skipGlyph(-1),
+  forward15: skipGlyph(1),
+  volume: <Volume2 />,
+  volumeLow: <Volume1 />,
+  mute: <VolumeX />,
+};
+
 export type MediaPlayerProps = {
   title: string;
   artist: string;
@@ -65,6 +101,8 @@ export type MediaPlayerProps = {
   peaks?: number[];
   /** Override any UI text. Merged over `mediaPlayerLabels`. */
   labels?: Partial<MediaPlayerLabels>;
+  /** Replace any built-in icon. Merged over `mediaPlayerIcons`. */
+  icons?: Partial<MediaPlayerIcons>;
   className?: string;
   /** Controlled playback. Leave out and use `defaultPlaying` to let the player keep its own. */
   playing?: boolean;
@@ -114,13 +152,14 @@ const PAUSE = ["M6 5 L10 5 L10 19 L6 19 Z", "M14 5 L18 5 L18 19 L14 19 Z"];
  * opposite translations, never by changing a width.
  */
 export function MediaPlayer({
-  title, artist, duration, cover, src, peaks, labels, className,
+  title, artist, duration, cover, src, peaks, labels, icons, className,
   playing: playingProp, defaultPlaying = false, onPlayingChange,
   volume: volumeProp, defaultVolume = 70, onVolumeChange,
   muted: mutedProp, defaultMuted = false, onMutedChange,
   currentTime, defaultCurrentTime = 0, onTimeChange,
 }: MediaPlayerProps) {
   const l = { ...mediaPlayerLabels, ...labels };
+  const ic = useMemo(() => ({ ...mediaPlayerIcons, ...icons }), [icons]);
   const [playing, setPlaying] = useControllable(playingProp, defaultPlaying, onPlayingChange);
   const [volume, setVolume] = useControllable(volumeProp, defaultVolume, onVolumeChange);
   const [muted, setMuted] = useControllable(mutedProp, defaultMuted, onMutedChange);
@@ -363,8 +402,8 @@ export function MediaPlayer({
         </div>
 
         <div className="flex items-center gap-2">
-          <RoundBtn label={l.back15} onClick={() => seek(time.get() - 15)}>
-            <SkipGlyph dir={-1} />
+          <RoundBtn label={l.back15} onClick={() => seek(time.get() - 15)} iconClass="[&>svg]:size-[22px]">
+            {ic.back15}
           </RoundBtn>
           <motion.button
             type="button"
@@ -372,26 +411,37 @@ export function MediaPlayer({
             aria-label={playing ? l.pause : l.play}
             whileTap={{ scale: 0.92 }}
             transition={springSnappy}
-            className="grid size-14 place-items-center rounded-full bg-btn-primary text-btn-primary-ink transition-colors duration-200 hover:bg-btn-primary-hover"
+            className="grid size-14 place-items-center rounded-full bg-btn-primary text-btn-primary-ink transition-colors duration-200 hover:bg-btn-primary-hover [&>svg]:size-6"
           >
-            <svg viewBox="0 0 24 24" className="size-6" aria-hidden>
-              {[0, 1].map((k) => (
-                <motion.path key={k} fill="currentColor" initial={false} animate={{ d: playing ? PAUSE[k] : PLAY[k] }} transition={springSnappy} />
-              ))}
-            </svg>
+            {ic.play === null && ic.pause === null ? (
+              <svg viewBox="0 0 24 24" aria-hidden>
+                {[0, 1].map((k) => (
+                  <motion.path key={k} fill="currentColor" initial={false} animate={{ d: playing ? PAUSE[k] : PLAY[k] }} transition={springSnappy} />
+                ))}
+              </svg>
+            ) : (
+              <span className="grid [&>*]:[grid-area:1/1] [&_svg]:size-6" aria-hidden>
+                <motion.span className="grid place-items-center" initial={false} animate={{ opacity: playing ? 0 : 1 }} transition={fade}>
+                  {ic.play ?? <PlayShape paths={PLAY} />}
+                </motion.span>
+                <motion.span className="grid place-items-center" initial={false} animate={{ opacity: playing ? 1 : 0 }} transition={fade}>
+                  {ic.pause ?? <PlayShape paths={PAUSE} />}
+                </motion.span>
+              </span>
+            )}
           </motion.button>
-          <RoundBtn label={l.forward15} onClick={() => seek(time.get() + 15)}>
-            <SkipGlyph dir={1} />
+          <RoundBtn label={l.forward15} onClick={() => seek(time.get() + 15)} iconClass="[&>svg]:size-[22px]">
+            {ic.forward15}
           </RoundBtn>
         </div>
 
         <div className="flex min-w-0 items-center justify-end gap-1.5">
           <RoundBtn label={muted ? l.unmute : l.mute} onClick={() => setMuted((m) => !m)}>
-            <span className="grid size-[18px] [&>*]:[grid-area:1/1]">
+            <span className="grid size-[18px] [&>*]:[grid-area:1/1] [&_svg]:size-[18px]">
               {[
-                { on: vol === 0, el: <VolumeX className="size-[18px]" /> },
-                { on: vol > 0 && vol < 50, el: <Volume1 className="size-[18px]" /> },
-                { on: vol >= 50, el: <Volume2 className="size-[18px]" /> },
+                { on: vol === 0, el: ic.mute },
+                { on: vol > 0 && vol < 50, el: ic.volumeLow },
+                { on: vol >= 50, el: ic.volume },
               ].map((v, i) => (
                 <motion.span key={i} className="grid" initial={false} animate={{ opacity: v.on ? 1 : 0 }} transition={fade}>
                   {v.el}
@@ -442,19 +492,15 @@ function Equalizer({ playing }: { playing: boolean }) {
   );
 }
 
-function SkipGlyph({ dir }: { dir: -1 | 1 }) {
+function PlayShape({ paths }: { paths: string[] }) {
   return (
-    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <g transform={dir < 0 ? "" : "translate(24 0) scale(-1 1)"}>
-        <path d="M4 12a8 8 0 1 0 2.6-5.9" />
-        <path d="M4 3.5v4.5h4.5" />
-      </g>
-      <text x="12" y="15.4" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="currentColor" stroke="none" fontFamily="IBM Plex Sans, sans-serif">15</text>
+    <svg viewBox="0 0 24 24" aria-hidden>
+      {paths.map((d, k) => <path key={k} d={d} fill="currentColor" />)}
     </svg>
   );
 }
 
-function RoundBtn({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+function RoundBtn({ label, onClick, children, iconClass }: { label: string; onClick: () => void; children: ReactNode; iconClass?: string }) {
   return (
     <motion.button
       type="button"
@@ -462,7 +508,7 @@ function RoundBtn({ label, onClick, children }: { label: string; onClick: () => 
       onClick={onClick}
       whileTap={{ scale: 0.9 }}
       transition={springSnappy}
-      className="grid size-10 place-items-center rounded-full text-muted transition-colors duration-200 hover:bg-raised hover:text-ink"
+      className={cn("grid size-10 place-items-center rounded-full text-muted transition-colors duration-200 hover:bg-raised hover:text-ink", iconClass)}
     >
       {children}
     </motion.button>

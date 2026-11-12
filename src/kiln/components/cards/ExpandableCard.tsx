@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { X } from "lucide-react";
@@ -15,6 +15,13 @@ export type ExpandableItem = {
   detail: ReactNode;
 };
 
+/** Icons used by ExpandableCards. Pass a partial via `icons` to replace any. */
+export interface ExpandableCardsIcons {
+  /** Close button of the opened card. */
+  close: ReactNode;
+}
+export const expandableCardsIcons: ExpandableCardsIcons = { close: <X /> };
+
 /** Text used by ExpandableCards. Pass a partial via `labels` to translate or reword. */
 export interface ExpandableCardsLabels {
   /** aria-label of the close button in the opened view. */
@@ -26,13 +33,16 @@ export const expandableCardsLabels: ExpandableCardsLabels = { close: "Close" };
  * Cards that grow into a full detail view. The picture, title and frame are
  * shared elements, so the card itself becomes the dialog.
  */
-export function ExpandableCards({ items, className, labels }: {
+export function ExpandableCards({ items, className, labels, icons }: {
   items: ExpandableItem[];
   className?: string;
   /** Override any UI text. Merged over `expandableCardsLabels`. */
   labels?: Partial<ExpandableCardsLabels>;
+  /** Replace any built-in icon. Merged over `expandableCardsIcons`. */
+  icons?: Partial<ExpandableCardsIcons>;
 }) {
   const l = { ...expandableCardsLabels, ...labels };
+  const ic = useMemo(() => ({ ...expandableCardsIcons, ...icons }), [icons]);
   const uid = useId();
   const [openId, setOpenId] = useState<string | null>(null);
   /** The card flying home after a close; it stays above its neighbours until it lands. */
@@ -130,13 +140,13 @@ export function ExpandableCards({ items, className, labels }: {
                     type="button"
                     onClick={close}
                     aria-label={l.close}
-                    className="absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-surface text-ink"
+                    className="absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-surface text-ink [&>svg]:size-4"
                     initial={{ opacity: 0, scale: 0.6 }}
                     animate={{ opacity: 1, scale: 1, transition: { delay: 0.15, ...springSoft } }}
                     exit={{ opacity: 0, scale: 0.6, transition: { duration: 0.12 } }}
                     whileTap={{ scale: 0.9 }}
                   >
-                    <X className="size-4" />
+                    {ic.close}
                   </motion.button>
                   <div className="p-6">
                     <motion.span layoutId={`meta-${open.id}`} layout="position" transition={springSoft} className="block text-xs text-muted">

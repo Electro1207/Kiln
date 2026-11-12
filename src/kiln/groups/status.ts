@@ -2,7 +2,7 @@
 export { type BadgeTone, type BadgeProps, Badge } from "../components/status/Badge";
 export { type EmptyStateProps, EmptyState } from "../components/status/EmptyState";
 export { type MeterLabels, meterLabels, type MeterSegment, type MeterProps, Meter } from "../components/status/Meter";
-export { type MultiStepLoaderLabels, multiStepLoaderLabels, type MultiStepLoaderProps, MultiStepLoader } from "../components/status/MultiStepLoader";
+export { type MultiStepLoaderLabels, multiStepLoaderLabels, type MultiStepLoaderIcons, multiStepLoaderIcons, type MultiStepLoaderProps, MultiStepLoader } from "../components/status/MultiStepLoader";
 export { type ProgressProps, Progress } from "../components/status/Progress";
 export { type ProgressRingProps, ProgressRing } from "../components/status/ProgressRing";
 export { type SkeletonProps, Skeleton, SkeletonText } from "../components/status/Skeleton";

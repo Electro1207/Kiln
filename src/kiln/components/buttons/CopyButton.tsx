@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { springSnappy } from "../../motion";
@@ -12,9 +12,40 @@ export interface CopyButtonLabels {
 }
 export const copyButtonLabels: CopyButtonLabels = { copy: "Copy", copied: "Copied" };
 
+/** Icons used by CopyButton. Pass a partial via `icons` to replace any. */
+export interface CopyButtonIcons {
+  /** Idle icon. */
+  copy: ReactNode;
+  /** Shown after copying. The default tick draws itself each time it mounts. */
+  copied: ReactNode;
+}
+export const copyButtonIcons: CopyButtonIcons = {
+  copy: (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <rect x="5.5" y="5.5" width="8" height="8" rx="2" />
+      <path d="M10.5 3.5v-.5a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5" strokeLinecap="round" />
+    </svg>
+  ),
+  copied: (
+    <svg viewBox="0 0 16 16">
+      <motion.path
+        d="M3 8.5l3.2 3L13 4.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1], delay: 0.06 }}
+      />
+    </svg>
+  ),
+};
+
 /** A button that copies text to the clipboard and confirms in place. */
 export function CopyButton({
-  value, label: labelProp, copiedLabel: copiedLabelProp, className, showLabel = false, labels,
+  value, label: labelProp, copiedLabel: copiedLabelProp, className, showLabel = false, labels, icons,
 }: {
   value: string;
   label?: string;
@@ -24,8 +55,12 @@ export function CopyButton({
   showLabel?: boolean;
   /** Override any UI text. Merged over `copyButtonLabels`. */
   labels?: Partial<CopyButtonLabels>;
+  /** Replace any built-in icon. Merged over `copyButtonIcons`. */
+  icons?: Partial<CopyButtonIcons>;
 }) {
   const l = { ...copyButtonLabels, ...labels };
+  const ic = useMemo(() => ({ ...copyButtonIcons, ...icons }), [icons]);
+  const [count, setCount] = useState(0);
   const label = labelProp ?? l.copy;
   const copiedLabel = copiedLabelProp ?? l.copied;
   const [copied, setCopied] = useState(false);
@@ -34,6 +69,7 @@ export function CopyButton({
   const copy = async () => {
     try { await navigator.clipboard.writeText(value); } catch { /* insecure context: still show feedback */ }
     setCopied(true);
+    setCount((n) => n + 1);
     window.clearTimeout(t.current);
     t.current = window.setTimeout(() => setCopied(false), 1600);
   };
@@ -52,40 +88,25 @@ export function CopyButton({
     >
       {/* Both icons share one cell and cross-fade: nothing ever reflows during the swap. */}
       <span className="grid size-4 shrink-0 [&>*]:[grid-area:1/1]">
-        <motion.svg
-          viewBox="0 0 16 16"
-          className="size-4"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
+        <motion.span
+          className="grid [&>svg]:size-4"
           aria-hidden
           initial={false}
           animate={{ opacity: copied ? 0 : 1, scale: copied ? 0.8 : 1 }}
           transition={springSnappy}
         >
-          <rect x="5.5" y="5.5" width="8" height="8" rx="2" />
-          <path d="M10.5 3.5v-.5a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5" strokeLinecap="round" />
-        </motion.svg>
-        <motion.svg
-          viewBox="0 0 16 16"
-          className="size-4"
+          {ic.copy}
+        </motion.span>
+        <motion.span
+          key={count}
+          className="grid [&>svg]:size-4"
           aria-hidden
           initial={false}
           animate={{ opacity: copied ? 1 : 0, scale: copied ? 1 : 0.8 }}
           transition={springSnappy}
         >
-          <motion.path
-            d="M3 8.5l3.2 3L13 4.5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={false}
-            animate={{ pathLength: copied ? 1 : 0 }}
-            transition={copied ? { duration: 0.32, ease: [0.22, 1, 0.36, 1], delay: 0.06 } : { duration: 0 }}
-          />
-        </motion.svg>
+          {ic.copied}
+        </motion.span>
       </span>
       {showLabel && (
         <span className="grid overflow-hidden text-left [&>*]:[grid-area:1/1]">

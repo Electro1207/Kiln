@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check } from "lucide-react";
 import { cn } from "../../cn";
@@ -11,6 +11,12 @@ export interface StepperLabels {
   /** aria-label of a step's dot, e.g. "Step 2: Shipping, done". */
   step: (index: number, label: string, done: boolean) => string;
 }
+/** Icons used by Stepper. Pass a partial via `icons` to swap any of them. */
+export interface StepperIcons {
+  /** The mark in a finished step's dot. */
+  check: ReactNode;
+}
+export const stepperIcons: StepperIcons = { check: <Check /> };
 export const stepperLabels: StepperLabels = { step: (i, label, done) => `Step ${i}: ${label}${done ? ", done" : ""}` };
 
 export type StepperProps = {
@@ -23,9 +29,11 @@ export type StepperProps = {
   className?: string;
   /** Override any UI text. Merged over `stepperLabels`. */
   labels?: Partial<StepperLabels>;
+  /** Replace any built-in icon. Merged over `stepperIcons`. */
+  icons?: Partial<StepperIcons>;
 };
 
-function Dot({ index, state }: { index: number; state: "done" | "current" | "todo" }) {
+function Dot({ index, state, check }: { index: number; state: "done" | "current" | "todo"; check: ReactNode }) {
   return (
     <span className="relative grid size-8 shrink-0 place-items-center [&>*]:[grid-area:1/1]">
       <span
@@ -55,9 +63,9 @@ function Dot({ index, state }: { index: number; state: "done" | "current" | "tod
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={{ opacity: fade, scale: springSnappy }}
-            className="grid place-items-center text-btn-primary-ink"
+            className="grid place-items-center text-btn-primary-ink [&>svg]:size-4 [&>svg]:[stroke-width:3]"
           >
-            <Check className="size-4" strokeWidth={3} />
+            {check}
           </motion.span>
         ) : (
           <motion.span
@@ -77,8 +85,9 @@ function Dot({ index, state }: { index: number; state: "done" | "current" | "tod
 }
 
 /** A progress indicator for multi-step flows, horizontal or vertical. Pass `onStepClick` to let people go back. */
-export function Stepper({ steps, current, onStepClick, orientation = "horizontal", className, labels }: StepperProps) {
+export function Stepper({ steps, current, onStepClick, orientation = "horizontal", className, labels, icons }: StepperProps) {
   const l = { ...stepperLabels, ...labels };
+  const ic = { ...stepperIcons, ...icons };
   const vertical = orientation === "vertical";
   return (
     <ol className={cn("flex w-full", vertical ? "flex-col" : "items-start", className)}>
@@ -97,7 +106,7 @@ export function Stepper({ steps, current, onStepClick, orientation = "horizontal
                   aria-label={l.step(i + 1, s.label, state === "done")}
                   className={cn("rounded-full", clickable && "transition-transform hover:scale-105")}
                 >
-                  <Dot index={i} state={state} />
+                  <Dot index={i} state={state} check={ic.check} />
                 </Head>
                 {!vertical && <Connector filled={i < current} hidden={i === steps.length - 1} />}
                 {vertical && i < steps.length - 1 && <Connector vertical filled={i < current} />}

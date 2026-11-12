@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Pencil } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
@@ -16,9 +16,17 @@ export const inlineEditLabels: InlineEditLabels = { edit: (label, text) => `${la
  * size, so nothing around it moves when editing starts.
  * Controlled with `value` + `onChange`, or uncontrolled with `defaultValue`.
  */
+export interface InlineEditIcons {
+  /** Shown on hover at the end of the text. */
+  edit: ReactNode;
+}
+export const inlineEditIcons: InlineEditIcons = { edit: <Pencil /> };
+
 export function InlineEdit({
-  value: valueProp, defaultValue = "", onChange: onChangeProp, label, placeholder = "Untitled", className, textClassName = "text-sm", maxLength = 80, labels,
+  value: valueProp, defaultValue = "", onChange: onChangeProp, label, placeholder = "Untitled", className, textClassName = "text-sm", maxLength = 80, labels, icons,
 }: {
+  /** Replace any built-in icon. Merged over `inlineEditIcons`. */
+  icons?: Partial<InlineEditIcons>;
   /** The text; leave out to let the component keep it. */
   value?: string;
   /** Starting text when uncontrolled. */
@@ -36,6 +44,7 @@ export function InlineEdit({
   labels?: Partial<InlineEditLabels>;
 }) {
   const l = { ...inlineEditLabels, ...labels };
+  const ic = { ...inlineEditIcons, ...icons };
   const [value, onChange] = useControllable<string>(valueProp, defaultValue, onChangeProp);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -89,8 +98,8 @@ export function InlineEdit({
           className={cn(box, textClassName, "flex w-full min-w-0 items-center text-left text-ink transition-colors duration-200 hover:bg-raised")}
         >
           <span className={cn("truncate", !value && "text-faint")}>{value || placeholder}</span>
-          <span aria-hidden className="ml-auto grid shrink-0 pl-2 text-faint opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
-            <Pencil className="size-3.5" />
+          <span aria-hidden className="ml-auto grid shrink-0 pl-2 text-faint opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 [&>svg]:size-3.5">
+            {ic.edit}
           </span>
         </button>
       )}

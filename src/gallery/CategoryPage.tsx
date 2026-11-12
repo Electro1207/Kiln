@@ -210,12 +210,12 @@ function InstallRow({ entry }: { entry: Entry }) {
 
 function SourceView({ files }: { files: string[] }) {
   const [file, setFile] = useState(files[0]);
-  const [code, setCode] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState<{ file: string; code: string } | null>(null);
+  const code = loaded?.file === file ? loaded.code : null;
   const [copied, setCopied] = useState(false);
   useEffect(() => {
     let live = true;
-    setCode(null);
-    loadSource(file).then((c) => live && setCode(c));
+    loadSource(file).then((c) => live && setLoaded({ file, code: c }));
     return () => { live = false; };
   }, [file]);
   return (

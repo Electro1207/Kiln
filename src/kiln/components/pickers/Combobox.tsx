@@ -18,6 +18,15 @@ export interface ComboboxLabels {
   /** aria-label of the clear button. */
   clear: string;
 }
+/** Icons used by Combobox. Pass a partial via `icons` to replace them. */
+export interface ComboboxIcons {
+  /** Magnifier at the start of the field. */
+  search: ReactNode;
+  /** Clear button. */
+  clear: ReactNode;
+}
+export const comboboxIcons: ComboboxIcons = { search: <Search />, clear: <X /> };
+
 export const comboboxLabels: ComboboxLabels = {
   placeholder: "Search…",
   empty: (q) => `Nothing matches “${q}”`,
@@ -38,6 +47,8 @@ export type ComboboxProps = {
   size?: Size;
   /** Override any UI text. Merged over `comboboxLabels`. */
   labels?: Partial<ComboboxLabels>;
+  /** Replace any built-in icon. Merged over `comboboxIcons`. */
+  icons?: Partial<ComboboxIcons>;
   className?: string;
 };
 
@@ -57,8 +68,9 @@ export function Highlight({ text, query }: { text: string; query: string }): Rea
 }
 
 /** A text box that filters a list as you type and picks one option. */
-export function Combobox({ options, value: valueProp, defaultValue = null, onChange: onChangeProp, label, placeholder, emptyText, size = "md", labels, className }: ComboboxProps) {
+export function Combobox({ options, value: valueProp, defaultValue = null, onChange: onChangeProp, label, placeholder, emptyText, size = "md", labels, icons, className }: ComboboxProps) {
   const l = { ...comboboxLabels, ...labels };
+  const ic = useMemo(() => ({ ...comboboxIcons, ...icons }), [icons]);
   const [value, onChange] = useControllable<string | null>(valueProp, defaultValue, onChangeProp);
   const id = useId();
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -116,7 +128,7 @@ export function Combobox({ options, value: valueProp, defaultValue = null, onCha
           "transition-[border-color] duration-200 ease-out-soft hover:border-faint focus-within:border-accent",
         )}
       >
-        <Search className="size-4 shrink-0 text-muted" aria-hidden />
+        <span className="grid shrink-0 place-items-center text-muted [&>svg]:size-4" aria-hidden>{ic.search}</span>
         <input
           ref={inputRef}
           id={`${id}-input`}
@@ -155,9 +167,9 @@ export function Combobox({ options, value: valueProp, defaultValue = null, onCha
                 inputRef.current?.focus();
                 show();
               }}
-              className="grid size-6 place-items-center rounded-full text-muted hover:bg-active hover:text-ink"
+              className="grid size-6 place-items-center rounded-full text-muted hover:bg-active hover:text-ink [&>svg]:size-3.5"
             >
-              <X className="size-3.5" />
+              {ic.clear}
             </motion.button>
           )}
         </AnimatePresence>

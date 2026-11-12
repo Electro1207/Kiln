@@ -110,6 +110,12 @@ export const diffViewerLabels: DiffViewerLabels = {
   showUnchanged: (n) => `Show ${n} unchanged ${n === 1 ? "line" : "lines"}`,
 };
 
+export interface DiffViewerIcons {
+  /** On the fold that reveals unchanged lines. */
+  unfold: ReactNode;
+}
+export const diffViewerIcons: DiffViewerIcons = { unfold: <ChevronsUpDown /> };
+
 export type DiffViewerProps = {
   oldText: string;
   newText: string;
@@ -120,6 +126,8 @@ export type DiffViewerProps = {
   className?: string;
   /** Override any UI text. Merged over `diffViewerLabels`. */
   labels?: Partial<DiffViewerLabels>;
+  /** Replace any built-in icon. Merged over `diffViewerIcons`. */
+  icons?: Partial<DiffViewerIcons>;
 };
 
 /**
@@ -127,8 +135,9 @@ export type DiffViewerProps = {
  * the words that changed are marked; long unchanged stretches fold away and open
  * in place.
  */
-export function DiffViewer({ oldText, newText, filename, context = 3, defaultView = "split", className, labels }: DiffViewerProps) {
+export function DiffViewer({ oldText, newText, filename, context = 3, defaultView = "split", className, labels, icons }: DiffViewerProps) {
   const l = { ...diffViewerLabels, ...labels };
+  const ic = { ...diffViewerIcons, ...icons };
   // Until someone picks a view, narrow containers (phones) get unified: split needs two readable columns.
   const [chosen, setChosen] = useState<"split" | "unified" | null>(null);
   const [narrow, setNarrow] = useState(false);
@@ -177,9 +186,9 @@ export function DiffViewer({ oldText, newText, filename, context = 3, defaultVie
                   key={`f${r.id}`}
                   type="button"
                   onClick={() => setOpen((o) => new Set(o).add(r.id))}
-                  className="flex h-8 w-full items-center gap-2 bg-raised px-4 font-sans text-xs text-muted transition-colors duration-200 hover:bg-active hover:text-ink"
+                  className="flex h-8 w-full items-center gap-2 bg-raised px-4 font-sans text-xs text-muted transition-colors duration-200 hover:bg-active hover:text-ink [&>svg]:size-3.5"
                 >
-                  <ChevronsUpDown className="size-3.5" aria-hidden />
+                  {ic.unfold}
                   {l.showUnchanged(r.count)}
                 </button>
               );

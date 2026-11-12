@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "../../cn";
@@ -17,6 +17,8 @@ export type CalendarMonthProps = {
   locale?: string;
   /** Override any UI text. Merged over `calendarMonthLabels`. */
   labels?: Partial<CalendarMonthLabels>;
+  /** Replace any built-in icon. Merged over `calendarMonthIcons`. */
+  icons?: Partial<CalendarMonthIcons>;
   className?: string;
 };
 
@@ -41,6 +43,14 @@ export interface CalendarMonthLabels {
   /** aria-label of the all-events popover. */
   allEvents: string;
 }
+/** Icons used by CalendarMonth. Pass a partial via `icons` to swap any of them. */
+export interface CalendarMonthIcons {
+  /** The previous-month button. */
+  previous: ReactNode;
+  /** The next-month button. */
+  next: ReactNode;
+}
+export const calendarMonthIcons: CalendarMonthIcons = { previous: <ChevronLeft />, next: <ChevronRight /> };
 export const calendarMonthLabels: CalendarMonthLabels = {
   today: "Today",
   previousMonth: "Previous month",
@@ -83,8 +93,9 @@ function grid(month: Date) {
 }
 
 /** A month of events with a day agenda. Months slide in the direction you move; so do days. */
-export function CalendarMonth({ events, defaultDate, maxPerDay = 2, locale, labels, className }: CalendarMonthProps) {
+export function CalendarMonth({ events, defaultDate, maxPerDay = 2, locale, labels, icons, className }: CalendarMonthProps) {
   const l = { ...calendarMonthLabels, ...labels };
+  const ic = { ...calendarMonthIcons, ...icons };
   const loc = locale ?? "en-GB";
   const { fmtMonth, fmtDay, WEEK, WEEK1 } = useMemo(
     () => ({
@@ -95,12 +106,12 @@ export function CalendarMonth({ events, defaultDate, maxPerDay = 2, locale, labe
     }),
     [loc],
   );
-  const today = useMemo(() => day0(new Date()), []);
+  const [today] = useState(() => day0(new Date()));
   const [selected, setSelected] = useState(() => day0(defaultDate ?? today));
   const [month, setMonth] = useState(() => new Date(selected.getFullYear(), selected.getMonth(), 1));
   const [mDir, setMDir] = useState(0);
   const [dDir, setDDir] = useState(0);
-  const [more, setMore] = useState<{ date: Date; el: HTMLElement } | null>(null);
+  const [more, setMore] = useState<{ date: Date } | null>(null);
   const moreRef = useRef<HTMLElement | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -146,7 +157,6 @@ export function CalendarMonth({ events, defaultDate, maxPerDay = 2, locale, labe
   }, [selected]);
 
   const dayEvents = byDay.get(key(selected)) ?? [];
-  moreRef.current = more?.el ?? null;
 
   return (
     <div className={cn("@container w-full", className)}>
@@ -177,11 +187,11 @@ export function CalendarMonth({ events, defaultDate, maxPerDay = 2, locale, labe
         >
           {l.today}
         </button>
-        <button type="button" aria-label={l.previousMonth} onClick={() => goMonth(-1)} className="grid size-8 place-items-center rounded-control text-muted transition-colors hover:bg-active hover:text-ink">
-          <ChevronLeft className="size-4" />
+        <button type="button" aria-label={l.previousMonth} onClick={() => goMonth(-1)} className="grid size-8 place-items-center rounded-control text-muted transition-colors hover:bg-active hover:text-ink [&>svg]:size-4">
+          {ic.previous}
         </button>
-        <button type="button" aria-label={l.nextMonth} onClick={() => goMonth(1)} className="grid size-8 place-items-center rounded-control text-muted transition-colors hover:bg-active hover:text-ink">
-          <ChevronRight className="size-4" />
+        <button type="button" aria-label={l.nextMonth} onClick={() => goMonth(1)} className="grid size-8 place-items-center rounded-control text-muted transition-colors hover:bg-active hover:text-ink [&>svg]:size-4">
+          {ic.next}
         </button>
       </div>
 
@@ -262,7 +272,7 @@ export function CalendarMonth({ events, defaultDate, maxPerDay = 2, locale, labe
                     {hidden > 0 && (
                       <button
                         type="button"
-                        onClick={(ev) => setMore({ date: d, el: ev.currentTarget })}
+                        onClick={(ev) => { moreRef.current = ev.currentTarget; setMore({ date: d }); }}
                         className="relative hidden w-fit rounded-[4px] px-1.5 text-left text-[11px] leading-5 text-muted transition-colors hover:bg-active hover:text-ink @xl:block"
                       >
                         {l.more(hidden)}

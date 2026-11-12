@@ -42,7 +42,18 @@ type CommandPaletteProps = {
   emptyText?: string;
   /** Override any UI text. Merged over `commandPaletteLabels`. */
   labels?: Partial<CommandPaletteLabels>;
+  /** Replace any built-in icon. Merged over `commandPaletteIcons`. */
+  icons?: Partial<CommandPaletteIcons>;
 };
+
+/** Icons used by CommandPalette. Pass a partial via `icons` to swap any of them. */
+export interface CommandPaletteIcons {
+  /** Beside the input. */
+  search: ReactNode;
+  /** Enter hint on the active row. */
+  enter: ReactNode;
+}
+export const commandPaletteIcons: CommandPaletteIcons = { search: <Search />, enter: <CornerDownLeft /> };
 
 /** Open with ⌘K / Ctrl+K anywhere on the page. */
 export function useCommandShortcut(onOpen: () => void, key = "k") {
@@ -80,8 +91,9 @@ function Highlight({ text, q }: { text: string; q: string }) {
 }
 
 /** A searchable command menu in a dialog. Always controlled: you decide when it is `open`. */
-export function CommandPalette({ open, onOpenChange, items, placeholder, emptyText, labels }: CommandPaletteProps) {
+export function CommandPalette({ open, onOpenChange, items, placeholder, emptyText, labels, icons }: CommandPaletteProps) {
   const l = { ...commandPaletteLabels, ...labels };
+  const ic = useMemo(() => ({ ...commandPaletteIcons, ...icons }), [icons]);
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState(0);
   const input = useRef<HTMLInputElement>(null);
@@ -105,11 +117,18 @@ export function CommandPalette({ open, onOpenChange, items, placeholder, emptyTe
   }, [results]);
   const flat = groups.flatMap(([, g]) => g);
 
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setQuery("");
+      setIndex(0);
+    }
+  }
+
   useEffect(() => {
     if (open) {
       restore.current = document.activeElement as HTMLElement;
-      setQuery("");
-      setIndex(0);
       requestAnimationFrame(() => input.current?.focus());
       const w = window.innerWidth - document.documentElement.clientWidth;
       document.body.style.overflow = "hidden";
@@ -122,7 +141,11 @@ export function CommandPalette({ open, onOpenChange, items, placeholder, emptyTe
     }
   }, [open]);
 
-  useEffect(() => setIndex(0), [q]);
+  const [seenQ, setSeenQ] = useState(q);
+  if (q !== seenQ) {
+    setSeenQ(q);
+    setIndex(0);
+  }
 
   useEffect(() => {
     list.current?.querySelector<HTMLElement>(`[data-index="${index}"]`)?.scrollIntoView({ block: "nearest" });
@@ -166,7 +189,7 @@ export function CommandPalette({ open, onOpenChange, items, placeholder, emptyTe
             exit={{ opacity: 0, scale: 0.98, y: -4, transition: { duration: 0.15 } }}
           >
             <div className="flex items-center gap-3 px-4">
-              <Search className="size-[18px] shrink-0 text-muted" aria-hidden />
+              <span className="grid shrink-0 text-muted [&>svg]:size-[18px]" aria-hidden>{ic.search}</span>
               <input
                 ref={input}
                 value={query}
@@ -204,7 +227,7 @@ export function CommandPalette({ open, onOpenChange, items, placeholder, emptyTe
                         {it.icon && <span className="relative z-[1] inline-flex shrink-0 [&>svg]:size-4">{it.icon}</span>}
                         <span className="relative z-[1] min-w-0 flex-1 truncate"><Highlight text={it.label} q={q} /></span>
                         {it.hint && <span className="relative z-[1] shrink-0 text-xs text-muted">{it.hint}</span>}
-                        {on && <CornerDownLeft className="relative z-[1] size-3.5 shrink-0 text-muted" aria-hidden />}
+                        {on && <span className="relative z-[1] grid shrink-0 text-muted [&>svg]:size-3.5" aria-hidden>{ic.enter}</span>}
                       </div>
                     );
                   })}
