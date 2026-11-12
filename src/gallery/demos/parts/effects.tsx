@@ -19,6 +19,8 @@ import { AnimatedList } from "../../../kiln/components/effects/AnimatedList";
 import { BorderBeam } from "../../../kiln/components/effects/BorderBeam";
 import { ScrollProgress } from "../../../kiln/components/wayfinding/ScrollProgress";
 import { StickyScrollReveal } from "../../../kiln/components/effects/StickyScrollReveal";
+import { Parallax } from "../../../kiln/components/effects/Parallax";
+import { cn } from "../../../kiln/cn";
 import { Magnetic } from "../../../kiln/components/buttons/MagneticButton";
 import { MultiStepLoader } from "../../../kiln/components/status/MultiStepLoader";
 import { PlaceholderInput } from "../../../kiln/components/text-input/PlaceholderInput";
@@ -406,6 +408,39 @@ export function PlaceholderDemo() {
         onSubmit={(v) => setSent((s) => [v, ...s].slice(0, 3))}
       />
       <p className="h-5 max-w-lg truncate text-sm text-muted">{sent[0] ? `The Oracle received: “${sent[0]}”` : "Type a question and send it"}</p>
+    </Stage>
+  );
+}
+
+function useBox() {
+  return useRef<HTMLDivElement>(null);
+}
+
+const BOX = "relative mx-auto w-full max-w-4xl overflow-y-auto overscroll-contain rounded-card border border-line bg-surface";
+
+export function ParallaxDemo() {
+  const box = useBox();
+  const cards = [
+    { t: "Flux capacitor", d: -140, r: -6, x: "left-[6%]", top: "top-[30%]" },
+    { t: "88 mph", d: 60, r: 4, x: "left-[38%]", top: "top-[42%]" },
+    { t: "1.21 gigawatts", d: 180, r: 8, x: "right-[8%]", top: "top-[26%]" },
+  ];
+  return (
+    <Stage className="flex-col items-stretch">
+      <div ref={box} className={cn(BOX, "h-96")}>
+        <div className="grid h-72 place-items-center text-sm text-muted">Scroll down</div>
+        <div className="relative h-[560px]">
+          <Parallax container={box} distance={40} className="absolute inset-x-0 top-[12%] text-center">
+            <p className="text-5xl font-semibold tracking-[-0.03em] text-ink sm:text-7xl">Hill Valley</p>
+          </Parallax>
+          {cards.map((c) => (
+            <Parallax key={c.t} container={box} distance={c.d} rotate={c.r} className={cn("absolute", c.x, c.top)}>
+              <div className="rounded-card border border-line bg-elevated px-5 py-4 text-sm font-medium text-ink">{c.t}</div>
+            </Parallax>
+          ))}
+        </div>
+        <div className="h-72" />
+      </div>
     </Stage>
   );
 }

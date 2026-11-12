@@ -108,6 +108,7 @@ export { type AnimatedListProps, AnimatedList } from "./components/effects/Anima
 export { type BorderBeamProps, BorderBeam } from "./components/effects/BorderBeam";
 export { type DockItem, type DockLabels, dockLabels, type DockProps, Dock } from "./components/effects/Dock";
 export { type OrbitingCirclesProps, OrbitingCircles } from "./components/effects/OrbitingCircles";
+export { type ParallaxProps, Parallax } from "./components/effects/Parallax";
 export { type RevealProps, Reveal } from "./components/effects/Reveal";
 export { type RevealStep, type StickyScrollRevealLabels, stickyScrollRevealLabels, type StickyScrollRevealProps, StickyScrollReveal } from "./components/effects/StickyScrollReveal";
 
