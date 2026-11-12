@@ -81,7 +81,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `StackedList` — Rows with a picture, two lines each side and a chevron; switch to select mode for checkboxes
 
 ### `buttons/`
-- `Button` — The main way to act: five variants, three sizes, icons, and a loading state that keeps its width
+- `Button` — The main way to act: five variants, three sizes, icons, and a loading state that keeps its width; pass `href` (and `external` for a new tab) and it is an anchor with the same look
 - `ButtonGroup` — Related buttons joined into one strip, and a main action with its alternatives in a menu
 - `CopyButton` — Copies text and confirms with a drawn tick
 - `HoldButton` — For actions that cannot be undone: fills while held, rewinds when released early
