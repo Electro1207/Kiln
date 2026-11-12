@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { AnimatePresence, animate, motion, useInView, useMotionValue, useReducedMotion } from "motion/react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { easeOut, fade } from "../../motion";
 
 /** Text used by FeatureTabs. Pass a partial via `labels` to translate or reword. */
@@ -14,6 +15,12 @@ export type Feature = { id: string; title: string; body: string; media: ReactNod
 
 export type FeatureTabsProps = {
   features: Feature[];
+  /** Controlled index of the chosen feature. Leave out to let the tabs keep their own. */
+  value?: number;
+  /** Where the uncontrolled tabs start. Default 0. */
+  defaultValue?: number;
+  /** Called with the new index, whether picked or auto-advanced, controlled or not. */
+  onChange?: (index: number) => void;
   /** Seconds each feature stays before the next one. 0 turns auto-advance off. */
   interval?: number;
   /** Override any UI text. Merged over `featureTabsLabels`. */
@@ -26,11 +33,11 @@ export type FeatureTabsProps = {
  * chosen feature; it advances on its own, with a progress bar that pauses
  * while the pointer or focus is inside, and stops for good once someone picks.
  */
-export function FeatureTabs({ features, interval = 6, labels, className }: FeatureTabsProps) {
+export function FeatureTabs({ features, value, defaultValue = 0, onChange, interval = 6, labels, className }: FeatureTabsProps) {
   const l = { ...featureTabsLabels, ...labels };
   const id = useId();
   const rootRef = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useControllable(value, defaultValue, onChange);
   const [paused, setPaused] = useState(false);
   const [manual, setManual] = useState(false);
   const reduce = useReducedMotion();
@@ -50,7 +57,7 @@ export function FeatureTabs({ features, interval = 6, labels, className }: Featu
       },
     });
     return () => ctl.stop();
-  }, [auto, paused, inView, active, interval, features.length, progress]);
+  }, [auto, paused, inView, active, interval, features.length, progress, setActive]);
 
   const pick = (i: number) => {
     setManual(true);
