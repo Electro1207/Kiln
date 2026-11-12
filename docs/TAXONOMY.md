@@ -240,7 +240,7 @@ Group id: `charts` · Folder: `charts/` · 11 entries
 Section id: `surfaces`
 
 ### Cards
-Group id: `cards` · Folder: `cards/` · 7 entries
+Group id: `cards` · Folder: `cards/` · 8 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -250,6 +250,7 @@ Group id: `cards` · Folder: `cards/` · 7 entries
 | Stat card | `stat-card` | `Card.tsx`, `Stat.tsx`, `BarChart.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Expanding card | `expandable-card` | `ExpandableCard.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Tilt card | `tilt-card` | `TiltCard.tsx` |
+| Floating card | `floating-card` | `FloatingCard.tsx`, `src/kiln/components/shared/useLoop.ts` |
 | Pricing | `pricing` | `PricingCard.tsx`, `NumberTicker.tsx`, `Button.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 
 ### Media

@@ -24,6 +24,8 @@ import { ScrollStory } from "../../../kiln/components/effects/ScrollStory";
 import { ScrollTimeline } from "../../../kiln/components/effects/ScrollTimeline";
 import { ScrollWords } from "../../../kiln/components/text-effects/ScrollWords";
 import { cn } from "../../../kiln/cn";
+import { FloatingCard } from "../../../kiln/components/cards/FloatingCard";
+import { VideoPlayer } from "../../../kiln/components/media/VideoPlayer";
 import { Magnetic } from "../../../kiln/components/buttons/MagneticButton";
 import { MultiStepLoader } from "../../../kiln/components/status/MultiStepLoader";
 import { PlaceholderInput } from "../../../kiln/components/text-input/PlaceholderInput";
@@ -515,3 +517,26 @@ export function ScrollStoryDemo() {
     </Stage>
   );
 }
+
+const DEMO_VIDEO = `${import.meta.env.BASE_URL}demo/video/`;
+
+export function FloatingCardDemo() {
+  return (
+    <Stage className="py-14 sm:py-16">
+      <FloatingCard className="w-full max-w-xl" cardClassName="p-2">
+        <VideoPlayer
+          title="Big Buck Bunny"
+          poster={`${DEMO_VIDEO}bbb-poster.jpg`}
+          renditions={[{ label: "480p", height: 480, src: `${DEMO_VIDEO}bbb-480.webm` }, { label: "360p", height: 360, src: `${DEMO_VIDEO}bbb-360.webm` }]}
+          autoPlay
+          loop
+        />
+        <div className="flex items-center justify-between px-3 pb-2 pt-3">
+          <span className="text-sm font-medium">Out of the burrow</span>
+          <span className="text-xs text-muted">Plays muted while on screen</span>
+        </div>
+      </FloatingCard>
+    </Stage>
+  );
+}
+
