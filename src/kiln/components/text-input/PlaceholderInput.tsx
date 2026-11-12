@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } fr
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowUp } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { easeOut, springSoft } from "../../motion";
 import { useOnScreen, usePrefersReducedMotion } from "../shared/useLoop";
 
@@ -22,6 +23,12 @@ export const placeholderInputLabels: PlaceholderInputLabels = { send: "Send" };
 export type PlaceholderInputProps = {
   /** Suggestions shown in turn while the field is empty. */
   placeholders: string[];
+  /** Controlled text. Leave out to let the field keep its own; it clears after a send. */
+  value?: string;
+  /** Where uncontrolled text starts. Default empty. */
+  defaultValue?: string;
+  /** Called with the new text, controlled or not. */
+  onChange?: (value: string) => void;
   onSubmit: (value: string) => void;
   label: string;
   /** ms each placeholder stays. */
@@ -40,10 +47,10 @@ type Dust = { id: number; chars: Array<{ c: string; dx: number; dy: number; r: n
  * empty. Sending the text makes it drift up and dissolve, letter by letter,
  * as the field clears.
  */
-export function PlaceholderInput({ placeholders, onSubmit, label, interval = 3000, className, labels, icons }: PlaceholderInputProps) {
+export function PlaceholderInput({ placeholders, value: valueProp, defaultValue = "", onChange, onSubmit, label, interval = 3000, className, labels, icons }: PlaceholderInputProps) {
   const l = { ...placeholderInputLabels, ...labels };
   const ic = { ...placeholderInputIcons, ...icons };
-  const [value, setValue] = useState("");
+  const [value, setValue] = useControllable(valueProp, defaultValue, onChange);
   const [i, setI] = useState(0);
   const [dust, setDust] = useState<Dust | null>(null);
   const form = useRef<HTMLFormElement>(null);
