@@ -20,6 +20,7 @@ import { BorderBeam } from "../../../kiln/components/effects/BorderBeam";
 import { ScrollProgress } from "../../../kiln/components/wayfinding/ScrollProgress";
 import { StickyScrollReveal } from "../../../kiln/components/effects/StickyScrollReveal";
 import { Parallax } from "../../../kiln/components/effects/Parallax";
+import { ScrollTimeline } from "../../../kiln/components/effects/ScrollTimeline";
 import { ScrollWords } from "../../../kiln/components/text-effects/ScrollWords";
 import { cn } from "../../../kiln/cn";
 import { Magnetic } from "../../../kiln/components/buttons/MagneticButton";
@@ -457,6 +458,26 @@ export function ScrollWordsDemo() {
         <div className="grid h-60 place-items-center text-sm text-muted">Scroll down</div>
         <ScrollWords container={box} text={SPEECH} className="text-2xl font-semibold leading-snug tracking-[-0.015em] text-ink" />
         <div className="h-72" />
+      </div>
+    </Stage>
+  );
+}
+
+const QUEST = [
+  { id: "shire", time: "Spring", title: "Leave the Shire", meta: "Four hobbits, one ring", body: "“It’s a dangerous business, Frodo, going out your door.”", tags: ["Second breakfast", "Elevenses", "Packing light"] },
+  { id: "rivendell", time: "Autumn", title: "The council at Rivendell", meta: "Elves, dwarves, men and a wizard", body: "“I will take the Ring, though I do not know the way.”", tags: ["Diplomacy", "Map reading", "Volunteering", "Mithril"] },
+  { id: "moria", time: "Winter", title: "Through the mines", meta: "Under the mountain", body: "“You shall not pass!”", tags: ["Riddles", "Torches", "Running", "Quiet steps"] },
+  { id: "mountain", time: "March", title: "Up the mountain", meta: "Two hobbits, one ring", body: "“I can’t carry it for you, but I can carry you.”", tags: ["Endurance", "Friendship", "Eagles"], current: true },
+];
+
+export function ScrollTimelineDemo() {
+  const box = useBox();
+  return (
+    <Stage className="flex-col items-stretch">
+      <div ref={box} className={cn(BOX, "h-[480px] px-6 sm:px-10")}>
+        <div className="grid h-56 place-items-center text-sm text-muted">Scroll down</div>
+        <ScrollTimeline container={box} items={QUEST} labels={{ current: "Now" }} />
+        <div className="h-80" />
       </div>
     </Stage>
   );

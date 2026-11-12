@@ -1,5 +1,5 @@
 import type { Category } from "../types";
-import { AnimatedListDemo, BeamDemo, BorderBeamDemo, CompareDemo, DockDemo, MagneticDemo, MultiStepDemo, OrbitDemo, ParallaxDemo, PlaceholderDemo, RevealDemo, ScrollWordsDemo, ScrambleDemo, ScrollProgressDemo, StickyDemo, TextAnimateDemo, TiltDemo, TypewriterDemo, WordRotateDemo } from "./parts/effects";
+import { AnimatedListDemo, BeamDemo, BorderBeamDemo, CompareDemo, DockDemo, MagneticDemo, MultiStepDemo, OrbitDemo, ParallaxDemo, PlaceholderDemo, RevealDemo, ScrollTimelineDemo, ScrollWordsDemo, ScrambleDemo, ScrollProgressDemo, StickyDemo, TextAnimateDemo, TiltDemo, TypewriterDemo, WordRotateDemo } from "./parts/effects";
 
 export const category: Category = {
   id: "effects",
@@ -23,6 +23,7 @@ export const category: Category = {
     { id: "sticky-scroll-reveal", name: "Sticky scroll reveal", summary: "Words scroll past a picture that stays pinned and cross-fades with each step. Scroll-linked, so nothing re-renders per frame.", files: ["src/kiln/components/effects/StickyScrollReveal.tsx", "src/kiln/cn.ts"], Demo: StickyDemo },
     { id: "scroll-words", name: "Scroll words", summary: "A paragraph that lights up word by word as you scroll, as if read aloud. Nothing moves, so nothing reflows.", files: ["src/kiln/components/text-effects/ScrollWords.tsx", "src/kiln/components/shared/useLoop.ts", "src/kiln/cn.ts"], Demo: ScrollWordsDemo },
     { id: "parallax", name: "Parallax", summary: "Layers that drift at their own speed as the page scrolls, and can tilt as they go. Transform only.", files: ["src/kiln/components/effects/Parallax.tsx", "src/kiln/components/shared/useLoop.ts", "src/kiln/cn.ts"], Demo: ParallaxDemo },
+    { id: "scroll-timeline", name: "Scroll timeline", summary: "A history told as you scroll: the rail fills, then each entry's title, words and tags arrive in turn.", files: ["src/kiln/components/effects/ScrollTimeline.tsx", "src/kiln/components/shared/useLoop.ts", "src/kiln/cn.ts"], Demo: ScrollTimelineDemo },
     { id: "multi-step-loader", name: "Multi-step loader", summary: "A checklist that completes itself, with a line filling down as it goes.", files: ["src/kiln/components/status/MultiStepLoader.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: MultiStepDemo },
     { id: "placeholder-input", name: "Placeholder input", summary: "Example questions cycle while empty; sent text drifts up and dissolves.", files: ["src/kiln/components/text-input/PlaceholderInput.tsx", "src/kiln/components/shared/useLoop.ts", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: PlaceholderDemo },
   ],
