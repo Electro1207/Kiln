@@ -2,6 +2,7 @@ import { useId, useLayoutEffect, useMemo, useRef, type KeyboardEvent, type React
 import { animate, AnimatePresence, motion, useMotionValue } from "motion/react";
 import { ArrowUp, ChevronDown, FileText, Paperclip, X } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { easeOut, fade, springFirm, springSoft } from "../../motion";
 import { DropdownMenu } from "../menus/DropdownMenu";
 
@@ -36,16 +37,27 @@ export const promptInputLabels: PromptInputLabels = {
 };
 
 export type PromptInputProps = {
-  value: string;
-  onChange: (v: string) => void;
+  /** Controlled text. Leave out to let the composer keep its own; it clears after a send. */
+  value?: string;
+  /** Where uncontrolled text starts. Default empty. */
+  defaultValue?: string;
+  /** Called with the new text, controlled or not. */
+  onChange?: (v: string) => void;
   onSubmit: (v: string) => void;
   /** While a reply is streaming the send button becomes Stop. */
   streaming?: boolean;
   onStop?: () => void;
   models?: PromptModel[];
+  /** Controlled model id. Leave out to let the picker keep its own. */
   model?: string;
+  /** Where the uncontrolled model starts. Default the first of `models`. */
+  defaultModel?: string;
   onModelChange?: (id: string) => void;
+  /** Controlled attachments. Leave out to let the composer keep its own. */
   attachments?: PromptAttachment[];
+  /** Where uncontrolled attachments start. Default none. */
+  defaultAttachments?: PromptAttachment[];
+  /** Called with the new list. The attach button shows when this, `attachments` or `defaultAttachments` is set. */
   onAttachmentsChange?: (a: PromptAttachment[]) => void;
   placeholder?: string;
   /** Extra controls in the toolbar, left of the send button. */
@@ -90,13 +102,18 @@ const LINE = 22;
  * Enter sends, Shift+Enter starts a new line.
  */
 export function PromptInput({
-  value, onChange, onSubmit, streaming, onStop, models, model, onModelChange, attachments = [], onAttachmentsChange,
+  value: valueProp, defaultValue = "", onChange, onSubmit, streaming, onStop, models, model: modelProp, defaultModel, onModelChange,
+  attachments: attachmentsProp, defaultAttachments, onAttachmentsChange,
   placeholder: placeholderProp, tools, maxRows = 8, className, labels, icons,
 }: PromptInputProps) {
   const l = { ...promptInputLabels, ...labels };
   const ic = useMemo(() => ({ ...promptInputIcons, ...icons }), [icons]);
   const placeholder = placeholderProp ?? l.placeholder;
   const id = useId();
+  const [value, setValue] = useControllable(valueProp, defaultValue, onChange);
+  const [model, setModel] = useControllable<string | undefined>(modelProp, defaultModel ?? models?.[0]?.id, (m) => m && onModelChange?.(m));
+  const [attachments, setAttachments] = useControllable<PromptAttachment[]>(attachmentsProp, defaultAttachments ?? [], onAttachmentsChange);
+  const canAttach = !!(onAttachmentsChange || attachmentsProp || defaultAttachments);
   const area = useRef<HTMLTextAreaElement>(null);
   const file = useRef<HTMLInputElement>(null);
   const height = useMotionValue(LINE);
@@ -117,7 +134,11 @@ export function PromptInput({
   }, [value, maxRows, height]);
 
   const canSend = value.trim().length > 0 && !streaming;
-  const send = () => canSend && onSubmit(value.trim());
+  const send = () => {
+    if (!canSend) return;
+    onSubmit(value.trim());
+    if (valueProp === undefined) setValue("");
+  };
   const onKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
@@ -163,7 +184,7 @@ export function PromptInput({
                     <button
                       type="button"
                       aria-label={l.removeAttachment(a.name)}
-                      onClick={() => onAttachmentsChange?.(attachments.filter((x) => x.id !== a.id))}
+                      onClick={() => setAttachments(attachments.filter((x) => x.id !== a.id))}
                       className="grid size-6 place-items-center rounded-full text-muted transition-colors hover:bg-active hover:text-ink"
                     >
                       <span className="grid [&>svg]:size-3.5" aria-hidden>{ic.remove}</span>
@@ -183,14 +204,14 @@ export function PromptInput({
         rows={1}
         value={value}
         placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => setValue(e.target.value)}
         onKeyDown={onKey}
         style={{ height }}
         className="block w-full resize-none bg-transparent px-4 pt-3.5 text-[15px] leading-[22px] text-ink outline-none placeholder:text-faint"
       />
 
       <div className="flex items-center gap-1.5 p-2 pl-2.5">
-        {onAttachmentsChange && (
+        {canAttach && (
           <>
             <input
               ref={file}
@@ -204,7 +225,7 @@ export function PromptInput({
                   name: f.name,
                   size: l.fileSize(f.size),
                 }));
-                onAttachmentsChange([...attachments, ...added]);
+                setAttachments([...attachments, ...added]);
                 e.target.value = "";
               }}
             />
@@ -226,7 +247,7 @@ export function PromptInput({
               label: m.note ? `${m.name} · ${m.note}` : m.name,
               checked: m.id === model,
               disabled: m.disabled,
-              onCheckedChange: () => onModelChange?.(m.id),
+              onCheckedChange: () => setModel(m.id),
             }))}
             trigger={({ open, ...p }) => (
               <button
