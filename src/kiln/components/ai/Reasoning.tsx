@@ -1,7 +1,8 @@
-import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Brain, ChevronDown } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { fade, springFirm } from "../../motion";
 import { useLoop } from "../shared/useLoop";
 
@@ -34,6 +35,12 @@ export type ReasoningProps = {
   children: ReactNode;
   /** Open while thinking, then fold away when the answer starts. Default true. */
   autoCollapse?: boolean;
+  /** Controlled open state. Leave out to let the panel keep its own, opening and folding with `thinking`. */
+  open?: boolean;
+  /** Whether the uncontrolled panel starts open. Default `thinking`. */
+  defaultOpen?: boolean;
+  /** Called when the panel opens or folds, by a click or by `thinking` changing. */
+  onOpenChange?: (open: boolean) => void;
   className?: string;
   /** Override any UI text. Merged over `reasoningLabels`. */
   labels?: Partial<ReasoningLabels>;
@@ -46,10 +53,10 @@ export type ReasoningProps = {
  * breathes and the panel is open; when it is done it reads "Thought for 6
  * seconds" and folds shut, one click from reopening.
  */
-export function Reasoning({ thinking, seconds, children, autoCollapse = true, className, labels, icons }: ReasoningProps) {
+export function Reasoning({ thinking, seconds, children, autoCollapse = true, open: openProp, defaultOpen, onOpenChange, className, labels, icons }: ReasoningProps) {
   const l = { ...reasoningLabels, ...labels };
   const ic = useMemo(() => ({ ...reasoningIcons, ...icons }), [icons]);
-  const [open, setOpen] = useState(thinking);
+  const [open, setOpen] = useControllable(openProp, defaultOpen ?? thinking, onOpenChange);
   const [measured, setMeasured] = useState<number | null>(thinking ? null : 1);
   const [wasThinking, setWasThinking] = useState(thinking);
   const label = useRef<HTMLSpanElement>(null);
@@ -57,11 +64,16 @@ export function Reasoning({ thinking, seconds, children, autoCollapse = true, cl
 
   if (thinking !== wasThinking) {
     setWasThinking(thinking);
-    if (thinking) {
-      setMeasured(null);
-      setOpen(true);
-    } else if (autoCollapse) setOpen(false);
+    if (thinking) setMeasured(null);
   }
+
+  const seen = useRef(thinking);
+  useLayoutEffect(() => {
+    if (seen.current === thinking) return;
+    seen.current = thinking;
+    if (thinking) setOpen(true);
+    else if (autoCollapse) setOpen(false);
+  }, [thinking, autoCollapse, setOpen]);
 
   // The thinking spell ends when this effect cleans up; that is the moment to read the clock.
   useEffect(() => {
