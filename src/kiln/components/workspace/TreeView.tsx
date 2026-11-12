@@ -2,6 +2,7 @@ import { useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } 
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronRight, File, FileCode2, FileImage, FileText, Folder, FolderOpen } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { fade, springSnappy, springSoft } from "../../motion";
 
 export type TreeNode = { id: string; name: string; icon?: ReactNode; children?: TreeNode[]; meta?: string };
@@ -35,9 +36,18 @@ export const treeViewIcons: TreeViewIcons = {
 
 export type TreeViewProps = {
   nodes: TreeNode[];
-  selected: string | null;
-  onSelect: (id: string, node: TreeNode) => void;
+  /** Controlled selected node id, or `null` for none. Leave out to let the tree keep its own. */
+  selected?: string | null;
+  /** Where the uncontrolled selection starts. Default none. */
+  defaultSelected?: string | null;
+  /** Called when a node is selected, controlled or not. */
+  onSelect?: (id: string, node: TreeNode) => void;
+  /** Controlled open folder ids. Leave out to let the tree keep its own. */
+  expanded?: string[];
+  /** Where the uncontrolled open folders start. Default none. */
   defaultExpanded?: string[];
+  /** Called with the open folder ids after a folder opens or closes, controlled or not. */
+  onExpandedChange?: (expanded: string[]) => void;
   label: string;
   /** Replace any built-in icon. Merged over `treeViewIcons`. */
   icons?: Partial<TreeViewIcons>;
@@ -58,10 +68,18 @@ function fileIcon(name: string): "fileImage" | "fileCode" | "fileText" | "file" 
  * steps in, Left closes or steps out, Home/End jump, * opens siblings,
  * Enter/Space selects, and typing jumps to a name.
  */
-export function TreeView({ nodes, selected, onSelect, defaultExpanded = [], label, icons, className }: TreeViewProps) {
+export function TreeView({
+  nodes, selected: selectedProp, defaultSelected = null, onSelect, expanded: expandedProp, defaultExpanded = [], onExpandedChange, label, icons, className,
+}: TreeViewProps) {
   const ic = useMemo(() => ({ ...treeViewIcons, ...icons }), [icons]);
   const id = useId();
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(defaultExpanded));
+  const [selected, setSelected] = useControllable<string | null>(selectedProp, defaultSelected);
+  const [expandedList, setExpandedList] = useControllable<string[]>(expandedProp, defaultExpanded, onExpandedChange);
+  const expanded = useMemo(() => new Set(expandedList), [expandedList]);
+  const pick = (nid: string, node: TreeNode) => {
+    setSelected(nid);
+    onSelect?.(nid, node);
+  };
   const [focusId, setFocusId] = useState<string | null>(selected ?? nodes[0]?.id ?? null);
   const rootRef = useRef<HTMLUListElement>(null);
   const typed = useRef({ text: "", at: 0 });
@@ -86,12 +104,9 @@ export function TreeView({ nodes, selected, onSelect, defaultExpanded = [], labe
     requestAnimationFrame(() => rootRef.current?.querySelector<HTMLElement>(`[data-node="${CSS.escape(nid)}"]`)?.focus());
   };
   const toggle = (nid: string, open?: boolean) =>
-    setExpanded((cur) => {
-      const next = new Set(cur);
-      const want = open ?? !next.has(nid);
-      if (want) next.add(nid);
-      else next.delete(nid);
-      return next;
+    setExpandedList((cur) => {
+      const want = open ?? !cur.includes(nid);
+      return want ? (cur.includes(nid) ? cur : [...cur, nid]) : cur.filter((x) => x !== nid);
     });
 
   const onKey = (e: KeyboardEvent) => {
@@ -116,12 +131,12 @@ export function TreeView({ nodes, selected, onSelect, defaultExpanded = [], labe
         break;
       case "Enter":
       case " ":
-        onSelect(cur.node.id, cur.node);
+        pick(cur.node.id, cur.node);
         if (isFolder && e.key === "Enter") toggle(cur.node.id);
         break;
       case "*": {
         const siblings = cur.parent ? all.get(cur.parent)?.node.children ?? [] : nodes;
-        setExpanded((s) => new Set([...s, ...siblings.filter((n) => n.children).map((n) => n.id)]));
+        setExpandedList((cur) => [...new Set([...cur, ...siblings.filter((n) => n.children).map((n) => n.id)])]);
         break;
       }
       default:
@@ -163,7 +178,7 @@ export function TreeView({ nodes, selected, onSelect, defaultExpanded = [], labe
             onFocus={() => setFocusId(node.id)}
             onClick={() => {
               setFocusId(node.id);
-              onSelect(node.id, node);
+              pick(node.id, node);
               if (isFolder) toggle(node.id);
             }}
             className={cn(
