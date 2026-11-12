@@ -2,6 +2,7 @@ import { type ReactNode, useMemo } from "react";
 import { motion } from "motion/react";
 import { Check, Minus } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { fade } from "../../motion";
 
 export type PrefChannel = { id: string; label: string; icon?: ReactNode };
@@ -22,8 +23,12 @@ export const notificationPreferencesIcons: NotificationPreferencesIcons = { chec
 export type NotificationPreferencesProps = {
   channels: PrefChannel[];
   groups: PrefGroup[];
-  value: PrefValue;
-  onChange: (v: PrefValue) => void;
+  /** Controlled preferences. Leave out to let the grid keep its own. */
+  value?: PrefValue;
+  /** Where uncontrolled preferences start. Default everything off. */
+  defaultValue?: PrefValue;
+  /** Called with the new preferences, controlled or not. */
+  onChange?: (v: PrefValue) => void;
   /** Override any UI text. Merged over `notificationPreferencesLabels`. */
   labels?: Partial<NotificationPreferencesLabels>;
   /** Replace any built-in icon. Merged over `notificationPreferencesIcons`. */
@@ -89,16 +94,17 @@ const markOf = (vals: boolean[]): Mark => (vals.every(Boolean) ? true : vals.som
  * select-all. On a narrow screen each event becomes a card with its channels
  * in a row.
  */
-export function NotificationPreferences({ channels, groups, value, onChange, labels, icons, className }: NotificationPreferencesProps) {
+export function NotificationPreferences({ channels, groups, value: valueProp, defaultValue, onChange, labels, icons, className }: NotificationPreferencesProps) {
   const l = { ...notificationPreferencesLabels, ...labels };
   const ic = useMemo(() => ({ ...notificationPreferencesIcons, ...icons }), [icons]);
+  const [value, setValue] = useControllable<PrefValue>(valueProp, defaultValue ?? {}, onChange);
   const events = groups.flatMap((g) => g.events);
   const get = (e: string, c: string) => !!value[e]?.[c];
 
   const setCells = (cells: Array<[string, string]>, on: boolean) => {
     const next: PrefValue = { ...value };
     for (const [e, c] of cells) next[e] = { ...next[e], [c]: on };
-    onChange(next);
+    setValue(next);
   };
   const toggleRow = (e: string) => {
     const on = markOf(channels.map((c) => get(e, c.id))) !== true;
