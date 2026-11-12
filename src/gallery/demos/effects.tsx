@@ -1,5 +1,5 @@
 import type { Category } from "../types";
-import { AnimatedListDemo, BeamDemo, BorderBeamDemo, CompareDemo, DockDemo, MagneticDemo, MultiStepDemo, OrbitDemo, PlaceholderDemo, ScrambleDemo, ScrollProgressDemo, StickyDemo, TextAnimateDemo, TiltDemo, TypewriterDemo, WordRotateDemo } from "./parts/effects";
+import { AnimatedListDemo, BeamDemo, BorderBeamDemo, CompareDemo, DockDemo, MagneticDemo, MultiStepDemo, OrbitDemo, PlaceholderDemo, RevealDemo, ScrambleDemo, ScrollProgressDemo, StickyDemo, TextAnimateDemo, TiltDemo, TypewriterDemo, WordRotateDemo } from "./parts/effects";
 
 export const category: Category = {
   id: "effects",
@@ -10,6 +10,7 @@ export const category: Category = {
     { id: "typewriter", name: "Typewriter", summary: "Phrases typed and deleted in turn, with a real caret that blinks only when idle.", files: ["src/kiln/components/text-effects/Typewriter.tsx", "src/kiln/components/shared/useLoop.ts", "src/kiln/cn.ts"], Demo: TypewriterDemo },
     { id: "word-rotate", name: "Word rotate", summary: "One word swapping in place; the cell is as wide as the longest, so nothing reflows.", files: ["src/kiln/components/text-effects/WordRotate.tsx", "src/kiln/components/shared/useLoop.ts", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: WordRotateDemo },
     { id: "scramble-text", name: "Scramble text", summary: "A Matrix-style decode on view or hover, letter cells fixed so the line never shifts.", files: ["src/kiln/components/text-effects/ScrambleText.tsx", "src/kiln/components/shared/useLoop.ts", "src/kiln/cn.ts"], Demo: ScrambleDemo },
+    { id: "reveal", name: "Reveal", summary: "Wraps anything and lets it rise into place, with a fade, the first time it scrolls into view. Stagger siblings with delay.", files: ["src/kiln/components/effects/Reveal.tsx", "src/kiln/components/shared/useLoop.ts", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: RevealDemo },
     { id: "dock", name: "Dock", summary: "macOS magnification by transform only: icons swell, neighbours part, the bar widens.", files: ["src/kiln/components/effects/Dock.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: DockDemo },
     { id: "tilt-card", name: "Tilt card", summary: "A card that leans towards the pointer in 3D, with layers floating above its surface.", files: ["src/kiln/components/cards/TiltCard.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: TiltDemo },
     { id: "compare-slider", name: "Compare slider", summary: "Before and after with a handle you drag or move with the arrow keys.", files: ["src/kiln/components/media/CompareSlider.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: CompareDemo },

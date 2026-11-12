@@ -9,6 +9,7 @@ import { TextAnimate } from "../../../kiln/components/text-effects/TextAnimate";
 import { Typewriter } from "../../../kiln/components/text-effects/Typewriter";
 import { WordRotate } from "../../../kiln/components/text-effects/WordRotate";
 import { ScrambleText } from "../../../kiln/components/text-effects/ScrambleText";
+import { Reveal } from "../../../kiln/components/effects/Reveal";
 import { Dock } from "../../../kiln/components/effects/Dock";
 import { TiltCard, TiltLayer } from "../../../kiln/components/cards/TiltCard";
 import { CompareSlider } from "../../../kiln/components/media/CompareSlider";
@@ -33,6 +34,30 @@ export function TextAnimateDemo() {
         <TextAnimate as="p" by="word" preset="fade" text="There is no spoon. Then you’ll see that it is not the spoon that bends, it is only yourself." className="max-w-xl text-base text-muted" delay={0.6} />
       </div>
       <div className="mx-auto w-full max-w-2xl">
+        <Button size="sm" variant="ghost" leading={<RotateCcw />} onClick={() => setRound((r) => r + 1)}>Play again</Button>
+      </div>
+    </Stage>
+  );
+}
+
+export function RevealDemo() {
+  const [round, setRound] = useState(0);
+  const lines = [
+    ["Ecto-1 is fuelled", "The siren works. The suspension, less so."],
+    ["Proton packs charged", "Do not cross the streams. It would be bad."],
+    ["Containment unit empty", "Slimer left a note about the minibar."],
+  ];
+  return (
+    <Stage className="flex-col items-stretch">
+      <div key={round} className="mx-auto flex w-full max-w-md flex-col gap-3">
+        {lines.map(([title, body], i) => (
+          <Reveal key={title} delay={i * 0.08} className="rounded-control bg-surface p-4">
+            <p className="font-medium text-ink">{title}</p>
+            <p className="text-sm text-muted">{body}</p>
+          </Reveal>
+        ))}
+      </div>
+      <div className="mx-auto w-full max-w-md">
         <Button size="sm" variant="ghost" leading={<RotateCcw />} onClick={() => setRound((r) => r + 1)}>Play again</Button>
       </div>
     </Stage>
