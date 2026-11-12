@@ -10,11 +10,23 @@ export type FieldMessageProps = {
   tone?: "error" | "success" | "hint";
   /** Nothing renders when empty; changes slide in, and the space opens and closes smoothly. */
   children?: ReactNode;
+  /** Replace any built-in icon. Merged over `fieldMessageIcons`. */
+  icons?: Partial<FieldMessageIcons>;
   className?: string;
 };
 
+/** Icons used by FieldMessage. Pass a partial via `icons` to swap any of them. */
+export interface FieldMessageIcons {
+  /** Beside an error. */
+  error: ReactNode;
+  /** Beside a success message. */
+  success: ReactNode;
+}
+export const fieldMessageIcons: FieldMessageIcons = { error: <AlertCircle />, success: <CheckCircle2 /> };
+
 /** The line under a form field: a hint, an error or a confirmation. */
-export function FieldMessage({ id, tone = "hint", children, className }: FieldMessageProps) {
+export function FieldMessage({ id, tone = "hint", children, icons, className }: FieldMessageProps) {
+  const ic = { ...fieldMessageIcons, ...icons };
   const show = children != null && children !== false && children !== "";
   return (
     <div id={id} aria-live={tone === "error" ? "assertive" : "polite"} className={className}>
@@ -36,8 +48,8 @@ export function FieldMessage({ id, tone = "hint", children, className }: FieldMe
                 tone === "hint" && "text-muted",
               )}
             >
-              {tone === "error" && <AlertCircle className="mt-px size-3.5 shrink-0" aria-hidden />}
-              {tone === "success" && <CheckCircle2 className="mt-px size-3.5 shrink-0" aria-hidden />}
+              {tone === "error" && <span className="mt-px grid shrink-0 [&>svg]:size-3.5" aria-hidden>{ic.error}</span>}
+              {tone === "success" && <span className="mt-px grid shrink-0 [&>svg]:size-3.5" aria-hidden>{ic.success}</span>}
               <span>{children}</span>
             </p>
           </motion.div>

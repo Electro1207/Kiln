@@ -15,6 +15,17 @@ export const defaultPasswordRules: PasswordRule[] = [
   { label: "A symbol such as ! or #", test: (v) => /[^A-Za-z0-9]/.test(v) },
 ];
 
+/** Icons used by PasswordField. Pass a partial via `icons` to replace them. */
+export interface PasswordFieldIcons {
+  /** Padlock at the start of the field. */
+  lock: ReactNode;
+  /** Shown while the password is hidden; click to reveal it. */
+  show: ReactNode;
+  /** Shown while the password is visible; click to hide it. */
+  hide: ReactNode;
+}
+export const passwordFieldIcons: PasswordFieldIcons = { lock: <Lock />, show: <Eye />, hide: <EyeOff /> };
+
 /** Text used by PasswordField. Pass a partial via `labels` to translate or reword. */
 export interface PasswordFieldLabels {
   /** aria-label of the reveal button while the password is hidden. */
@@ -61,8 +72,11 @@ export const PasswordField = forwardRef<HTMLInputElement, Omit<InputHTMLAttribut
   rules?: PasswordRule[];
   /** Override any UI text. Merged over `passwordFieldLabels`. */
   labels?: Partial<PasswordFieldLabels>;
-}>(function PasswordField({ value: valueProp, defaultValue = "", onValueChange: onValueProp, label = "Password", error, meter, rules = defaultPasswordRules, size = "md", id: idProp, labels, ...rest }, ref) {
+  /** Replace any built-in icon. Merged over `passwordFieldIcons`. */
+  icons?: Partial<PasswordFieldIcons>;
+}>(function PasswordField({ value: valueProp, defaultValue = "", onValueChange: onValueProp, label = "Password", error, meter, rules = defaultPasswordRules, size = "md", id: idProp, labels, icons, ...rest }, ref) {
   const l = { ...passwordFieldLabels, ...labels };
+  const ic = { ...passwordFieldIcons, ...icons };
   const [value, onValueChange] = useControllable(valueProp, defaultValue, onValueProp);
   const autoId = useId();
   const id = idProp ?? autoId;
@@ -74,7 +88,7 @@ export const PasswordField = forwardRef<HTMLInputElement, Omit<InputHTMLAttribut
   return (
     <Field id={id} label={label} error={error}>
       <div className={inputBox(!!error, size)}>
-        <Lock className="size-4 shrink-0 text-faint" aria-hidden />
+        <span className="grid shrink-0 place-items-center text-faint [&>svg]:size-4" aria-hidden>{ic.lock}</span>
         <input
           ref={ref}
           id={id}
@@ -92,13 +106,13 @@ export const PasswordField = forwardRef<HTMLInputElement, Omit<InputHTMLAttribut
           onClick={() => setShown((s) => !s)}
           aria-label={shown ? l.hide : l.show}
           aria-pressed={shown}
-          className="grid size-7 shrink-0 place-items-center rounded-md text-muted transition-colors hover:bg-raised hover:text-ink [&>*]:[grid-area:1/1]"
+          className="grid size-7 shrink-0 place-items-center rounded-md text-muted transition-colors hover:bg-raised hover:text-ink [&>*]:[grid-area:1/1] [&_svg]:size-4"
         >
           <motion.span className="grid" initial={false} animate={{ opacity: shown ? 0 : 1, scale: shown ? 0.7 : 1 }} transition={springSnappy}>
-            <Eye className="size-4" />
+            {ic.show}
           </motion.span>
           <motion.span className="grid" initial={false} animate={{ opacity: shown ? 1 : 0, scale: shown ? 1 : 0.7 }} transition={springSnappy}>
-            <EyeOff className="size-4" />
+            {ic.hide}
           </motion.span>
         </button>
       </div>

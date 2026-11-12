@@ -1,3 +1,4 @@
+import { type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "../../cn";
@@ -19,6 +20,14 @@ export interface PaginationLabels {
   /** Visible text after the current page on phones ("of 9"). */
   of: (count: number) => string;
 }
+/** Icons used by Pagination. Pass a partial via `icons` to swap any of them. */
+export interface PaginationIcons {
+  /** The previous-page button. */
+  previous: ReactNode;
+  /** The next-page button. */
+  next: ReactNode;
+}
+export const paginationIcons: PaginationIcons = { previous: <ChevronLeft />, next: <ChevronRight /> };
 export const paginationLabels: PaginationLabels = {
   nav: "Pagination",
   previous: "Previous page",
@@ -39,6 +48,8 @@ export type PaginationProps = {
   className?: string;
   /** Override any UI text. Merged over `paginationLabels`. */
   labels?: Partial<PaginationLabels>;
+  /** Replace any built-in icon. Merged over `paginationIcons`. */
+  icons?: Partial<PaginationIcons>;
 };
 
 export function pageRange(page: number, count: number, siblings = 1): Array<number | "gap-l" | "gap-r"> {
@@ -61,8 +72,9 @@ const gap = "grid h-9 w-6 place-items-center";
  * numbers); its number turns to the fill's ink part-way through the fade, never grey on grey.
  */
 /** Page numbers with previous/next. Collapses to "page x of y" on phones. */
-export function Pagination({ page: pageProp, defaultPage = 1, pageCount, onChange: onChangeProp, siblings = 1, className, labels }: PaginationProps) {
+export function Pagination({ page: pageProp, defaultPage = 1, pageCount, onChange: onChangeProp, siblings = 1, className, labels, icons }: PaginationProps) {
   const l = { ...paginationLabels, ...labels };
+  const ic = { ...paginationIcons, ...icons };
   const [page, onChange] = useControllable(pageProp, defaultPage, onChangeProp);
   const go = (p: number) => onChange(Math.min(pageCount, Math.max(1, p)));
   const items = pageRange(page, pageCount, siblings);
@@ -73,7 +85,7 @@ export function Pagination({ page: pageProp, defaultPage = 1, pageCount, onChang
   return (
     <nav aria-label={l.nav} className={cn("flex items-center gap-1", className)}>
       <motion.button whileTap={press} type="button" aria-label={l.previous} disabled={page <= 1} onClick={() => go(page - 1)} className={arrow}>
-        <ChevronLeft className="size-4" />
+        <span className="grid place-items-center [&>svg]:size-4" aria-hidden>{ic.previous}</span>
       </motion.button>
 
       <ul className="hidden items-center gap-1 sm:flex">
@@ -116,7 +128,7 @@ export function Pagination({ page: pageProp, defaultPage = 1, pageCount, onChang
       </span>
 
       <motion.button whileTap={press} type="button" aria-label={l.next} disabled={page >= pageCount} onClick={() => go(page + 1)} className={arrow}>
-        <ChevronRight className="size-4" />
+        <span className="grid place-items-center [&>svg]:size-4" aria-hidden>{ic.next}</span>
       </motion.button>
     </nav>
   );

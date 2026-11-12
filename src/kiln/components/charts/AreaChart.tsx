@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeInOut, fade, springFirm } from "../../motion";
@@ -22,7 +22,14 @@ const STRENGTH = [0.9, 0.5, 0.26, 0.14];
  * whole plot (or the arrow keys) and the readout lists every layer and the total.
  */
 export function AreaChart({ labels, series, title, height = 220, format = String, className }: AreaChartProps) {
-  const [hover, setHover] = useState<number | null>(null);
+  // `at` is the last spot shown, so the marker fades out where it was; `jump` skips travel on re-entry.
+  const [cursor, setCursor] = useState({ hover: null as number | null, at: labels.length - 1, jump: false });
+  const { hover, at: lastAt, jump } = cursor;
+  const setHover = (v: number | null | ((h: number | null) => number | null)) =>
+    setCursor((s) => {
+      const next = typeof v === "function" ? v(s.hover) : v;
+      return next === s.hover ? s : { hover: next, at: next ?? s.at, jump: next != null && s.hover == null };
+    });
   const box = useRef<HTMLDivElement>(null);
   const n = labels.length;
   const stacks = labels.map((_, i) => {
@@ -47,14 +54,7 @@ export function AreaChart({ labels, series, title, height = 220, format = String
     setHover(Math.max(0, Math.min(n - 1, Math.round(((clientX - r.left) / r.width) * (n - 1)))));
   };
 
-  const last = useRef(n - 1);
-  const wasHidden = useRef(true);
-  const jump = wasHidden.current && hover != null;
-  const at = hover ?? last.current;
-  useEffect(() => {
-    if (hover != null) last.current = hover;
-    wasHidden.current = hover == null;
-  });
+  const at = lastAt;
   const idx = hover ?? n - 1;
 
   return (

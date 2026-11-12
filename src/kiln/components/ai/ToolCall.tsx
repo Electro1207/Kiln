@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Ban, Check, ChevronDown, Loader2, ShieldQuestion, Wrench } from "lucide-react";
 import { cn } from "../../cn";
@@ -24,6 +24,30 @@ export interface ToolCallLabels {
 }
 export const toolCallLabels: ToolCallLabels = { pending: "Needs approval", running: "Running", done: "Completed", denied: "Denied", approve: "Approve", deny: "Deny" };
 
+/** Icons used by ToolCall. Pass a partial via `icons` to replace any. */
+export interface ToolCallIcons {
+  /** Tool badge at the left. */
+  tool: ReactNode;
+  /** Status chip while waiting for approval. */
+  pending: ReactNode;
+  /** Status chip while running; it spins. */
+  running: ReactNode;
+  /** Status chip once finished. */
+  done: ReactNode;
+  /** Status chip after a denial. */
+  denied: ReactNode;
+  /** The chevron at the right. */
+  expand: ReactNode;
+}
+export const toolCallIcons: ToolCallIcons = {
+  tool: <Wrench />,
+  pending: <ShieldQuestion />,
+  running: <Loader2 />,
+  done: <Check />,
+  denied: <Ban />,
+  expand: <ChevronDown />,
+};
+
 export type ToolCallProps = {
   /** The tool's name, e.g. open_pod_bay_doors. */
   name: string;
@@ -38,13 +62,15 @@ export type ToolCallProps = {
   className?: string;
   /** Override any UI text. Merged over `toolCallLabels`. */
   labels?: Partial<ToolCallLabels>;
+  /** Replace any built-in icon. Merged over `toolCallIcons`. */
+  icons?: Partial<ToolCallIcons>;
 };
 
-const states: Record<ToolCallState, { tone: string; icon: ReactNode }> = {
-  pending: { tone: "bg-warning-soft text-warning", icon: <ShieldQuestion className="size-3.5" /> },
-  running: { tone: "bg-info-soft text-info", icon: <Loader2 className="size-3.5 animate-spin" /> },
-  done: { tone: "bg-positive-soft text-positive", icon: <Check className="size-3.5" /> },
-  denied: { tone: "bg-active text-muted", icon: <Ban className="size-3.5" /> },
+const states: Record<ToolCallState, { tone: string; spin?: boolean }> = {
+  pending: { tone: "bg-warning-soft text-warning" },
+  running: { tone: "bg-info-soft text-info", spin: true },
+  done: { tone: "bg-positive-soft text-positive" },
+  denied: { tone: "bg-active text-muted" },
 };
 
 /**
@@ -52,8 +78,9 @@ const states: Record<ToolCallState, { tone: string; icon: ReactNode }> = {
  * laid out plainly; Approve or Deny decides. The status chip cross-fades and
  * the result folds in below.
  */
-export function ToolCall({ name, summary, args, state, result, onApprove, onDeny, className, labels }: ToolCallProps) {
+export function ToolCall({ name, summary, args, state, result, onApprove, onDeny, className, labels, icons }: ToolCallProps) {
   const l = { ...toolCallLabels, ...labels };
+  const ic = useMemo(() => ({ ...toolCallIcons, ...icons }), [icons]);
   const [open, setOpen] = useState(true);
   return (
     <div className={cn("overflow-hidden rounded-card border border-line bg-surface", className)}>
@@ -63,7 +90,7 @@ export function ToolCall({ name, summary, args, state, result, onApprove, onDeny
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-raised"
       >
-        <span className="grid size-8 shrink-0 place-items-center rounded-[10px] bg-raised text-muted"><Wrench className="size-4" /></span>
+        <span className="grid size-8 shrink-0 place-items-center rounded-[10px] bg-raised text-muted"><span className="grid [&>svg]:size-4" aria-hidden>{ic.tool}</span></span>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-mono text-[13px] font-medium">{name}</span>
           <span className="block truncate text-[13px] text-muted">{summary}</span>
@@ -79,12 +106,12 @@ export function ToolCall({ name, summary, args, state, result, onApprove, onDeny
               aria-hidden={k !== state}
               className={cn("inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-full px-2 text-xs font-medium", states[k].tone)}
             >
-              {states[k].icon}
+              <span className={cn("grid [&>svg]:size-3.5", states[k].spin && "animate-spin")} aria-hidden>{ic[k]}</span>
               {l[k]}
             </motion.span>
           ))}
         </span>
-        <ChevronDown className={cn("size-4 shrink-0 text-muted transition-transform duration-300 ease-out-soft", open && "rotate-180")} />
+        <span className={cn("grid shrink-0 text-muted transition-transform duration-300 ease-out-soft [&>svg]:size-4", open && "rotate-180")} aria-hidden>{ic.expand}</span>
       </button>
 
       <AnimatePresence initial={false}>

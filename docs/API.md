@@ -250,7 +250,63 @@ Defaults are exported too, so you can extend them: `{ ...paginationLabels, next:
 - DataGrid does not forward labels to its inner Pagination and SearchField.
 - Components with no chrome text (Button, Card, Switch, Tabs, Accordion, Badge and similar) take all their text from props and children.
 
-## 8. When you add a component
+## 8. Icons
+
+Every icon a component draws itself can be replaced through props, without editing source. It mirrors `labels`.
+
+- Each component with built-in icons takes `icons?: Partial<XIcons>`. `XIcons` maps slot names to `ReactNode`, and the defaults are exported as `xIcons`. Your partial is merged over them.
+- A slot takes any element: a lucide icon, your own `<svg>`, an `<img>`. The component's wrapper sets the size and the colour with CSS (`[&>svg]:size-4`, `currentColor`), so don't pass size props. A custom SVG should use `currentColor` for its stroke or fill and let its `viewBox` do the scaling.
+- A dedicated `icon`, `leading` or `trailing` prop that already existed is kept and wins over `icons`. `Alert` also takes `icon`, and `icon={null}` hides the tone icon.
+- Pass a stable object (module constant or `useMemo`) to components that memoise their rows (DocsNav, JSONViewer).
+- Rating takes a lit and an unlit icon (`star`, `starOff`). The lit one gets `fill-current` from the wrapper; give `starOff` an outline version.
+- Play, pause and the video speaker are drawn as path morphs. Their slots default to `null`; set any slot in that family and the component cross-fades the slots instead of morphing.
+- Spinning icons (Button `spinner`, Toast `loading`, VideoPlayer `spinner`) spin on the wrapper, so a custom icon spins too.
+
+```tsx
+import { Alert, Rating, alertIcons } from "@electro1207/kiln";
+import { Heart, Skull, Zap } from "lucide-react";
+
+<Alert tone="warning" title="Don't cross the streams" icons={{ warning: <Zap />, error: <Skull /> }} />
+<Rating value={4} icons={{ star: <Heart fill="currentColor" />, starOff: <Heart /> }} />
+<Alert tone="info" title="Containment unit at 85%" icon={null} />   // hide the icon
+// alertIcons holds the defaults, if you want to spread them into your own set.
+```
+
+**Slots per component** (each exports `<name>Icons`, e.g. `alertIcons`):
+
+- AI: Citation (`external, expand`); MessageActions (`good, bad, regenerate, copy, copied`); PromptInput (`attach, file, remove, chevron, send, stop`); Reasoning (`brain, expand`); ToolCall (`tool, pending, running, done, denied, expand`)
+- App shells: AppShell (`menu, collapse, expand`); CollapsingActions (`more`); StackedLayout (`menu, close`); StackedList (`open`)
+- Buttons: Button (`spinner`); CopyButton (`copy, copied`); Link (`external`); SplitButton (`chevron`)
+- Cards: InteractiveCard (`arrow`); ExpandableCards (`close`); PricingCard (`check`)
+- Choice controls: Checkbox (`check, indeterminate`); ColorPicker (`dropper, add`); ColorSwatches (`check`); Rating (`star, starOff`)
+- Commerce: CartDrawer (`shipping, empty, remove, fewer, more`); CategoryFilters (`filters, remove, check`); CheckoutForm (`secure, card, promo, expand`); OrderHistory (`track, expand, reorder, added`); ProductQuickView (`cart, added`); Stars (`star`); ReviewsSummary (`write, helpful, star`)
+- Communication: ChatThread (`latest, send`); CommentThread (`agree, love, funny, edit, delete, more, addReaction`); MessageComposer (`attach, image, file, remove, send`)
+- Data display: Stat (`up, down`); Tag (`remove`)
+- Dev tools: DiffViewer (`unfold`); JSONViewer (`expand, search`); LogStream (`latest, paused`); Terminal (`latest`)
+- Forms: AuthForms (`name, email, sent, back`); AvatarUpload (`upload, sample, remove`); InlineEdit (`edit`); KeyValueEditor (`markSecret, reveal, hide, remove, add`)
+- Guidance: KeyboardShortcutsSheet (`search`); ProductTour (`close`)
+- Marketing: ContactSection (`address, phone, email, success`); NewsletterSignup (`success`); NotFound (`arrow`)
+- Media: Carousel (`previous, next`); CompareSlider (`handle`); MediaPlayer (`play, pause, back15, forward15, volume, volumeLow, mute`); VideoPlayer (`play, pause, back10, forward10, volume, volumeLow, mute, captions, settings, pictureInPicture, theater, fullscreen, exitFullscreen, shortcuts, close, next, previous, check, seek, replay, spinner`)
+- Menus: CommandPalette (`search, enter`); DocsNav (`expand`); DropdownMenu (`check, submenu`); FlyoutNav (`expand`); SidebarNav (`collapse, expand, chevron`); SpotlightSearch (`search, clear, recent, enter`)
+- Notices: Alert (`info, success, warning, error, close`); Banner (`close`); FieldMessage (`error, success`); NotificationBell (`bell`); NotificationCenter (`bell, mention, emptyAll, emptyUnread, emptyMentions`); Toast (`success, error, warning, info, loading, close`)
+- Overlays: Dialog (`close`); Drawer (`close`); Lightbox (`close, previous, next`)
+- Pickers: BookingSlots (`duration, slot, timeZone, back, booked, calendar`); ChipFilter (`check`); Combobox (`search, clear`); Calendar (`previous, next`); DatePicker (`calendar`); FileDropzone (`upload, image, archive, document, file, done, retry, remove`); Select (`chevron, check`); SignaturePad (`undo, clear, download`); TagInput (`remove, create`); TimePicker (`clock`)
+- Status: MultiStepLoader (`check, spinner`)
+- Tables: ComparisonTable (`included, notIncluded`); DataGrid (`columns, clearSelection, search`); Table (`sort, check, indeterminate`)
+- Text inputs: NumberField (`decrease, increase`); PasswordField (`lock, show, hide`); PhoneInput (`chevron, search`); PlaceholderInput (`send`); RichTextEditor (`bold, italic, underline, strikeThrough, code, link, insertUnorderedList, insertOrderedList, quote`); SearchField (`search, spinner, clear`); TextField (`clear`)
+- Wayfinding: Accordion (`expand`); BackToTop (`up`); Breadcrumbs (`separator, more`); Pagination (`previous, next`); Stepper (`check`)
+- Workspace: CalendarMonth (`previous, next`); FileManager (`separator, newFolder, grid, list, folder, folderOpen, file, fileImage, fileArchive, fileCode, fileText, rename, delete`); FilterBar (`search, clear, check, chevron, remove, add, sort`); KanbanBoard (`more, moveToColumn, moveToTop, moveUp, moveDown`); NotificationPreferences (`check, mixed`); SortableList (`grip`); TreeView (`chevron, folder, folderOpen, file, fileImage, fileCode, fileText`)
+
+Citation's icons also serve Sources and SourceCard. DatePicker's serve DateRangePicker (`dateRangePickerIcons`), and Calendar's `previous` and `next` pass down to both. DataGrid's extend Table's and take a nested `search` for its filter field. Toast's are a prop on `ToastProvider`. FilterPanel takes the CategoryFilters set.
+
+**Left drawn on purpose**
+
+- ThemeToggle: the sun and moon morph into each other, so they stay drawn.
+- Charts and data drawings: Sparkline, LineChart, RadarChart, GaugeChart, SankeyChart, DonutChart, ProgressRing, GanttChart dependency lines, UndoBar countdown ring.
+- Content art: EmptyState illustration, the assistant mark in ChatMessage (replace it with its `avatar` prop), SizePicker strike-through, ImageCropper overlay, BorderBeam and AnimatedBeam paths, Spinner kinds (ring, dots, bars, pulse), the per-rule ticks in PasswordField's strength meter.
+- Brand marks and logos are never built in: marketing sections take them from props.
+
+## 9. When you add a component
 
 1. Give it a typed `…Props` export, plus a one-line JSDoc on the component and on any prop that isn't obvious.
 2. Give it a default for every prop it can guess.
@@ -258,4 +314,5 @@ Defaults are exported too, so you can extend them: `{ ...paginationLabels, next:
 4. If it is a control, give it `size?: Size` with the shared heights.
 5. Pass `className` to the root, and spread `...rest` onto it when it renders one meaningful element.
 6. Put every UI-chrome string in an exported `xLabels` object behind `labels?: Partial<XLabels>` (section 7), and accept `locale` for dates and numbers.
-7. Follow `docs/CONVENTIONS.md` for motion, colour and copy.
+7. Put every icon the component draws itself in an exported `xIcons` object behind `icons?: Partial<XIcons>` (section 8).
+8. Follow `docs/CONVENTIONS.md` for motion, colour and copy.

@@ -6,6 +6,6 @@ export { type HeatStripLabels, heatStripLabels, type HeatStripProps, HeatStrip }
 export { type KbdProps, Kbd } from "../components/data-display/Kbd";
 export { type ListAction, type ListItemLabels, listItemLabels, type ListItemProps, List, ListItem } from "../components/data-display/List";
 export { type NumberTickerProps, NumberTicker } from "../components/data-display/NumberTicker";
-export { type StatProps, Stat } from "../components/data-display/Stat";
-export { type TagTone, type TagLabels, tagLabels, type TagProps, Tag, TagGroup } from "../components/data-display/Tag";
+export { type StatProps, type StatIcons, statIcons, Stat } from "../components/data-display/Stat";
+export { type TagTone, type TagLabels, tagLabels, type TagProps, type TagIcons, tagIcons, Tag, TagGroup } from "../components/data-display/Tag";
 export { type TimelineItem, Timeline } from "../components/data-display/Timeline";

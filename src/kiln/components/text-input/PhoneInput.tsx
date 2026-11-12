@@ -58,6 +58,15 @@ export type PhoneValue = { country: string; national: string };
  * as text ("GB +44"), not flags. `toE164` gives the international form.
  * Controlled with `value` + `onChange`, or uncontrolled with `defaultValue`.
  */
+/** Icons used by PhoneInput. Pass a partial via `icons` to replace them. */
+export interface PhoneInputIcons {
+  /** Chevron on the country button; it turns over while open. */
+  chevron: ReactNode;
+  /** Magnifier in the country search. */
+  search: ReactNode;
+}
+export const phoneInputIcons: PhoneInputIcons = { chevron: <ChevronDown />, search: <Search /> };
+
 /** Text used by PhoneInput. Pass a partial via `labels` to translate or reword. */
 export interface PhoneInputLabels {
   /** Default field label (the `label` prop wins). */
@@ -85,7 +94,7 @@ export const phoneInputLabels: PhoneInputLabels = {
   wrongLength: (name, need, have) => `A ${name} number has ${need} digits; this has ${have}.`,
 };
 
-export function PhoneInput({ value: valueProp, defaultValue, onChange: onChangeProp, countries = COUNTRIES, label: labelProp, hint, size = "md", className, labels }: {
+export function PhoneInput({ value: valueProp, defaultValue, onChange: onChangeProp, countries = COUNTRIES, label: labelProp, hint, size = "md", className, labels, icons }: {
   /** The number; leave out to let the component keep it. */
   value?: PhoneValue;
   /** Starting number when uncontrolled. Defaults to the first country, empty. */
@@ -100,8 +109,11 @@ export function PhoneInput({ value: valueProp, defaultValue, onChange: onChangeP
   className?: string;
   /** Override any UI text. Merged over `phoneInputLabels`. */
   labels?: Partial<PhoneInputLabels>;
+  /** Replace any built-in icon. Merged over `phoneInputIcons`. */
+  icons?: Partial<PhoneInputIcons>;
 }) {
   const l = { ...phoneInputLabels, ...labels };
+  const ic = { ...phoneInputIcons, ...icons };
   const label = labelProp ?? l.label;
   const [value, onChange] = useControllable<PhoneValue>(valueProp, defaultValue ?? { country: countries[0].code, national: "" }, onChangeProp);
   const id = useId();
@@ -153,7 +165,7 @@ export function PhoneInput({ value: valueProp, defaultValue, onChange: onChangeP
         >
           <span className="font-medium">{country.code}</span>
           <span className="text-muted tabular">+{country.dial}</span>
-          <motion.span initial={false} animate={{ rotate: open ? 180 : 0 }} transition={springSnappy} className="grid text-faint"><ChevronDown className="size-3.5" /></motion.span>
+          <motion.span initial={false} animate={{ rotate: open ? 180 : 0 }} transition={springSnappy} className="grid text-faint [&>svg]:size-3.5">{ic.chevron}</motion.span>
         </button>
         <span aria-hidden className="h-5 w-px shrink-0 bg-line" />
         <input
@@ -185,7 +197,7 @@ export function PhoneInput({ value: valueProp, defaultValue, onChange: onChangeP
       </div>
       <AnchoredLayer open={open} onClose={() => { setOpen(false); setQ(""); }} anchor={trigger} placement="bottom-start" className={cn(panelClass, "w-72 p-0")} aria-label={l.countries}>
         <div className="flex items-center gap-2 border-b border-line px-3">
-          <Search className="size-4 shrink-0 text-faint" aria-hidden />
+          <span className="grid shrink-0 place-items-center text-faint [&>svg]:size-4" aria-hidden>{ic.search}</span>
           <input
             autoFocus
             value={q}

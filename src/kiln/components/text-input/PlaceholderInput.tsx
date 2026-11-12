@@ -1,9 +1,16 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowUp } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, springSoft } from "../../motion";
 import { useOnScreen, usePrefersReducedMotion } from "../shared/useLoop";
+
+/** Icons used by PlaceholderInput. Pass a partial via `icons` to replace them. */
+export interface PlaceholderInputIcons {
+  /** Send button. */
+  send: ReactNode;
+}
+export const placeholderInputIcons: PlaceholderInputIcons = { send: <ArrowUp /> };
 
 /** Text used by PlaceholderInput. Pass a partial via `labels` to translate or reword. */
 export interface PlaceholderInputLabels {
@@ -22,6 +29,8 @@ export type PlaceholderInputProps = {
   className?: string;
   /** Override any UI text. Merged over `placeholderInputLabels`. */
   labels?: Partial<PlaceholderInputLabels>;
+  /** Replace any built-in icon. Merged over `placeholderInputIcons`. */
+  icons?: Partial<PlaceholderInputIcons>;
 };
 
 type Dust = { id: number; chars: Array<{ c: string; dx: number; dy: number; r: number }> };
@@ -31,8 +40,9 @@ type Dust = { id: number; chars: Array<{ c: string; dx: number; dy: number; r: n
  * empty. Sending the text makes it drift up and dissolve, letter by letter,
  * as the field clears.
  */
-export function PlaceholderInput({ placeholders, onSubmit, label, interval = 3000, className, labels }: PlaceholderInputProps) {
+export function PlaceholderInput({ placeholders, onSubmit, label, interval = 3000, className, labels, icons }: PlaceholderInputProps) {
   const l = { ...placeholderInputLabels, ...labels };
+  const ic = { ...placeholderInputIcons, ...icons };
   const [value, setValue] = useState("");
   const [i, setI] = useState(0);
   const [dust, setDust] = useState<Dust | null>(null);
@@ -112,9 +122,9 @@ export function PlaceholderInput({ placeholders, onSubmit, label, interval = 300
         disabled={!value.trim()}
         whileTap={{ scale: 0.9 }}
         transition={springSoft}
-        className="absolute right-1.5 top-1.5 grid size-9 place-items-center rounded-full bg-btn-primary text-btn-primary-ink transition-[background-color,opacity] hover:bg-btn-primary-hover disabled:opacity-40"
+        className="absolute right-1.5 top-1.5 grid size-9 place-items-center rounded-full bg-btn-primary text-btn-primary-ink transition-[background-color,opacity] hover:bg-btn-primary-hover disabled:opacity-40 [&>svg]:size-4 [&>svg]:[stroke-width:2.25]"
       >
-        <ArrowUp className="size-4" strokeWidth={2.25} />
+        {ic.send}
       </motion.button>
     </form>
   );

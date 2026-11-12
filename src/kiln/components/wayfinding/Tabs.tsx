@@ -34,12 +34,12 @@ export function Tabs({ items, value, defaultValue, onChange, variant = "underlin
   const [inner, setInner] = useState(defaultValue ?? items[0]?.id);
   const current = value ?? inner;
   const index = items.findIndex((t) => t.id === current);
-  const prevIndex = useRef(index);
-  const dir = index >= prevIndex.current ? 1 : -1;
+  const [seen, setSeen] = useState({ index, from: index });
+  if (seen.index !== index) setSeen({ index, from: seen.index });
+  const dir = index >= seen.from ? 1 : -1;
   const listRef = useRef<HTMLDivElement>(null);
 
   const select = (tabId: string) => {
-    prevIndex.current = index;
     if (value === undefined) setInner(tabId);
     onChange?.(tabId);
   };

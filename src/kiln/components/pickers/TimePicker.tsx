@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Clock } from "lucide-react";
 import { cn } from "../../cn";
 import { AnchoredLayer, SwapText } from "../shared/Anchored";
@@ -130,6 +130,13 @@ export function TimeWheels({ value, onChange, minuteStep = 5, labels }: {
   );
 }
 
+/** Icons used by TimePicker. Pass a partial via `icons` to replace them. */
+export interface TimePickerIcons {
+  /** Leading icon of the trigger. */
+  clock: ReactNode;
+}
+export const timePickerIcons: TimePickerIcons = { clock: <Clock /> };
+
 /** Text used by TimePicker. Pass a partial via `labels` to translate or reword. */
 export interface TimePickerLabels extends TimeWheelsLabels {
   /** Trigger text when nothing is picked and the `placeholder` prop is not given. */
@@ -153,12 +160,15 @@ export type TimePickerProps = {
   size?: Size;
   /** Override any UI text. Merged over `timePickerLabels`. */
   labels?: Partial<TimePickerLabels>;
+  /** Replace any built-in icon. Merged over `timePickerIcons`. */
+  icons?: Partial<TimePickerIcons>;
   className?: string;
 };
 
 /** A button that opens hour and minute wheels. Controlled with `value` + `onChange`, or uncontrolled with `defaultValue`. */
-export function TimePicker({ value: valueProp, defaultValue = null, onChange: onChangeProp, label, placeholder, minuteStep = 5, size = "md", labels, className }: TimePickerProps) {
+export function TimePicker({ value: valueProp, defaultValue = null, onChange: onChangeProp, label, placeholder, minuteStep = 5, size = "md", labels, icons, className }: TimePickerProps) {
   const l = { ...timePickerLabels, ...labels };
+  const ic = { ...timePickerIcons, ...icons };
   const id = useId();
   const [value, setValue] = useControllable<Time | null>(valueProp, defaultValue, (t) => t && onChangeProp?.(t));
   const onChange = (t: Time) => setValue(t);
@@ -186,7 +196,7 @@ export function TimePicker({ value: valueProp, defaultValue = null, onChange: on
           open && "border-accent",
         )}
       >
-        <Clock className="size-4 shrink-0 text-muted" aria-hidden />
+        <span className="grid shrink-0 place-items-center text-muted [&>svg]:size-4" aria-hidden>{ic.clock}</span>
         <span id={`${id}-value`} className="min-w-0 flex-1">
           <SwapText value={value ? formatTime(value) : "none"} className={cn("tabular", !value && "text-muted")}>
             {value ? formatTime(value) : (placeholder ?? l.placeholder)}

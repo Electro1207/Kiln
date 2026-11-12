@@ -15,6 +15,13 @@ export interface TextFieldLabels {
 }
 export const textFieldLabels: TextFieldLabels = { clear: "Clear", optional: "optional" };
 
+/** Icons used by TextField. Pass a partial via `icons` to replace them. */
+export interface TextFieldIcons {
+  /** Clear button. */
+  clear: ReactNode;
+}
+export const textFieldIcons: TextFieldIcons = { clear: <X /> };
+
 export type TextFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
   /** Visible label. Without one, pass `aria-label`. */
   label?: ReactNode;
@@ -36,15 +43,18 @@ export type TextFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size">
   boxClassName?: string;
   /** Override any UI text. Merged over `textFieldLabels`. */
   labels?: Partial<TextFieldLabels>;
+  /** Replace any built-in icon. Merged over `textFieldIcons`. */
+  icons?: Partial<TextFieldIcons>;
 };
 
 /** A labelled text input: native `<input>` props plus label, hint, error, icons and a clear button. */
 
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
-  { label, hint, error, leading, trailing, clearable, onClear, optional, size = "md", onValueChange, id: idProp, className, containerClassName, boxClassName, value, defaultValue, onChange, labels, ...rest },
+  { label, hint, error, leading, trailing, clearable, onClear, optional, size = "md", onValueChange, id: idProp, className, containerClassName, boxClassName, value, defaultValue, onChange, labels, icons, ...rest },
   ref,
 ) {
   const l = { ...textFieldLabels, ...labels };
+  const ic = { ...textFieldIcons, ...icons };
   const autoId = useId();
   const id = idProp ?? autoId;
   const input = useRef<HTMLInputElement>(null);
@@ -91,9 +101,9 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
                 onValueChange?.("");
                 input.current?.focus();
               }}
-              className="grid size-5 shrink-0 place-items-center rounded-full bg-active text-muted hover:text-ink"
+              className="grid size-5 shrink-0 place-items-center rounded-full bg-active text-muted hover:text-ink [&>svg]:size-3 [&>svg]:[stroke-width:2.5]"
             >
-              <X className="size-3" strokeWidth={2.5} />
+              {ic.clear}
             </motion.button>
           )}
         </AnimatePresence>

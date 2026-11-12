@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut, springFirm, springSoft } from "../../motion";
@@ -89,8 +89,15 @@ export function OnboardingWizard<V extends Record<string, unknown>>({
     setDir(i > at ? 1 : -1);
     setErrors({});
     setAt(i);
-    requestAnimationFrame(() => headingRef.current?.focus({ preventScroll: true }));
+    setFocusKey((k) => k + 1);
   };
+
+  const [focusKey, setFocusKey] = useState(0);
+  useEffect(() => {
+    if (!focusKey) return;
+    const raf = requestAnimationFrame(() => headingRef.current?.focus({ preventScroll: true }));
+    return () => cancelAnimationFrame(raf);
+  }, [focusKey]);
 
   const next = async (e?: FormEvent) => {
     e?.preventDefault();

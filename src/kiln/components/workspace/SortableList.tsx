@@ -4,6 +4,13 @@ import { GripVertical } from "lucide-react";
 import { cn } from "../../cn";
 import { springFirm } from "../../motion";
 
+/** Icons used by SortableList. Pass a partial via `icons` to swap any of them. */
+export interface SortableListIcons {
+  /** The drag handle at the start of each row. */
+  grip: ReactNode;
+}
+export const sortableListIcons: SortableListIcons = { grip: <GripVertical /> };
+
 export type SortableListProps<T> = {
   items: T[];
   onReorder: (items: T[]) => void;
@@ -14,6 +21,8 @@ export type SortableListProps<T> = {
   label: string;
   /** Override any UI text. Merged over `sortableListLabels`. */
   labels?: Partial<SortableListLabels>;
+  /** Replace any built-in icon. Merged over `sortableListIcons`. */
+  icons?: Partial<SortableListIcons>;
   className?: string;
 };
 
@@ -33,8 +42,9 @@ export const sortableListLabels: SortableListLabels = {
  * A list reordered by dragging its handles. Keyboard: focus a handle and use
  * the Up and Down arrows (Home and End jump to either end).
  */
-export function SortableList<T>({ items, onReorder, getKey, getLabel, renderItem, label, labels, className }: SortableListProps<T>) {
+export function SortableList<T>({ items, onReorder, getKey, getLabel, renderItem, label, labels, icons, className }: SortableListProps<T>) {
   const l = { ...sortableListLabels, ...labels };
+  const ic = { ...sortableListIcons, ...icons };
   const [said, setSaid] = useState("");
   const listRef = useRef<HTMLUListElement>(null);
 
@@ -68,6 +78,7 @@ export function SortableList<T>({ items, onReorder, getKey, getLabel, renderItem
             index={i}
             count={items.length}
             handleLabel={l.handle}
+            grip={ic.grip}
             onMove={(to) => moveTo(i, to)}
           >
             {renderItem(it, i)}
@@ -79,8 +90,8 @@ export function SortableList<T>({ items, onReorder, getKey, getLabel, renderItem
   );
 }
 
-function Row<T>({ item, id, label, index, count, onMove, handleLabel, children }: {
-  handleLabel: SortableListLabels["handle"]; item: T; id: string; label: string; index: number; count: number; onMove: (to: number) => void; children: ReactNode;
+function Row<T>({ item, id, label, index, count, onMove, handleLabel, grip, children }: {
+  grip: ReactNode; handleLabel: SortableListLabels["handle"]; item: T; id: string; label: string; index: number; count: number; onMove: (to: number) => void; children: ReactNode;
 }) {
   const controls = useDragControls();
   const [dragging, setDragging] = useState(false);
@@ -115,11 +126,11 @@ function Row<T>({ item, id, label, index, count, onMove, handleLabel, children }
         }}
         onKeyDown={onKey}
         className={cn(
-          "grid h-9 w-7 shrink-0 touch-none place-items-center rounded-control text-faint transition-colors hover:bg-raised hover:text-ink",
+          "grid h-9 w-7 shrink-0 touch-none place-items-center rounded-control text-faint transition-colors hover:bg-raised hover:text-ink [&>svg]:size-4",
           dragging ? "cursor-grabbing text-ink" : "cursor-grab",
         )}
       >
-        <GripVertical className="size-4" />
+        {grip}
       </button>
       <div className="min-w-0 flex-1">{children}</div>
     </Reorder.Item>

@@ -39,6 +39,18 @@ export interface ContactSectionLabels {
   /** Button that returns to the form. */
   sendAnother: string;
 }
+/** Icons used by ContactSection. Pass a partial via `icons` to swap any of them. */
+export interface ContactSectionIcons {
+  /** Beside an office address. */
+  address: ReactNode;
+  /** Beside an office phone number. */
+  phone: ReactNode;
+  /** Beside an office email. */
+  email: ReactNode;
+  /** The mark on the sent confirmation. */
+  success: ReactNode;
+}
+export const contactSectionIcons: ContactSectionIcons = { address: <MapPin />, phone: <Phone />, email: <Mail />, success: <Check /> };
 export const contactSectionLabels: ContactSectionLabels = {
   name: "Name",
   email: "Email",
@@ -68,14 +80,17 @@ export type ContactSectionProps = {
   onSend?: (v: ContactValues) => Promise<void>;
   /** Override any UI text. Merged over `contactSectionLabels`. */
   labels?: Partial<ContactSectionLabels>;
+  /** Replace any built-in icon. Merged over `contactSectionIcons`. */
+  icons?: Partial<ContactSectionIcons>;
   className?: string;
 };
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /** Offices on one side, a short form on the other. Errors show once you try to send. */
-export function ContactSection({ title, description, offices, topics, onSend = () => wait(1000), labels, className }: ContactSectionProps) {
+export function ContactSection({ title, description, offices, topics, onSend = () => wait(1000), labels, icons, className }: ContactSectionProps) {
   const l = { ...contactSectionLabels, ...labels };
+  const ic = { ...contactSectionIcons, ...icons };
   const [v, setV] = useState<ContactValues>({ name: "", email: "", topic: null, message: "" });
   const [tried, setTried] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -116,18 +131,18 @@ export function ContactSection({ title, description, offices, topics, onSend = (
               <li key={o.city} className="rounded-card bg-surface p-5">
                 <p className="text-[15px] font-medium text-ink">{o.city}</p>
                 <p className="mt-2 flex gap-2 text-sm text-ink">
-                  <MapPin className="mt-0.5 size-4 shrink-0 text-muted" aria-hidden />
+                  <span aria-hidden className="mt-0.5 grid shrink-0 self-start place-items-center text-muted [&>svg]:size-4">{ic.address}</span>
                   <span>{o.address.map((l) => <span key={l} className="block">{l}</span>)}</span>
                 </p>
                 {o.phone && (
                   <p className="mt-1.5 flex items-center gap-2 text-sm">
-                    <Phone className="size-4 shrink-0 text-muted" aria-hidden />
+                    <span aria-hidden className="grid shrink-0 place-items-center text-muted [&>svg]:size-4">{ic.phone}</span>
                     <a href={`tel:${o.phone.replace(/[^+\d]/g, "")}`} className="text-ink tabular underline-offset-4 hover:underline">{o.phone}</a>
                   </p>
                 )}
                 {o.email && (
                   <p className="mt-1.5 flex items-center gap-2 text-sm">
-                    <Mail className="size-4 shrink-0 text-muted" aria-hidden />
+                    <span aria-hidden className="grid shrink-0 place-items-center text-muted [&>svg]:size-4">{ic.email}</span>
                     <a href={`mailto:${o.email}`} className="text-accent underline-offset-4 hover:underline">{o.email}</a>
                   </p>
                 )}
@@ -146,8 +161,8 @@ export function ContactSection({ title, description, offices, topics, onSend = (
                 animate={{ opacity: 1, y: 0, transition: { ...fade, delay: 0.14 } }}
                 className="flex flex-col items-start justify-center gap-3"
               >
-                <span className="grid size-10 place-items-center rounded-full bg-positive-soft text-positive">
-                  <Check className="size-5" strokeWidth={2.5} />
+                <span className="grid size-10 place-items-center rounded-full bg-positive-soft text-positive [&>svg]:size-5 [&>svg]:[stroke-width:2.5]">
+                  {ic.success}
                 </span>
                 <p className="text-lg font-semibold text-ink">{l.receivedTitle}</p>
                 <p className="max-w-sm text-sm text-ink">{l.receivedBody(v.name.trim().split(" ")[0], v.email.trim())}</p>

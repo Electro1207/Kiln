@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent as RPointerEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent as RPointerEvent, type ReactNode } from "react";
 import { motion, useMotionValue, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
 import { Pipette, Plus } from "lucide-react";
 import { cn } from "../../cn";
@@ -81,6 +81,15 @@ const HUE_RAIL = "linear-gradient(90deg, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, 
 
 type Format = "hex" | "rgb" | "hsl";
 
+/** Icons used by ColorPicker and ColorPickerPanel. Pass a partial via `icons` to replace any. */
+export interface ColorPickerIcons {
+  /** Screen eyedropper button. */
+  dropper: ReactNode;
+  /** Button that saves the current colour as a swatch. */
+  add: ReactNode;
+}
+export const colorPickerIcons: ColorPickerIcons = { dropper: <Pipette />, add: <Plus /> };
+
 /** Text used by ColorPicker and ColorPickerPanel. Pass a partial via `labels` to translate or reword. */
 export interface ColorPickerLabels {
   /** Name of the hue slider. */
@@ -152,7 +161,7 @@ type EyeDropperCtor = new () => { open: () => Promise<{ sRGBHex: string }> };
  * `onChange` fires when a change is committed (release, Enter, a swatch).
  */
 export function ColorPickerPanel({
-  value, onChange, swatches, onSwatchesChange, alpha = true, className, labels,
+  value, onChange, swatches, onSwatchesChange, alpha = true, className, labels, icons,
 }: {
   value: string;
   onChange: (hex: string) => void;
@@ -162,8 +171,11 @@ export function ColorPickerPanel({
   className?: string;
   /** Override any UI text. Merged over `colorPickerLabels`. */
   labels?: Partial<ColorPickerLabels>;
+  /** Replace any built-in icon. Merged over `colorPickerIcons`. */
+  icons?: Partial<ColorPickerIcons>;
 }) {
   const l = { ...colorPickerLabels, ...labels };
+  const ic = useMemo(() => ({ ...colorPickerIcons, ...icons }), [icons]);
   const start = parseColor(value) ?? { h: 0, s: 0, v: 0, a: 1 };
   const h = useMotionValue(start.h);
   const s = useMotionValue(start.s);
@@ -218,8 +230,8 @@ export function ColorPickerPanel({
           options={[{ value: "hex", label: l.hex }, { value: "rgb", label: l.rgb }, { value: "hsl", label: l.hsl }]} />
         {hasDropper && (
           <button type="button" onClick={pickFromScreen} aria-label={l.pickFromScreen} title={l.pickFromScreenTitle}
-            className="ml-auto grid size-8 place-items-center rounded-control text-muted transition-colors hover:bg-raised hover:text-ink">
-            <Pipette className="size-4" />
+            className="ml-auto grid size-8 place-items-center rounded-control text-muted transition-colors hover:bg-raised hover:text-ink [&>svg]:size-4">
+            {ic.dropper}
           </button>
         )}
       </div>
@@ -241,8 +253,8 @@ export function ColorPickerPanel({
             {onSwatchesChange && (
               <button type="button" aria-label={l.saveColour} title={l.saveColour}
                 onClick={() => { const hex = toHex(read()); if (!swatches.includes(hex)) onSwatchesChange([...swatches, hex].slice(-14)); }}
-                className="grid size-7 place-items-center rounded-[7px] border border-dashed border-line-strong text-muted transition-colors hover:border-faint hover:text-ink">
-                <Plus className="size-3.5" />
+                className="grid size-7 place-items-center rounded-[7px] border border-dashed border-line-strong text-muted transition-colors hover:border-faint hover:text-ink [&>svg]:size-3.5">
+                {ic.add}
               </button>
             )}
           </div>
@@ -456,7 +468,7 @@ function Fields({ t, format, h, s, v, a, alpha, read, setAll, commit }: {
 }
 
 /** A swatch button that opens the picker in a popover. */
-export function ColorPicker({ value, onChange, label = "Colour", swatches, onSwatchesChange, alpha = true, className, labels }: {
+export function ColorPicker({ value, onChange, label = "Colour", swatches, onSwatchesChange, alpha = true, className, labels, icons }: {
   value: string;
   onChange: (hex: string) => void;
   label?: string;
@@ -466,6 +478,8 @@ export function ColorPicker({ value, onChange, label = "Colour", swatches, onSwa
   className?: string;
   /** Override any UI text. Merged over `colorPickerLabels`. */
   labels?: Partial<ColorPickerLabels>;
+  /** Replace any built-in icon. Merged over `colorPickerIcons`. */
+  icons?: Partial<ColorPickerIcons>;
 }) {
   const l = { ...colorPickerLabels, ...labels };
   const [open, setOpen] = useState(false);
@@ -490,7 +504,7 @@ export function ColorPicker({ value, onChange, label = "Colour", swatches, onSwa
         <span className="tabular uppercase">{value}</span>
       </button>
       <AnchoredLayer open={open} onClose={() => setOpen(false)} anchor={trigger} placement="bottom-start" role="dialog" aria-label={label} className={cn(panelClass, "w-[304px] p-3")}>
-        <ColorPickerPanel value={value} onChange={onChange} swatches={swatches} onSwatchesChange={onSwatchesChange} alpha={alpha} labels={labels} />
+        <ColorPickerPanel value={value} onChange={onChange} swatches={swatches} onSwatchesChange={onSwatchesChange} alpha={alpha} labels={labels} icons={icons} />
       </AnchoredLayer>
     </div>
   );

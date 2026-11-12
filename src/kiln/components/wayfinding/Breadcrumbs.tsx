@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { ChevronRight, MoreHorizontal } from "lucide-react";
 import { cn } from "../../cn";
@@ -16,6 +16,14 @@ export interface BreadcrumbsLabels {
   /** aria-label of the folded-levels menu. */
   hiddenLevels: string;
 }
+/** Icons used by Breadcrumbs. Pass a partial via `icons` to swap any of them. */
+export interface BreadcrumbsIcons {
+  /** The separator between levels. */
+  separator: ReactNode;
+  /** The button that opens the folded levels. */
+  more: ReactNode;
+}
+export const breadcrumbsIcons: BreadcrumbsIcons = { separator: <ChevronRight />, more: <MoreHorizontal /> };
 export const breadcrumbsLabels: BreadcrumbsLabels = { nav: "Breadcrumb", showMore: (n) => `Show ${n} more`, hiddenLevels: "Hidden levels" };
 
 export type BreadcrumbsProps = {
@@ -23,11 +31,14 @@ export type BreadcrumbsProps = {
   className?: string;
   /** Override any UI text. Merged over `breadcrumbsLabels`. */
   labels?: Partial<BreadcrumbsLabels>;
+  /** Replace any built-in icon. Merged over `breadcrumbsIcons`. */
+  icons?: Partial<BreadcrumbsIcons>;
 };
 
 /** A trail of links. When the trail is wider than its box, the middle folds into a menu. */
-export function Breadcrumbs({ items, className, labels }: BreadcrumbsProps) {
+export function Breadcrumbs({ items, className, labels, icons }: BreadcrumbsProps) {
   const l = { ...breadcrumbsLabels, ...labels };
+  const ic = { ...breadcrumbsIcons, ...icons };
   const boxRef = useRef<HTMLElement>(null);
   const ghostRef = useRef<HTMLOListElement>(null);
   const moreRef = useRef<HTMLButtonElement>(null);
@@ -71,7 +82,7 @@ export function Breadcrumbs({ items, className, labels }: BreadcrumbsProps) {
     );
   };
 
-  const sep = <ChevronRight aria-hidden className="size-3.5 shrink-0 text-faint" />;
+  const sep = <span aria-hidden className="grid shrink-0 place-items-center text-faint [&>svg]:size-3.5">{ic.separator}</span>;
 
   return (
     <nav ref={boxRef} aria-label={l.nav} className={cn("relative w-full min-w-0 text-sm", className)}>
@@ -103,7 +114,7 @@ export function Breadcrumbs({ items, className, labels }: BreadcrumbsProps) {
                     onClick={() => setMenu((m) => !m)}
                     className="grid h-6 w-7 place-items-center rounded-[6px] text-muted transition-colors hover:bg-raised hover:text-ink"
                   >
-                    <MoreHorizontal className="size-4" />
+                    <span className="grid place-items-center [&>svg]:size-4" aria-hidden>{ic.more}</span>
                   </button>
                   <MenuContent
                     open={menu}

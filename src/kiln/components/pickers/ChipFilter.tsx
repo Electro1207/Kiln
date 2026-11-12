@@ -1,15 +1,24 @@
 import { LayoutGroup, motion } from "motion/react";
 import { Check } from "lucide-react";
-import { useId, useState } from "react";
+import { useId, useMemo, useState, type ReactNode } from "react";
 import { cn } from "../../cn";
 import { fade, press, springFirm, springSoft } from "../../motion";
 
 export type ChipOption = { value: string; label: string; count?: number };
 
+/** Icons used by ChipFilter. Pass a partial via `icons` to replace them. */
+export interface ChipFilterIcons {
+  /** Tick that grows in on an active chip. */
+  check: ReactNode;
+}
+export const chipFilterIcons: ChipFilterIcons = { check: <Check /> };
+
 type Base = {
   options: ChipOption[];
   /** Accessible name of the group. */
   label?: string;
+  /** Replace any built-in icon. Merged over `chipFilterIcons`. */
+  icons?: Partial<ChipFilterIcons>;
   className?: string;
 };
 export type ChipFilterProps =
@@ -36,6 +45,7 @@ export type ChipFilterProps =
  */
 export function ChipFilter(props: ChipFilterProps) {
   const id = useId();
+  const ic = useMemo(() => ({ ...chipFilterIcons, ...props.icons }), [props.icons]);
   const single = props.multiple === false;
   const [inner, setInner] = useState<string[] | string | null>(props.defaultValue ?? (single ? null : []));
   const current = props.value !== undefined ? props.value : inner;
@@ -80,9 +90,9 @@ export function ChipFilter(props: ChipFilterProps) {
                 initial={false}
                 animate={{ width: on ? 20 : 0, opacity: on ? 1 : 0 }}
                 transition={{ width: springFirm, opacity: fade }}
-                className="inline-flex shrink-0 overflow-hidden"
+                className="inline-flex shrink-0 overflow-hidden [&>svg]:size-3.5 [&>svg]:shrink-0 [&>svg]:[stroke-width:2.75]"
               >
-                <Check className="size-3.5 shrink-0" strokeWidth={2.75} />
+                {ic.check}
               </motion.span>
               <span>{o.label}</span>
               {o.count != null && (

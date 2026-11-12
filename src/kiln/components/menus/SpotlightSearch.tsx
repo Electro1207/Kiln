@@ -65,7 +65,22 @@ export type SpotlightSearchProps = {
   placeholder?: string;
   /** Override any UI text. Merged over `spotlightSearchLabels`. */
   labels?: Partial<SpotlightSearchLabels>;
+  /** Replace any built-in icon. Merged over `spotlightSearchIcons`. */
+  icons?: Partial<SpotlightSearchIcons>;
 };
+
+/** Icons used by SpotlightSearch. Pass a partial via `icons` to swap any of them. */
+export interface SpotlightSearchIcons {
+  /** Beside the input. */
+  search: ReactNode;
+  /** Clears the query. */
+  clear: ReactNode;
+  /** Beside the "Recent" heading. */
+  recent: ReactNode;
+  /** Enter hint on the active row. */
+  enter: ReactNode;
+}
+export const spotlightSearchIcons: SpotlightSearchIcons = { search: <Search />, clear: <X />, recent: <Clock />, enter: <CornerDownLeft /> };
 
 const RECENT_KEY = "kiln-spotlight-recent";
 const readRecent = (): string[] => {
@@ -89,20 +104,22 @@ export function SpotlightSearch(props: SpotlightSearchProps) {
   );
 }
 
-function Window({ onOpenChange, items, categories, onPick, placeholder, labels }: SpotlightSearchProps) {
+function Window({ onOpenChange, items, categories, onPick, placeholder, labels, icons }: SpotlightSearchProps) {
   const l = { ...spotlightSearchLabels, ...labels };
+  const ic = useMemo(() => ({ ...spotlightSearchIcons, ...icons }), [icons]);
   const id = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [q, setQ] = useState("");
-  const [cat, setCat] = useState<string>(l.all);
+  const all = labels?.all ?? spotlightSearchLabels.all;
+  const [cat, setCat] = useState<string>(all);
   const [active, setActive] = useState(0);
   const [recent, setRecent] = useState<string[]>(readRecent);
   useModalLayer(panelRef, () => onOpenChange(false));
 
   const results = useMemo(() => {
     const term = q.trim().toLowerCase();
-    let list = items.filter((i) => cat === l.all || i.category === cat);
+    let list = items.filter((i) => cat === all || i.category === cat);
     if (term) {
       list = list
         .filter((i) => `${i.title} ${i.subtitle ?? ""} ${i.keywords ?? ""}`.toLowerCase().includes(term))
@@ -112,9 +129,13 @@ function Window({ onOpenChange, items, categories, onPick, placeholder, labels }
       list = [...ids.map((r) => list.find((i) => i.id === r)!), ...list.filter((i) => !ids.includes(i.id))].slice(0, 8);
     }
     return list.slice(0, 40);
-  }, [items, q, cat, recent]);
+  }, [items, q, cat, recent, all]);
 
-  useEffect(() => setActive(0), [q, cat]);
+  const [seen, setSeen] = useState({ q, cat });
+  if (seen.q !== q || seen.cat !== cat) {
+    setSeen({ q, cat });
+    setActive(0);
+  }
   useEffect(() => {
     listRef.current?.querySelector(`[data-i="${active}"]`)?.scrollIntoView({ block: "nearest" });
   }, [active]);
@@ -144,7 +165,6 @@ function Window({ onOpenChange, items, categories, onPick, placeholder, labels }
   const current = results[active];
   const showingRecent = !q.trim() && recent.length > 0;
 
-  let lastCat = "";
 
   return (
     <div className="fixed inset-0 z-[90] flex items-start justify-center p-3 pt-[10vh] sm:p-6 sm:pt-[12vh]">
@@ -168,7 +188,7 @@ function Window({ onOpenChange, items, categories, onPick, placeholder, labels }
         className="relative flex max-h-[min(36rem,80vh)] w-full max-w-3xl flex-col overflow-hidden rounded-sheet bg-surface shadow-float"
       >
         <div className="flex items-center gap-3 px-4">
-          <Search className="size-5 shrink-0 text-muted" aria-hidden />
+          <span className="grid shrink-0 text-muted [&>svg]:size-5" aria-hidden>{ic.search}</span>
           <input
             data-autofocus
             role="combobox"
@@ -182,8 +202,8 @@ function Window({ onOpenChange, items, categories, onPick, placeholder, labels }
             className="h-14 min-w-0 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-muted"
           />
           {q && (
-            <button type="button" aria-label={l.clear} onClick={() => setQ("")} className="grid size-7 place-items-center rounded-full text-muted hover:bg-raised hover:text-ink">
-              <X className="size-4" />
+            <button type="button" aria-label={l.clear} onClick={() => setQ("")} className="grid size-7 place-items-center rounded-full text-muted hover:bg-raised hover:text-ink [&>svg]:size-4">
+              {ic.clear}
             </button>
           )}
         </div>
@@ -209,11 +229,10 @@ function Window({ onOpenChange, items, categories, onPick, placeholder, labels }
 
         <div className="grid min-h-0 flex-1 bg-raised/50 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div ref={listRef} id={`${id}-list`} role="listbox" aria-label={l.results} className="min-h-0 overflow-y-auto p-2">
-            {showingRecent && <p className="flex items-center gap-1.5 px-2.5 pb-1 pt-1.5 text-xs text-muted"><Clock className="size-3.5" /> {l.recent}</p>}
+            {showingRecent && <p className="flex items-center gap-1.5 px-2.5 pb-1 pt-1.5 text-xs text-muted"><span className="grid [&>svg]:size-3.5" aria-hidden>{ic.recent}</span> {l.recent}</p>}
             {results.length === 0 && <p className="px-3 py-10 text-center text-sm text-muted">{l.noResults(q)}</p>}
             {results.map((it, i) => {
-              const head = !showingRecent && it.category !== lastCat ? it.category : null;
-              lastCat = it.category;
+              const head = !showingRecent && it.category !== (i ? results[i - 1].category : "") ? it.category : null;
               const on = i === active;
               return (
                 <div key={it.id}>
@@ -233,7 +252,7 @@ function Window({ onOpenChange, items, categories, onPick, placeholder, labels }
                       <span className="block truncate text-sm text-ink"><Highlight text={it.title} query={q} /></span>
                       {it.subtitle && <span className="block truncate text-xs text-muted">{it.subtitle}</span>}
                     </span>
-                    <CornerDownLeft className={cn("relative z-[1] size-3.5 shrink-0 text-muted transition-opacity duration-150", on ? "opacity-100" : "opacity-0")} aria-hidden />
+                    <span className={cn("relative z-[1] grid shrink-0 text-muted transition-opacity duration-150 [&>svg]:size-3.5", on ? "opacity-100" : "opacity-0")} aria-hidden>{ic.enter}</span>
                   </div>
                 </div>
               );

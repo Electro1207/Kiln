@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 
 export type ThemeMode = "light" | "dark" | "system";
@@ -76,7 +76,9 @@ export function ThemeProvider({ children, defaultMode }: { children: ReactNode; 
   }, []);
 
   const resolvedRef = useRef(resolved);
-  resolvedRef.current = resolved;
+  useLayoutEffect(() => {
+    resolvedRef.current = resolved;
+  });
   const toggle = useCallback(
     (origin?: HTMLElement | null) => setMode(resolvedRef.current === "dark" ? "light" : "dark", origin),
     [setMode],

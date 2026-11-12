@@ -1,6 +1,6 @@
-import { useId, useRef } from "react";
+import { useId, useRef, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Eye, EyeOff, Lock, LockOpen, Plus, X } from "lucide-react";
+import { Eye, EyeOff, LockOpen, Plus, X } from "lucide-react";
 import { cn } from "../../cn";
 import { spring, springSnappy } from "../../motion";
 import { Button } from "../buttons/Button";
@@ -59,7 +59,23 @@ const KEY_RE = /^[A-Z_][A-Z0-9_]*$/;
  * for duplicates; secret values are masked until revealed.
  * Controlled with `rows` + `onChange`, or uncontrolled with `defaultRows`.
  */
-export function KeyValueEditor({ rows: rowsProp, defaultRows = [], onChange: onChangeProp, keyLabel, valueLabel, addLabel, className, labels }: {
+export interface KeyValueEditorIcons {
+  /** Marks a plain row as secret. */
+  markSecret: ReactNode;
+  /** Shows a masked secret. */
+  reveal: ReactNode;
+  /** Masks a revealed secret. */
+  hide: ReactNode;
+  /** Removes a row. */
+  remove: ReactNode;
+  /** Add-row button. */
+  add: ReactNode;
+}
+export const keyValueEditorIcons: KeyValueEditorIcons = { markSecret: <LockOpen />, reveal: <Eye />, hide: <EyeOff />, remove: <X />, add: <Plus /> };
+
+export function KeyValueEditor({ rows: rowsProp, defaultRows = [], onChange: onChangeProp, keyLabel, valueLabel, addLabel, className, labels, icons }: {
+  /** Replace any built-in icon. Merged over `keyValueEditorIcons`. */
+  icons?: Partial<KeyValueEditorIcons>;
   /** The rows; leave out to let the component keep them. */
   rows?: KeyValueRow[];
   /** Starting rows when uncontrolled. */
@@ -73,6 +89,7 @@ export function KeyValueEditor({ rows: rowsProp, defaultRows = [], onChange: onC
   labels?: Partial<KeyValueEditorLabels>;
 }) {
   const l = { ...keyValueEditorLabels, ...labels };
+  const ic = { ...keyValueEditorIcons, ...icons };
   keyLabel ??= l.key;
   valueLabel ??= l.value;
   addLabel ??= l.add;
@@ -148,12 +165,12 @@ export function KeyValueEditor({ rows: rowsProp, defaultRows = [], onChange: onC
                   <RowIcon
                     label={r.secret ? (r.revealed ? l.hide(r.key || l.fallbackValue) : l.reveal(r.key || l.fallbackValue)) : l.markSecret(r.key || l.fallbackValue)}
                     onClick={() => (r.secret ? patch(r.id, { revealed: !r.revealed }) : patch(r.id, { secret: true, revealed: false }))}
-                    a={r.secret ? <Eye /> : <LockOpen />}
-                    b={r.secret ? <EyeOff /> : <Lock />}
+                    a={r.secret ? ic.reveal : ic.markSecret}
+                    b={ic.hide}
                     showB={r.secret ? !!r.revealed : false}
                     active={r.secret}
                   />
-                  <RowIcon label={l.remove(r.key || l.fallbackRow)} onClick={() => remove(r.id)} a={<X />} danger />
+                  <RowIcon label={l.remove(r.key || l.fallbackRow)} onClick={() => remove(r.id)} a={ic.remove} danger />
                 </div>
               </motion.li>
             );
@@ -161,7 +178,7 @@ export function KeyValueEditor({ rows: rowsProp, defaultRows = [], onChange: onC
         </AnimatePresence>
       </ul>
       <motion.div layout="position" transition={spring}>
-        <Button size="sm" variant="ghost" leading={<Plus />} onClick={add}>{addLabel}</Button>
+        <Button size="sm" variant="ghost" leading={ic.add} onClick={add}>{addLabel}</Button>
       </motion.div>
     </div>
   );

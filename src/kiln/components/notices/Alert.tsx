@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "lucide-react";
 import { cn } from "../../cn";
@@ -24,6 +24,10 @@ export type AlertProps = {
   spaceAfter?: number;
   /** Override any UI text. Merged over `alertLabels`. */
   labels?: Partial<AlertLabels>;
+  /** Replace any built-in icon. Merged over `alertIcons`. */
+  icons?: Partial<AlertIcons>;
+  /** Replaces the tone icon for this alert. `null` hides it. */
+  icon?: ReactNode;
   className?: string;
 };
 
@@ -42,12 +46,28 @@ export interface AlertLabels {
 }
 export const alertLabels: AlertLabels = { info: "Note", success: "Done", warning: "Warning", error: "Error", dismiss: "Dismiss" };
 
-const tones: Record<AlertTone, { icon: ReactNode }> = {
-  info: { icon: <Info className="size-[18px] text-info" strokeWidth={2} /> },
-  success: { icon: <CircleCheck className="size-[18px] text-positive" strokeWidth={2} /> },
-  warning: { icon: <TriangleAlert className="size-[18px] text-warning" strokeWidth={2} /> },
-  error: { icon: <CircleAlert className="size-[18px] text-negative" strokeWidth={2} /> },
+/** Icons used by Alert. Pass a partial via `icons` to swap any of them. */
+export interface AlertIcons {
+  /** Info tone. */
+  info: ReactNode;
+  /** Success tone. */
+  success: ReactNode;
+  /** Warning tone. */
+  warning: ReactNode;
+  /** Error tone. */
+  error: ReactNode;
+  /** Dismiss button. */
+  close: ReactNode;
+}
+export const alertIcons: AlertIcons = {
+  info: <Info />,
+  success: <CircleCheck />,
+  warning: <TriangleAlert />,
+  error: <CircleAlert />,
+  close: <X />,
 };
+
+const toneColor: Record<AlertTone, string> = { info: "text-info", success: "text-positive", warning: "text-warning", error: "text-negative" };
 
 /**
  * An inline message about the page or a task. A calm card: the tone lives in
@@ -64,11 +84,14 @@ export function Alert({
   surface = "surface",
   spaceAfter = 0,
   labels,
+  icons,
+  icon,
   className,
 }: AlertProps) {
   const [open, setOpen] = useState(true);
-  const t = tones[tone];
   const l = { ...alertLabels, ...labels };
+  const ic = useMemo(() => ({ ...alertIcons, ...icons }), [icons]);
+  const toneIcon = icon === undefined ? ic[tone] : icon;
   return (
     <AnimatePresence initial={false} onExitComplete={onDismiss}>
       {open && (
@@ -88,9 +111,11 @@ export function Alert({
               className,
             )}
           >
-            <span className="grid h-5 shrink-0 place-items-center" aria-hidden>
-              {t.icon}
-            </span>
+            {toneIcon !== null && (
+              <span className={cn("grid h-5 shrink-0 place-items-center [&>svg]:size-[18px]", toneColor[tone])} aria-hidden>
+                {toneIcon}
+              </span>
+            )}
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold leading-5">
                 <span className="sr-only">{l[tone]}: </span>
@@ -104,9 +129,9 @@ export function Alert({
                 type="button"
                 aria-label={l.dismiss}
                 onClick={() => setOpen(false)}
-                className="-mr-1.5 -mt-1.5 grid size-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink"
+                className="-mr-1.5 -mt-1.5 grid size-8 shrink-0 place-items-center rounded-full [&>svg]:size-4 text-muted transition-colors hover:bg-raised hover:text-ink"
               >
-                <X className="size-4" />
+                {ic.close}
               </button>
             )}
           </motion.div>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { Check, ShoppingBag } from "lucide-react";
 import { cn } from "../../cn";
@@ -57,11 +57,19 @@ export const productQuickViewLabels: ProductQuickViewLabels = {
 /** Text swaps hand over rather than overlap. */
 const textSwap = (show: boolean) => (show ? { duration: 0.18, delay: 0.08, ease: easeOut } : { duration: 0.09, ease: easeOut });
 
+export interface ProductQuickViewIcons {
+  /** Beside the add-to-cart label. */
+  cart: ReactNode;
+  /** Beside the confirmation label. */
+  added: ReactNode;
+}
+export const productQuickViewIcons: ProductQuickViewIcons = { cart: <ShoppingBag />, added: <Check /> };
+
 /**
  * A product in a dialog: gallery, colour, size, quantity and add to cart. The
  * button confirms in place, then returns to normal.
  */
-export function ProductQuickView({ product, open, onOpenChange, onAdd, labels }: {
+export function ProductQuickView({ product, open, onOpenChange, onAdd, labels, icons }: {
   product: QuickViewProduct;
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -69,8 +77,11 @@ export function ProductQuickView({ product, open, onOpenChange, onAdd, labels }:
   onAdd: (item: AddToCart) => Promise<void> | void;
   /** Override any UI text. Merged over `productQuickViewLabels`. */
   labels?: Partial<ProductQuickViewLabels>;
+  /** Replace any built-in icon. Merged over `productQuickViewIcons`. */
+  icons?: Partial<ProductQuickViewIcons>;
 }) {
   const l = { ...productQuickViewLabels, ...labels };
+  const ic = useMemo(() => ({ ...productQuickViewIcons, ...icons }), [icons]);
   const [colour, setColour] = useState(product.colours[0].value);
   const [size, setSize] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
@@ -78,7 +89,11 @@ export function ProductQuickView({ product, open, onOpenChange, onAdd, labels }:
   const [missingSize, setMissingSize] = useState(false);
   const timer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(timer.current), []);
-  useEffect(() => { if (open) { setState("idle"); setMissingSize(false); } }, [open]);
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) { setState("idle"); setMissingSize(false); }
+  }
 
   const c = product.colours.find((x) => x.value === colour) ?? product.colours[0];
   const money = (n: number) => formatMoney(n, product.currency);
@@ -125,10 +140,10 @@ export function ProductQuickView({ product, open, onOpenChange, onAdd, labels }:
             <Button size="lg" onClick={add} loading={state === "adding"} className="min-w-0 flex-1" leading={undefined}>
               <span className="grid justify-items-center [&>*]:[grid-area:1/1]">
                 <motion.span className="inline-flex items-center gap-2" initial={false} animate={{ opacity: state === "added" ? 0 : 1 }} transition={textSwap(state !== "added")} aria-hidden={state === "added"}>
-                  <ShoppingBag className="size-4" /> {l.addToCart(money(product.price * qty))}
+                  <span className="inline-flex [&>svg]:size-4">{ic.cart}</span> {l.addToCart(money(product.price * qty))}
                 </motion.span>
                 <motion.span className="inline-flex items-center gap-2" initial={false} animate={{ opacity: state === "added" ? 1 : 0 }} transition={textSwap(state === "added")} aria-hidden={state !== "added"}>
-                  <Check className="size-4" /> {l.added}
+                  <span className="inline-flex [&>svg]:size-4">{ic.added}</span> {l.added}
                 </motion.span>
               </span>
             </Button>

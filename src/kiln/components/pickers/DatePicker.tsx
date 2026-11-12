@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type RefObject } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "../../cn";
@@ -50,6 +50,15 @@ export const calendarLabels: CalendarLabels = {
   weekdays: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
 };
 
+/** Icons used by Calendar. Pass a partial via `icons` to replace them. */
+export interface CalendarIcons {
+  /** Previous-month button. */
+  previous: ReactNode;
+  /** Next-month button. */
+  next: ReactNode;
+}
+export const calendarIcons: CalendarIcons = { previous: <ChevronLeft />, next: <ChevronRight /> };
+
 function monthGrid(month: Date): Date[] {
   const first = new Date(month.getFullYear(), month.getMonth(), 1);
   const lead = (first.getDay() + 6) % 7;
@@ -70,6 +79,8 @@ type CalendarBase = {
   locale?: string;
   /** Override any UI text. Merged over `calendarLabels`. */
   labels?: Partial<CalendarLabels>;
+  /** Replace any built-in icon. Merged over `calendarIcons`. */
+  icons?: Partial<CalendarIcons>;
 };
 export type CalendarProps =
   | (CalendarBase & {
@@ -92,9 +103,10 @@ export type CalendarProps =
 /** A month grid for picking one date (`mode="single"`, the default) or a range (`mode="range"`). Arrow keys, Page Up/Down, Home and End move focus. */
 export function Calendar(props: CalendarProps) {
   const l = { ...calendarLabels, ...props.labels };
+  const ic = useMemo(() => ({ ...calendarIcons, ...props.icons }), [props.icons]);
   const weekdays = props.labels?.weekdays ?? (props.locale ? intlWeekdays(props.locale) : calendarLabels.weekdays);
   const fmt = formatsFor(props.locale);
-  const today = useMemo(() => startOfDay(new Date()), []);
+  const [today] = useState(() => startOfDay(new Date()));
   const [val, setVal] = useControllable<Date | DateRange | null>(
     props.value,
     props.defaultValue ?? (props.mode === "range" ? { start: null, end: null } : null),
@@ -179,9 +191,9 @@ export function Calendar(props: CalendarProps) {
           type="button"
           aria-label={l.previousMonth}
           onClick={() => go(-1)}
-          className="grid size-8 place-items-center rounded-control text-muted transition-colors hover:bg-raised hover:text-ink"
+          className="grid size-8 place-items-center rounded-control text-muted transition-colors hover:bg-raised hover:text-ink [&>svg]:size-4"
         >
-          <ChevronLeft className="size-4" />
+          {ic.previous}
         </button>
         <div className="relative h-6 flex-1 overflow-hidden text-center" aria-live="polite">
           <AnimatePresence mode="popLayout" initial={false} custom={dir}>
@@ -206,9 +218,9 @@ export function Calendar(props: CalendarProps) {
           type="button"
           aria-label={l.nextMonth}
           onClick={() => go(1)}
-          className="grid size-8 place-items-center rounded-control text-muted transition-colors hover:bg-raised hover:text-ink"
+          className="grid size-8 place-items-center rounded-control text-muted transition-colors hover:bg-raised hover:text-ink [&>svg]:size-4"
         >
-          <ChevronRight className="size-4" />
+          {ic.next}
         </button>
       </div>
 
@@ -327,7 +339,9 @@ function Trigger({
   triggerRef,
   id,
   size = "md",
+  icon,
 }: {
+  icon: ReactNode;
   label?: string;
   text: string | null;
   placeholder: string;
@@ -358,7 +372,7 @@ function Trigger({
           open && "border-accent",
         )}
       >
-        <CalendarDays className="size-4 shrink-0 text-muted" aria-hidden />
+        <span className="grid shrink-0 place-items-center text-muted [&>svg]:size-4" aria-hidden>{icon}</span>
         <span id={`${id}-value`} className="min-w-0 flex-1">
           <SwapText value={text ?? "none"} className={cn("tabular", !text && "text-muted")}>
             {text ?? placeholder}
@@ -378,6 +392,13 @@ export interface DatePickerLabels extends CalendarLabels {
 }
 export const datePickerLabels: DatePickerLabels = { ...calendarLabels, placeholder: "Pick a date", dialog: "Choose a date" };
 
+/** Icons used by DatePicker. Pass a partial via `icons` to replace them. */
+export interface DatePickerIcons extends CalendarIcons {
+  /** Leading icon of the trigger. */
+  calendar: ReactNode;
+}
+export const datePickerIcons: DatePickerIcons = { ...calendarIcons, calendar: <CalendarDays /> };
+
 export type DatePickerProps = {
   /** Selected date; leave out to let the component keep it. */
   value?: Date | null;
@@ -394,12 +415,15 @@ export type DatePickerProps = {
   locale?: string;
   /** Override any UI text. Merged over `datePickerLabels`. */
   labels?: Partial<DatePickerLabels>;
+  /** Replace any built-in icon. Merged over `datePickerIcons`. */
+  icons?: Partial<DatePickerIcons>;
   className?: string;
 };
 
 /** A button that opens a calendar. Controlled with `value` + `onChange`, or uncontrolled with `defaultValue`. */
-export function DatePicker({ value: valueProp, defaultValue = null, onChange: onChangeProp, label, placeholder, min, max, size = "md", locale, labels, className }: DatePickerProps) {
+export function DatePicker({ value: valueProp, defaultValue = null, onChange: onChangeProp, label, placeholder, min, max, size = "md", locale, labels, icons, className }: DatePickerProps) {
   const l = { ...datePickerLabels, ...labels };
+  const ic = useMemo(() => ({ ...datePickerIcons, ...icons }), [icons]);
   const id = useId();
   const [value, setValue] = useControllable<Date | null>(valueProp, defaultValue, (d) => d && onChangeProp?.(d));
   const onChange = (d: Date) => setValue(d);
@@ -410,6 +434,7 @@ export function DatePicker({ value: valueProp, defaultValue = null, onChange: on
       <Trigger
         id={id}
         size={size}
+        icon={ic.calendar}
         label={label}
         text={value ? formatDate(value, locale) : null}
         placeholder={placeholder ?? l.placeholder}
@@ -421,6 +446,7 @@ export function DatePicker({ value: valueProp, defaultValue = null, onChange: on
         <Calendar
           locale={locale}
           labels={labels}
+          icons={ic}
           value={value}
           min={min}
           max={max}
@@ -487,6 +513,10 @@ const makePresets = (l: DateRangePickerLabels): RangePreset[] => [
   { label: l.next30, range: () => { const t = startOfDay(new Date()); return { start: t, end: addDays(t, 29) }; } },
 ];
 
+/** Icons used by DateRangePicker. Pass a partial via `icons` to replace them. */
+export type DateRangePickerIcons = DatePickerIcons;
+export const dateRangePickerIcons: DateRangePickerIcons = datePickerIcons;
+
 export type DateRangePickerProps = {
   /** Selected range; leave out to let the component keep it. */
   value?: DateRange;
@@ -503,6 +533,8 @@ export type DateRangePickerProps = {
   locale?: string;
   /** Override any UI text. Merged over `dateRangePickerLabels`. */
   labels?: Partial<DateRangePickerLabels>;
+  /** Replace any built-in icon. Merged over `dateRangePickerIcons`. */
+  icons?: Partial<DateRangePickerIcons>;
   className?: string;
 };
 
@@ -520,9 +552,11 @@ export function DateRangePicker({
   min,
   locale,
   labels,
+  icons,
   className,
 }: DateRangePickerProps) {
   const l = { ...dateRangePickerLabels, ...labels };
+  const ic = useMemo(() => ({ ...dateRangePickerIcons, ...icons }), [icons]);
   const presets = presetsProp ?? makePresets(l);
   const fmt = formatsFor(locale);
   const id = useId();
@@ -540,7 +574,7 @@ export function DateRangePicker({
 
   return (
     <div className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
-      <Trigger id={id} size={size} label={label} text={text} placeholder={placeholder ?? l.placeholder} open={open} onClick={() => setOpen((o) => !o)} triggerRef={triggerRef} />
+      <Trigger id={id} size={size} icon={ic.calendar} label={label} text={text} placeholder={placeholder ?? l.placeholder} open={open} onClick={() => setOpen((o) => !o)} triggerRef={triggerRef} />
       <AnchoredLayer open={open} onClose={() => setOpen(false)} anchor={triggerRef} role="dialog" aria-label={l.dialog}>
         <div className="flex flex-col sm:flex-row">
           <div className="flex gap-1 overflow-x-auto p-2 sm:w-36 sm:flex-col sm:pr-0">
@@ -559,7 +593,7 @@ export function DateRangePicker({
             ))}
           </div>
           <div>
-            <Calendar key={calKey} locale={locale} labels={labels} mode="range" value={value} onChange={onChange} min={min} autoFocus={calKey === 0} />
+            <Calendar key={calKey} locale={locale} labels={labels} icons={ic} mode="range" value={value} onChange={onChange} min={min} autoFocus={calKey === 0} />
             <div className="flex items-center justify-between gap-3 px-3 pb-2 pt-1 text-xs text-muted">
               <span className="tabular">{nights > 0 ? l.nights(nights) : value.start ? l.chooseEnd : l.chooseStart}</span>
               <button

@@ -50,6 +50,18 @@ export const authFormsLabels: AuthFormsLabels = {
   remembered: "Remembered it?",
 };
 
+export interface AuthFormsIcons {
+  /** Name field. */
+  name: ReactNode;
+  /** Email field. */
+  email: ReactNode;
+  /** Confirmation after a reset link is sent. */
+  sent: ReactNode;
+  /** Back-to-sign-in button. */
+  back: ReactNode;
+}
+export const authFormsIcons: AuthFormsIcons = { name: <User />, email: <Mail />, sent: <MailCheck />, back: <ArrowLeft /> };
+
 export type AuthValues = { name: string; email: string; password: string };
 
 /** Text swaps hand over rather than overlap: the old words leave quickly, then the new ones arrive. */
@@ -73,6 +85,7 @@ export function AuthForms({
   copy = defaultCopy,
   className,
   labels,
+  icons,
 }: {
   initialMode?: AuthMode;
   /** Resolve to finish, reject (with a message) to show an error. */
@@ -83,8 +96,11 @@ export function AuthForms({
   className?: string;
   /** Override any UI text. Merged over `authFormsLabels`. */
   labels?: Partial<AuthFormsLabels>;
+  /** Replace any built-in icon. Merged over `authFormsIcons`. */
+  icons?: Partial<AuthFormsIcons>;
 }) {
   const l = { ...authFormsLabels, ...labels };
+  const ic = { ...authFormsIcons, ...icons };
   const id = useId();
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [values, setValues] = useState<AuthValues>({ name: "", email: "", password: "" });
@@ -151,23 +167,23 @@ export function AuthForms({
           {sentTo ? (
             <motion.div key="sent" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={spring} className="mt-6 flex flex-col gap-4">
               <div className="flex items-start gap-3 rounded-card bg-raised p-4">
-                <MailCheck className="mt-0.5 size-5 shrink-0 text-positive" aria-hidden />
+                <span className="mt-0.5 inline-flex shrink-0 text-positive [&>svg]:size-5" aria-hidden>{ic.sent}</span>
                 <p className="text-sm text-ink">
                   {l.resetSent(<span className="font-medium">{sentTo}</span>)}
                 </p>
               </div>
-              <Button variant="secondary" leading={<ArrowLeft />} onClick={() => go("sign-in")}>{l.backToSignIn}</Button>
+              <Button variant="secondary" leading={ic.back} onClick={() => go("sign-in")}>{l.backToSignIn}</Button>
             </motion.div>
           ) : (
             <motion.form key="form" onSubmit={submit} className="mt-6 flex flex-col gap-4" exit={{ opacity: 0 }} transition={fade} noValidate>
               <AnimatePresence initial={false} mode="popLayout">
                 {mode === "sign-up" && (
                   <motion.div key="name" {...item} {...enter}>
-                    <TextField label={l.name} leading={<User />} autoComplete="name" value={values.name} onChange={(e) => set("name")(e.target.value)} required />
+                    <TextField label={l.name} leading={ic.name} autoComplete="name" value={values.name} onChange={(e) => set("name")(e.target.value)} required />
                   </motion.div>
                 )}
                 <motion.div key="email" {...item}>
-                  <TextField label={l.email} type="email" leading={<Mail />} autoComplete="email" value={values.email} onChange={(e) => set("email")(e.target.value)} required />
+                  <TextField label={l.email} type="email" leading={ic.email} autoComplete="email" value={values.email} onChange={(e) => set("email")(e.target.value)} required />
                 </motion.div>
                 {mode !== "forgot" && (
                   <motion.div key="password" {...item} {...enter}>

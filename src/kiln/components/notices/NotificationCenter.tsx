@@ -1,6 +1,6 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { AtSign, BellOff, Inbox } from "lucide-react";
+import { AtSign, Bell, BellOff, Inbox } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, fade, springFirm, springSoft } from "../../motion";
 import { Avatar } from "../data-display/Avatar";
@@ -80,6 +80,29 @@ export type NotificationCenterProps = {
   align?: "start" | "center" | "end";
   /** Override any UI text. Merged over `notificationCenterLabels`. */
   labels?: Partial<NotificationCenterLabels>;
+  /** Replace any built-in icon. Merged over `notificationCenterIcons`. */
+  icons?: Partial<NotificationCenterIcons>;
+};
+
+/** Icons used by NotificationCenter. Pass a partial via `icons` to swap any of them. */
+export interface NotificationCenterIcons {
+  /** The bell on the trigger. */
+  bell: ReactNode;
+  /** Beside the time on a notice that mentions you. */
+  mention: ReactNode;
+  /** Empty state of the All tab. */
+  emptyAll: ReactNode;
+  /** Empty state of the Unread tab. */
+  emptyUnread: ReactNode;
+  /** Empty state of the Mentions tab. */
+  emptyMentions: ReactNode;
+}
+export const notificationCenterIcons: NotificationCenterIcons = {
+  bell: <Bell />,
+  mention: <AtSign />,
+  emptyAll: <BellOff />,
+  emptyUnread: <Inbox />,
+  emptyMentions: <AtSign />,
 };
 
 type TabId = "all" | "unread" | "mentions";
@@ -88,8 +111,9 @@ type TabId = "all" | "unread" | "mentions";
  * A bell that opens an inbox: All, Unread and Mentions. Opening a notice marks
  * it read, so its dot and weight fade; under Unread it then folds away.
  */
-export function NotificationCenter({ items, onItemsChange, onOpen, side = "bottom", align = "end", labels }: NotificationCenterProps) {
+export function NotificationCenter({ items, onItemsChange, onOpen, side = "bottom", align = "end", labels, icons }: NotificationCenterProps) {
   const l = { ...notificationCenterLabels, ...labels };
+  const ic = useMemo(() => ({ ...notificationCenterIcons, ...icons }), [icons]);
   const unread = items.filter((n) => n.unread).length;
   return (
     <Popover
@@ -97,14 +121,14 @@ export function NotificationCenter({ items, onItemsChange, onOpen, side = "botto
       label={l.notifications}
       side={side}
       align={align}
-      trigger={<NotificationBell count={unread} labels={{ notifications: l.notifications, unread: l.bellUnread }} />}
+      trigger={<NotificationBell count={unread} icons={{ bell: ic.bell }} labels={{ notifications: l.notifications, unread: l.bellUnread }} />}
     >
-      <Inboxes items={items} onItemsChange={onItemsChange} onOpen={onOpen} l={l} />
+      <Inboxes items={items} onItemsChange={onItemsChange} onOpen={onOpen} l={l} ic={ic} />
     </Popover>
   );
 }
 
-function Inboxes({ items, onItemsChange, onOpen, l }: Pick<NotificationCenterProps, "items" | "onItemsChange" | "onOpen"> & { l: NotificationCenterLabels }) {
+function Inboxes({ items, onItemsChange, onOpen, l, ic }: Pick<NotificationCenterProps, "items" | "onItemsChange" | "onOpen"> & { l: NotificationCenterLabels; ic: NotificationCenterIcons }) {
   const [tab, setTab] = useState<TabId>("all");
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const unread = items.filter((n) => n.unread).length;
@@ -204,7 +228,7 @@ function Inboxes({ items, onItemsChange, onOpen, l }: Pick<NotificationCenterPro
                       <span className={cn("font-semibold transition-colors duration-300", n.unread ? "text-ink" : "text-ink/80")}>{n.actor}</span> {n.text}
                     </span>
                     <span className="mt-0.5 flex items-center gap-1.5 text-xs leading-4 text-faint">
-                      {n.mention && <AtSign className="size-3" aria-label={l.mention} />}
+                      {n.mention && <span role="img" aria-label={l.mention} className="grid shrink-0 [&>svg]:size-3">{ic.mention}</span>}
                       {n.time}
                     </span>
                   </span>
@@ -231,8 +255,8 @@ function Inboxes({ items, onItemsChange, onOpen, l }: Pick<NotificationCenterPro
               exit={{ opacity: 0, transition: { duration: 0.1 } }}
               className="flex flex-col items-center px-8 pb-10 pt-12 text-center"
             >
-              <span className="mb-3 grid size-11 place-items-center rounded-full bg-raised text-muted">
-                {tab === "mentions" ? <AtSign className="size-5" /> : tab === "unread" ? <Inbox className="size-5" /> : <BellOff className="size-5" />}
+              <span className="mb-3 grid size-11 place-items-center rounded-full bg-raised text-muted [&>svg]:size-5">
+                {tab === "mentions" ? ic.emptyMentions : tab === "unread" ? ic.emptyUnread : ic.emptyAll}
               </span>
               <p className="text-sm font-semibold">{tab === "mentions" ? l.emptyMentions : tab === "unread" ? l.emptyUnread : l.emptyAll}</p>
               <p className="mt-1 text-[13px] text-muted">

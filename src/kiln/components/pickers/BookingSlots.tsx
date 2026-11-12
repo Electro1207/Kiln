@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, CalendarCheck, Clock, Globe } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, fade } from "../../motion";
-import { Calendar, startOfDay, type CalendarLabels } from "./DatePicker";
+import { Calendar, startOfDay, type CalendarIcons, type CalendarLabels } from "./DatePicker";
 import { SegmentedControl } from "../buttons/SegmentedControl";
 import { TextField } from "../text-input/TextField";
 import { Textarea } from "../text-input/Textarea";
@@ -57,6 +57,30 @@ export interface BookingSlotsLabels {
   /** Text for the calendar (month buttons, weekday headings). */
   calendar: Partial<CalendarLabels>;
 }
+/** Icons used by BookingSlots. Pass a partial via `icons` to replace them. */
+export interface BookingSlotsIcons {
+  /** Duration line in the summary. */
+  duration: ReactNode;
+  /** Chosen-slot line in the summary. */
+  slot: ReactNode;
+  /** Time zone line in the summary. */
+  timeZone: ReactNode;
+  /** Back button on the details step. */
+  back: ReactNode;
+  /** Badge on the confirmation step. */
+  booked: ReactNode;
+  /** Icons for the month calendar. */
+  calendar: Partial<CalendarIcons>;
+}
+export const bookingSlotsIcons: BookingSlotsIcons = {
+  duration: <Clock />,
+  slot: <CalendarCheck />,
+  timeZone: <Globe />,
+  back: <ArrowLeft />,
+  booked: <CalendarCheck />,
+  calendar: {},
+};
+
 export const bookingSlotsLabels: BookingSlotsLabels = {
   length: "Length",
   minutes: (n) => `${n} minutes`,
@@ -93,7 +117,7 @@ const step = {
  * time zone), then confirm with a name and email.
  */
 export function BookingSlots({
-  title, host, description, durations = [15, 30, 60], getSlots, min, max, onBook, locale, labels, className,
+  title, host, description, durations = [15, 30, 60], getSlots, min, max, onBook, locale, labels, icons, className,
 }: {
   title: string;
   host: { name: string; avatar?: string; role?: string };
@@ -109,9 +133,12 @@ export function BookingSlots({
   locale?: string;
   /** Override any UI text. Merged over `bookingSlotsLabels`. */
   labels?: Partial<BookingSlotsLabels>;
+  /** Replace any built-in icon. Merged over `bookingSlotsIcons`. */
+  icons?: Partial<BookingSlotsIcons>;
   className?: string;
 }) {
   const l = { ...bookingSlotsLabels, ...labels };
+  const ic = useMemo(() => ({ ...bookingSlotsIcons, ...icons }), [icons]);
   const timeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
   const [minutes, setMinutes] = useState(durations[Math.min(1, durations.length - 1)]);
   const [day, setDay] = useState<Date | null>(null);
@@ -127,7 +154,7 @@ export function BookingSlots({
   const longDay = (d: Date) => new Intl.DateTimeFormat(locale, { weekday: "long", month: "long", day: "numeric", timeZone }).format(d);
   const end = slot ? new Date(slot.getTime() + minutes * 60000) : null;
 
-  const today = startOfDay(new Date());
+  const [today] = useState(() => startOfDay(new Date()));
   const lo = min ?? today;
 
   const submit = async (e: FormEvent) => {
@@ -155,9 +182,9 @@ export function BookingSlots({
       <h3 className="text-xl font-semibold tracking-[-0.01em] text-ink">{title}</h3>
       {description && <p className="text-sm text-muted">{description}</p>}
       <ul className="flex flex-col gap-2 text-sm text-ink">
-        <li className="flex items-center gap-2"><Clock className="size-4 shrink-0 text-muted" aria-hidden />{l.minutes(minutes)}</li>
-        {slot && end && <li className="flex items-center gap-2"><CalendarCheck className="size-4 shrink-0 text-muted" aria-hidden />{longDay(slot)}, {time(slot)} – {time(end)}</li>}
-        <li className="flex items-center gap-2"><Globe className="size-4 shrink-0 text-muted" aria-hidden /><span className="truncate">{timeZone.replace(/_/g, " ")}</span></li>
+        <li className="flex items-center gap-2"><span className="grid shrink-0 place-items-center text-muted [&>svg]:size-4" aria-hidden>{ic.duration}</span>{l.minutes(minutes)}</li>
+        {slot && end && <li className="flex items-center gap-2"><span className="grid shrink-0 place-items-center text-muted [&>svg]:size-4" aria-hidden>{ic.slot}</span>{longDay(slot)}, {time(slot)} – {time(end)}</li>}
+        <li className="flex items-center gap-2"><span className="grid shrink-0 place-items-center text-muted [&>svg]:size-4" aria-hidden>{ic.timeZone}</span><span className="truncate">{timeZone.replace(/_/g, " ")}</span></li>
       </ul>
     </div>
   );
@@ -175,6 +202,7 @@ export function BookingSlots({
             <Calendar
               locale={locale}
               labels={l.calendar}
+              icons={ic.calendar}
               value={day}
               onChange={(d) => { setDay(d); setSlot(null); }}
               min={lo}
@@ -216,7 +244,7 @@ export function BookingSlots({
               <TextField label={l.email} type="email" autoComplete="email" value={form.email} error={errors.email} onChange={(e) => { setForm((f) => ({ ...f, email: e.target.value })); setErrors((x) => ({ ...x, email: undefined })); }} />
               <Textarea label={l.notes} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} minRows={3} maxLength={500} showCount />
               <div className="flex gap-2">
-                <Button type="button" variant="ghost" leading={<ArrowLeft />} onClick={() => setStage("pick")}>{l.back}</Button>
+                <Button type="button" variant="ghost" leading={ic.back} onClick={() => setStage("pick")}>{l.back}</Button>
                 <Button type="submit" loading={busy} className="flex-1">{l.confirm}</Button>
               </div>
             </form>
@@ -225,7 +253,7 @@ export function BookingSlots({
 
         {stage === "done" && slot && end && (
           <motion.div key="done" {...step} className="flex flex-col items-center gap-3 px-6 py-12 text-center" role="status">
-            <span className="grid size-12 place-items-center rounded-full bg-positive-soft text-positive"><CalendarCheck className="size-6" /></span>
+            <span className="grid size-12 place-items-center rounded-full bg-positive-soft text-positive [&>svg]:size-6" aria-hidden>{ic.booked}</span>
             <h3 className="text-xl font-semibold text-ink">{l.booked}</h3>
             <p className="max-w-sm text-sm text-muted">{l.bookedBody({ title, host: host.name, day: longDay(slot), time: time(slot), timeZone: timeZone.replace(/_/g, " "), email: form.email })}</p>
             <Button variant="secondary" className="mt-2" onClick={() => { setStage("pick"); setSlot(null); setForm({ name: "", email: "", notes: "" }); }}>{l.bookAnother}</Button>

@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "../../cn";
@@ -28,8 +28,17 @@ export type FlyoutNavProps = {
   onNavigate?: (href: string) => void;
   /** Override any UI text. Merged over `flyoutNavLabels`. */
   labels?: Partial<FlyoutNavLabels>;
+  /** Replace any built-in icon. Merged over `flyoutNavIcons`. */
+  icons?: Partial<FlyoutNavIcons>;
   className?: string;
 };
+
+/** Icons used by FlyoutNav. Pass a partial via `icons` to swap any of them. */
+export interface FlyoutNavIcons {
+  /** Chevron on a menu trigger; it flips when open. */
+  expand: ReactNode;
+}
+export const flyoutNavIcons: FlyoutNavIcons = { expand: <ChevronDown /> };
 
 const OPEN_DELAY = 90;
 const CLOSE_DELAY = 220;
@@ -70,8 +79,9 @@ function LinkRow({ link, onNavigate, compact }: { link: FlyoutLink; onNavigate?:
  * Down opens and enters a panel; Esc closes and returns focus. Under 768px of its
  * own width the bar folds into a menu where each panel is an accordion.
  */
-export function FlyoutNav({ brand, items, action, onNavigate, labels, className }: FlyoutNavProps) {
+export function FlyoutNav({ brand, items, action, onNavigate, labels, icons, className }: FlyoutNavProps) {
   const l = { ...flyoutNavLabels, ...labels };
+  const ic = useMemo(() => ({ ...flyoutNavIcons, ...icons }), [icons]);
   const id = useId();
   const [open, setOpen] = useState<number | null>(null);
   const [mobile, setMobile] = useState(false);
@@ -197,8 +207,8 @@ export function FlyoutNav({ brand, items, action, onNavigate, labels, className 
                     )}
                   >
                     {it.label}
-                    <motion.span initial={false} animate={{ rotate: open === i ? 180 : 0 }} transition={springSnappy} className="grid">
-                      <ChevronDown className="size-3.5" />
+                    <motion.span initial={false} animate={{ rotate: open === i ? 180 : 0 }} transition={springSnappy} className="grid [&>svg]:size-3.5">
+                      {ic.expand}
                     </motion.span>
                   </button>
                 </li>
@@ -310,8 +320,8 @@ export function FlyoutNav({ brand, items, action, onNavigate, labels, className 
                     className="flex h-12 w-full items-center justify-between rounded-control px-3 text-[15px] text-ink transition-colors hover:bg-raised"
                   >
                     {it.label}
-                    <motion.span initial={false} animate={{ rotate: section === i ? 180 : 0 }} transition={springSnappy} className="grid text-muted">
-                      <ChevronDown className="size-4" />
+                    <motion.span initial={false} animate={{ rotate: section === i ? 180 : 0 }} transition={springSnappy} className="grid text-muted [&>svg]:size-4">
+                      {ic.expand}
                     </motion.span>
                   </button>
                   <AnimatePresence initial={false}>

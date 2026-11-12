@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import type { ReactNode } from "react";
 import { Check } from "lucide-react";
 import { cn } from "../../cn";
 import { fade, springFirm } from "../../motion";
@@ -10,6 +11,23 @@ export interface MultiStepLoaderLabels {
 }
 export const multiStepLoaderLabels: MultiStepLoaderLabels = { progress: "Progress" };
 
+/** Icons used by MultiStepLoader. Pass a partial via `icons` to replace them. */
+export interface MultiStepLoaderIcons {
+  /** Mark on a finished step. */
+  check: ReactNode;
+  /** Mark on the step in progress; it turns while active. */
+  spinner: ReactNode;
+}
+export const multiStepLoaderIcons: MultiStepLoaderIcons = {
+  check: <Check />,
+  spinner: (
+    <svg viewBox="0 0 20 20">
+      <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2" />
+      <path d="M18 10a8 8 0 0 0-8-8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  ),
+};
+
 export type MultiStepLoaderProps = {
   steps: string[];
   /** Index of the step in progress; steps before it are done. steps.length means all done. */
@@ -17,6 +35,8 @@ export type MultiStepLoaderProps = {
   className?: string;
   /** Override any UI text. Merged over `multiStepLoaderLabels`. */
   labels?: Partial<MultiStepLoaderLabels>;
+  /** Replace any built-in icon. Merged over `multiStepLoaderIcons`. */
+  icons?: Partial<MultiStepLoaderIcons>;
 };
 
 /**
@@ -24,8 +44,9 @@ export type MultiStepLoaderProps = {
  * working to done, and a line fills down the list as it goes. Marks fade
  * between states in one cell; only the line moves.
  */
-export function MultiStepLoader({ steps, current, className, labels }: MultiStepLoaderProps) {
+export function MultiStepLoader({ steps, current, className, labels, icons }: MultiStepLoaderProps) {
   const l = { ...multiStepLoaderLabels, ...labels };
+  const ic = { ...multiStepLoaderIcons, ...icons };
   const n = steps.length;
   const fill = n > 1 ? Math.min(Math.max(current, 0), n - 1) / (n - 1) : 1;
   const ROW = 40;
@@ -53,15 +74,15 @@ export function MultiStepLoader({ steps, current, className, labels }: MultiStep
                 className="size-5 rounded-full border-2 border-line-strong bg-surface"
               />
               <motion.span initial={false} animate={{ opacity: state === "active" ? 1 : 0 }} transition={fade} className="grid size-5 place-items-center rounded-full bg-surface">
-                <Ring active={state === "active"} />
+                <span className={cn("grid size-5 place-items-center text-accent [&>svg]:size-5", state === "active" && "animate-spin")} aria-hidden>{ic.spinner}</span>
               </motion.span>
               <motion.span
                 initial={false}
                 animate={{ opacity: state === "done" ? 1 : 0 }}
                 transition={fade}
-                className="grid size-5 place-items-center rounded-full bg-btn-primary text-btn-primary-ink"
+                className="grid size-5 place-items-center rounded-full bg-btn-primary text-btn-primary-ink [&>svg]:size-3 [&>svg]:[stroke-width:3]"
               >
-                <Check className="size-3" strokeWidth={3} />
+                {ic.check}
               </motion.span>
             </span>
             <span className={cn("text-sm leading-5 transition-colors duration-300", state === "waiting" ? "text-faint" : state === "active" ? "text-ink" : "text-muted")}>
@@ -72,14 +93,5 @@ export function MultiStepLoader({ steps, current, className, labels }: MultiStep
         );
       })}
     </ol>
-  );
-}
-
-function Ring({ active }: { active: boolean }) {
-  return (
-    <svg viewBox="0 0 20 20" className={cn("size-5 text-accent", active && "animate-spin")} aria-hidden>
-      <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2" />
-      <path d="M18 10a8 8 0 0 0-8-8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
   );
 }

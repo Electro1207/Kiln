@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowDownUp, Check, ChevronDown, Plus, Search, X } from "lucide-react";
 import { cn } from "../../cn";
@@ -6,6 +6,33 @@ import { fade, springFirm } from "../../motion";
 import { AnchoredLayer, RowHighlight, SwapText, optionClass } from "../shared/Anchored";
 import { DropdownMenu } from "../menus/DropdownMenu";
 import { useControllable } from "../../controllable";
+
+/** Icons used by FilterBar. Pass a partial via `icons` to swap any of them. */
+export interface FilterBarIcons {
+  /** In the search field. */
+  search: ReactNode;
+  /** Clears the search text. */
+  clear: ReactNode;
+  /** The tick in a chosen option. */
+  check: ReactNode;
+  /** The caret on a filter chip. */
+  chevron: ReactNode;
+  /** Removes a filter chip. */
+  remove: ReactNode;
+  /** The add-filter button. */
+  add: ReactNode;
+  /** The sort button. */
+  sort: ReactNode;
+}
+export const filterBarIcons: FilterBarIcons = {
+  search: <Search />,
+  clear: <X />,
+  check: <Check />,
+  chevron: <ChevronDown />,
+  remove: <X />,
+  add: <Plus />,
+  sort: <ArrowDownUp />,
+};
 
 export type FilterField = { id: string; label: string; options: { value: string; label: string }[] };
 export type FilterValues = Record<string, string[]>;
@@ -37,6 +64,8 @@ export type FilterBarProps = {
   searchLabel?: string;
   /** Override any UI text. Merged over `filterBarLabels`. */
   labels?: Partial<FilterBarLabels>;
+  /** Replace any built-in icon. Merged over `filterBarIcons`. */
+  icons?: Partial<FilterBarIcons>;
   className?: string;
 };
 
@@ -82,7 +111,7 @@ export const filterBarLabels: FilterBarLabels = {
 const active = (f: FilterValues) => Object.entries(f).filter(([, v]) => v.length > 0);
 
 /** The editor inside a filter chip: a tickable list of the field's values. */
-function ValueList({ field, value, onChange }: { field: FilterField; value: string[]; onChange: (v: string[]) => void }) {
+function ValueList({ field, value, onChange, check }: { check: ReactNode; field: FilterField; value: string[]; onChange: (v: string[]) => void }) {
   const id = useId();
   const [hl, setHl] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
@@ -121,8 +150,8 @@ function ValueList({ field, value, onChange }: { field: FilterField; value: stri
           >
             <RowHighlight on={hl === i} />
             <span className={cn("grid size-4 place-items-center rounded-[4px] border transition-colors duration-200", on ? "border-transparent bg-btn-primary text-btn-primary-ink" : "border-line-strong")}>
-              <motion.span initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className="grid">
-                <Check className="size-3" strokeWidth={3} />
+              <motion.span initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className="grid [&>svg]:size-3 [&>svg]:[stroke-width:3]">
+                {check}
               </motion.span>
             </span>
             <span className="min-w-0 flex-1 truncate">{o.label}</span>
@@ -133,8 +162,8 @@ function ValueList({ field, value, onChange }: { field: FilterField; value: stri
   );
 }
 
-function FilterChip({ field, value, onChange, onRemove, autoOpen, l }: {
-  l: FilterBarLabels; field: FilterField; value: string[]; onChange: (v: string[]) => void; onRemove: () => void; autoOpen: boolean;
+function FilterChip({ field, value, onChange, onRemove, autoOpen, l, ic }: {
+  ic: FilterBarIcons; l: FilterBarLabels; field: FilterField; value: string[]; onChange: (v: string[]) => void; onRemove: () => void; autoOpen: boolean;
 }) {
   const ref = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(autoOpen);
@@ -152,18 +181,18 @@ function FilterChip({ field, value, onChange, onRemove, autoOpen, l }: {
       >
         <span className="text-muted">{field.label}</span>
         <SwapText value={text} className="max-w-40 font-medium">{text}</SwapText>
-        <ChevronDown className="size-3.5 text-muted" />
+        <span aria-hidden className="grid place-items-center text-muted [&>svg]:size-3.5">{ic.chevron}</span>
       </button>
       <button
         type="button"
         aria-label={l.removeFilter(field.label)}
         onClick={onRemove}
-        className="grid h-full w-7 place-items-center rounded-r-full text-muted transition-colors hover:bg-active hover:text-ink"
+        className="grid h-full w-7 place-items-center rounded-r-full text-muted transition-colors hover:bg-active hover:text-ink [&>svg]:size-3.5"
       >
-        <X className="size-3.5" />
+        {ic.remove}
       </button>
       <AnchoredLayer open={open} onClose={() => { setOpen(false); if (value.length === 0) onRemove(); }} anchor={ref} className="w-56">
-        <ValueList field={field} value={value} onChange={onChange} />
+        <ValueList field={field} value={value} onChange={onChange} check={ic.check} />
       </AnchoredLayer>
     </span>
   );
@@ -175,9 +204,10 @@ function FilterChip({ field, value, onChange, onRemove, autoOpen, l }: {
  */
 export function FilterBar({
   fields, filters: filtersProp, defaultFilters = {}, onFiltersChange, query: queryProp, defaultQuery = "", onQueryChange,
-  sorts, sort: sortProp, defaultSort, onSortChange, views, summary, searchLabel, labels, className,
+  sorts, sort: sortProp, defaultSort, onSortChange, views, summary, searchLabel, labels, icons, className,
 }: FilterBarProps) {
   const l = { ...filterBarLabels, ...labels };
+  const ic = { ...filterBarIcons, ...icons };
   const search = searchLabel ?? l.search;
   const [filters, setFilters] = useControllable<FilterValues>(filtersProp, defaultFilters, onFiltersChange);
   const [query, setQuery] = useControllable<string>(queryProp, defaultQuery, onQueryChange);
@@ -235,7 +265,7 @@ export function FilterBar({
 
       <div className="flex flex-wrap items-center gap-2">
         <label className="flex h-8 min-w-0 flex-1 basis-56 items-center gap-2 rounded-full bg-surface px-3 transition-shadow focus-within:ring-2 focus-within:ring-accent sm:max-w-72">
-          <Search className="size-4 shrink-0 text-muted" aria-hidden />
+          <span aria-hidden className="grid shrink-0 place-items-center text-muted [&>svg]:size-4">{ic.search}</span>
           <span className="sr-only">{search}</span>
           <input
             value={query}
@@ -254,9 +284,9 @@ export function FilterBar({
                   exit={{ opacity: 0 }}
                   transition={fade}
                   onClick={() => setQuery("")}
-                  className="grid size-5 place-items-center rounded-full text-muted transition-colors hover:bg-active hover:text-ink"
+                  className="grid size-5 place-items-center rounded-full text-muted transition-colors hover:bg-active hover:text-ink [&>svg]:size-3"
                 >
-                  <X className="size-3" />
+                  {ic.clear}
                 </motion.button>
               )}
             </AnimatePresence>
@@ -283,6 +313,7 @@ export function FilterBar({
                   onRemove={() => remove(fid)}
                   autoOpen={justAdded === fid}
                   l={l}
+                  ic={ic}
                 />
               </motion.span>
             );
@@ -304,7 +335,7 @@ export function FilterBar({
                     {...p}
                     className={cn("inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] text-muted transition-colors hover:bg-active hover:text-ink", open && "bg-active text-ink")}
                   >
-                    <Plus className="size-3.5" /> {l.filter}
+                    <span aria-hidden className="grid place-items-center [&>svg]:size-3.5">{ic.add}</span> {l.filter}
                   </button>
                 )}
               />
@@ -343,7 +374,7 @@ export function FilterBar({
                   {...p}
                   className={cn("inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] text-ink transition-colors hover:bg-active", open && "bg-active")}
                 >
-                  <ArrowDownUp className="size-3.5 text-muted" />
+                  <span aria-hidden className="grid place-items-center text-muted [&>svg]:size-3.5">{ic.sort}</span>
                   <SwapText value={sort ?? ""}>{sorts.find((s) => s.id === sort)?.label ?? l.sort}</SwapText>
                 </button>
               )}

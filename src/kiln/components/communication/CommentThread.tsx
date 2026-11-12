@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Heart, Laugh, MoreHorizontal, Pencil, ThumbsUp, Trash2 } from "lucide-react";
 import { cn } from "../../cn";
@@ -78,13 +78,42 @@ export type CommentThreadProps = {
   className?: string;
   /** Override any UI text. Merged over `commentThreadLabels`. */
   labels?: Partial<CommentThreadLabels>;
+  /** Replace any built-in icon. Merged over `commentThreadIcons`. */
+  icons?: Partial<CommentThreadIcons>;
 };
 
-const REACTIONS: Array<{ kind: ReactionKind; icon: ReactNode }> = [
-  { kind: "agree", icon: <ThumbsUp className="size-3.5" /> },
-  { kind: "love", icon: <Heart className="size-3.5" /> },
-  { kind: "funny", icon: <Laugh className="size-3.5" /> },
-];
+export interface CommentThreadIcons {
+  /** Agree reaction. */
+  agree: ReactNode;
+  /** Love reaction. */
+  love: ReactNode;
+  /** Funny reaction. */
+  funny: ReactNode;
+  /** Edit item in the comment menu. */
+  edit: ReactNode;
+  /** Delete item in the comment menu. */
+  delete: ReactNode;
+  /** Comment menu button. */
+  more: ReactNode;
+  /** Add-reaction button. */
+  addReaction: ReactNode;
+}
+export const commentThreadIcons: CommentThreadIcons = {
+  agree: <ThumbsUp />,
+  love: <Heart />,
+  funny: <Laugh />,
+  edit: <Pencil />,
+  delete: <Trash2 />,
+  more: <MoreHorizontal />,
+  addReaction: (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <circle cx="7" cy="8.5" r="5" />
+      <path d="M5.2 9.8a2.4 2.4 0 0 0 3.6 0M5.4 7h.01M8.6 7h.01M13 1.5v4M11 3.5h4" />
+    </svg>
+  ),
+};
+
+const REACTIONS: Array<{ kind: ReactionKind }> = [{ kind: "agree" }, { kind: "love" }, { kind: "funny" }];
 
 let made = 0;
 
@@ -101,16 +130,17 @@ const mapTree = (list: Comment[], id: string, fn: (c: Comment) => Comment | null
  * A discussion with replies, reactions and an Edit / Delete menu on your own
  * comments. Counts roll when they change; deleted comments fold away.
  */
-export function CommentThread({ comments, onChange, me, maxDepth = 2, className, labels }: CommentThreadProps) {
+export function CommentThread({ comments, onChange, me, maxDepth = 2, className, labels, icons }: CommentThreadProps) {
   const l = { ...commentThreadLabels, ...labels };
+  const ic = useMemo(() => ({ ...commentThreadIcons, ...icons }), [icons]);
   return (
     <div className={cn("space-y-1", className)}>
-      <CommentList list={comments} depth={1} root={comments} onChange={onChange} me={me} maxDepth={maxDepth} l={l} />
+      <CommentList list={comments} depth={1} root={comments} onChange={onChange} me={me} maxDepth={maxDepth} l={l} ic={ic} />
     </div>
   );
 }
 
-type ListProps = { list: Comment[]; depth: number; root: Comment[]; onChange: (c: Comment[]) => void; me: string; maxDepth: number; l: CommentThreadLabels };
+type ListProps = { list: Comment[]; depth: number; root: Comment[]; onChange: (c: Comment[]) => void; me: string; maxDepth: number; l: CommentThreadLabels; ic: CommentThreadIcons };
 
 function CommentList({ list, depth, ...rest }: ListProps) {
   return (
@@ -130,7 +160,7 @@ function CommentList({ list, depth, ...rest }: ListProps) {
   );
 }
 
-function CommentItem({ comment: c, depth, root, onChange, me, maxDepth, l }: Omit<ListProps, "list"> & { comment: Comment }) {
+function CommentItem({ comment: c, depth, root, onChange, me, maxDepth, l, ic }: Omit<ListProps, "list"> & { comment: Comment }) {
   const [editing, setEditing] = useState(false);
   const [replying, setReplying] = useState(false);
   const mineComment = c.author === me;
@@ -163,8 +193,8 @@ function CommentItem({ comment: c, depth, root, onChange, me, maxDepth, l }: Omi
                 label={l.actionsMenu}
                 placement="bottom-end"
                 items={[
-                  { label: l.edit, icon: <Pencil className="size-4" />, onSelect: () => setEditing(true) },
-                  { label: l.delete, icon: <Trash2 className="size-4" />, danger: true, onSelect: () => update(() => null) },
+                  { label: l.edit, icon: ic.edit, onSelect: () => setEditing(true) },
+                  { label: l.delete, icon: ic.delete, danger: true, onSelect: () => update(() => null) },
                 ]}
                 trigger={({ open, ...p }) => (
                   <button
@@ -172,11 +202,11 @@ function CommentItem({ comment: c, depth, root, onChange, me, maxDepth, l }: Omi
                     type="button"
                     aria-label={l.actions}
                     className={cn(
-                      "grid size-7 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink",
+                      "grid size-7 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink [&>svg]:size-4",
                       open && "bg-raised text-ink",
                     )}
                   >
-                    <MoreHorizontal className="size-4" />
+                    {ic.more}
                   </button>
                 )}
               />
@@ -231,12 +261,12 @@ function CommentItem({ comment: c, depth, root, onChange, me, maxDepth, l }: Omi
                   on ? "border-accent text-accent" : "border-line text-muted hover:border-line-strong hover:text-ink",
                 )}
               >
-                {r.icon}
+                <span className="inline-flex [&>svg]:size-3.5" aria-hidden>{ic[r.kind]}</span>
                 <Count value={count} />
               </motion.button>
             );
           })}
-          <AddReaction comment={c} onPick={toggleReaction} l={l} />
+          <AddReaction comment={c} onPick={toggleReaction} l={l} ic={ic} />
           {depth < maxDepth && (
             <button
               type="button"
@@ -280,7 +310,7 @@ function CommentItem({ comment: c, depth, root, onChange, me, maxDepth, l }: Omi
 
         {c.replies && c.replies.length > 0 && (
           <div className="mt-1">
-            <CommentList list={c.replies} depth={depth + 1} root={root} onChange={onChange} me={me} maxDepth={maxDepth} l={l} />
+            <CommentList list={c.replies} depth={depth + 1} root={root} onChange={onChange} me={me} maxDepth={maxDepth} l={l} ic={ic} />
           </div>
         )}
       </div>
@@ -339,7 +369,7 @@ function Count({ value }: { value: number }) {
   );
 }
 
-function AddReaction({ comment, onPick, l }: { comment: Comment; onPick: (k: ReactionKind) => void; l: CommentThreadLabels }) {
+function AddReaction({ comment, onPick, l, ic }: { comment: Comment; onPick: (k: ReactionKind) => void; l: CommentThreadLabels; ic: CommentThreadIcons }) {
   return (
     <DropdownMenu
       label={l.addReaction}
@@ -355,14 +385,11 @@ function AddReaction({ comment, onPick, l }: { comment: Comment; onPick: (k: Rea
           type="button"
           aria-label={l.addReaction}
           className={cn(
-            "grid h-7 w-8 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink",
+            "grid h-7 w-8 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink [&>svg]:size-4",
             open && "bg-raised text-ink",
           )}
         >
-          <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden>
-            <circle cx="7" cy="8.5" r="5" />
-            <path d="M5.2 9.8a2.4 2.4 0 0 0 3.6 0M5.4 7h.01M8.6 7h.01M13 1.5v4M11 3.5h4" />
-          </svg>
+          {ic.addReaction}
         </button>
       )}
     />

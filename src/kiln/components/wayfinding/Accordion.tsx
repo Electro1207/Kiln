@@ -5,6 +5,13 @@ import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { easeOut, springSnappy, springSoft } from "../../motion";
 
+/** Icons used by Accordion. Pass a partial via `icons` to swap any of them. */
+export interface AccordionIcons {
+  /** The chevron on each row; it turns over when the row opens. */
+  expand: ReactNode;
+}
+export const accordionIcons: AccordionIcons = { expand: <ChevronDown /> };
+
 export type AccordionItem = { id: string; title: string; content: ReactNode; disabled?: boolean };
 
 export type AccordionProps = {
@@ -19,11 +26,14 @@ export type AccordionProps = {
   /** lines: rows split by a rule. cards: each row its own tinted panel. */
   variant?: "lines" | "cards";
   className?: string;
+  /** Replace any built-in icon. Merged over `accordionIcons`. */
+  icons?: Partial<AccordionIcons>;
 };
 
 /** Rows that open to show more. Uncontrolled by default; pass `value` and `onChange` to control which are open. */
-export function Accordion({ items, type = "single", defaultOpen = [], value, onChange, variant = "lines", className }: AccordionProps) {
+export function Accordion({ items, type = "single", defaultOpen = [], value, onChange, variant = "lines", className, icons }: AccordionProps) {
   const id = useId();
+  const ic = { ...accordionIcons, ...icons };
   const [open, setOpen] = useControllable<string[]>(value, defaultOpen, onChange);
 
   const toggle = (itemId: string) =>
@@ -72,9 +82,9 @@ export function Accordion({ items, type = "single", defaultOpen = [], value, onC
                   initial={false}
                   animate={{ rotate: isOpen ? 180 : 0 }}
                   transition={springSnappy}
-                  className="grid size-7 shrink-0 place-items-center rounded-full text-muted transition-colors group-hover:bg-active group-hover:text-ink"
+                  className="grid size-7 shrink-0 place-items-center rounded-full text-muted transition-colors group-hover:bg-active group-hover:text-ink [&>svg]:size-4"
                 >
-                  <ChevronDown className="size-4" />
+                  {ic.expand}
                 </motion.span>
               </button>
             </h3>

@@ -1,4 +1,4 @@
-import { cloneElement, useEffect, useRef, useState, type ReactElement, type ReactNode, type Ref } from "react";
+import { cloneElement, useCallback, useEffect, useRef, useState, type ReactElement, type ReactNode, type Ref } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
 import { popVariants } from "../../motion";
@@ -22,17 +22,27 @@ export type HoverCardProps = {
   className?: string;
 };
 
+/** One pending timeout, cleared on unmount. */
+function useTimeout() {
+  const id = useRef<number | undefined>(undefined);
+  const clear = useCallback(() => window.clearTimeout(id.current), []);
+  const set = useCallback((fn: () => void, ms: number) => {
+    window.clearTimeout(id.current);
+    id.current = window.setTimeout(fn, ms);
+  }, []);
+  useEffect(() => clear, [clear]);
+  return { set };
+}
+
 /** A rich preview that opens when a link is hovered or focused, and stays open while the pointer is on it. */
 export function HoverCard({ children, content, side = "bottom", align = "start", openDelay = 380, closeDelay = 180, className }: HoverCardProps) {
   const [open, setOpen] = useState(false);
-  const timer = useRef<number | undefined>(undefined);
-  const { anchorRef, floatingRef, placement, floatingStyle } = useAnchored(open, side, align, 10);
+  const timer = useTimeout();
+  const { setAnchor, floatingRef, placement, floatingStyle } = useAnchored(open, side, align, 10);
 
   const schedule = (next: boolean) => {
-    window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setOpen(next), next ? openDelay : closeDelay);
+    timer.set(() => setOpen(next), next ? openDelay : closeDelay);
   };
-  useEffect(() => () => window.clearTimeout(timer.current), []);
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
@@ -42,7 +52,7 @@ export function HoverCard({ children, content, side = "bottom", align = "start",
 
   const p = children.props;
   const trigger = cloneElement(children, {
-    ref: anchorRef as Ref<HTMLElement>,
+    ref: setAnchor as Ref<HTMLElement>,
     onPointerEnter: (e) => { p.onPointerEnter?.(e); if (e.pointerType === "mouse") schedule(true); },
     onPointerLeave: (e) => { p.onPointerLeave?.(e); schedule(false); },
     onFocus: (e) => { p.onFocus?.(e); schedule(true); },

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "../../cn";
@@ -20,6 +20,15 @@ export interface SelectLabels {
   placeholder: string;
 }
 export const selectLabels: SelectLabels = { placeholder: "Choose…" };
+
+/** Icons used by Select. Pass a partial via `icons` to replace them. */
+export interface SelectIcons {
+  /** Chevron on the trigger; it turns over while open. */
+  chevron: ReactNode;
+  /** Tick on the selected option. */
+  check: ReactNode;
+}
+export const selectIcons: SelectIcons = { chevron: <ChevronDown />, check: <Check /> };
 
 export type SelectProps = {
   options: SelectOption[];
@@ -43,14 +52,17 @@ export type SelectProps = {
   triggerClassName?: string;
   /** Override any UI text. Merged over `selectLabels`. */
   labels?: Partial<SelectLabels>;
+  /** Replace any built-in icon. Merged over `selectIcons`. */
+  icons?: Partial<SelectIcons>;
 };
 
 /** A single choice from a list, with keyboard navigation and typeahead. */
 export function Select({
   options, value: valueProp, defaultValue = null, onChange: onChangeProp, open: openProp, defaultOpen = false, onOpenChange,
-  placeholder, label, "aria-label": ariaLabel, size = "md", disabled, className, triggerClassName, labels,
+  placeholder, label, "aria-label": ariaLabel, size = "md", disabled, className, triggerClassName, labels, icons,
 }: SelectProps) {
   const l = { ...selectLabels, ...labels };
+  const ic = useMemo(() => ({ ...selectIcons, ...icons }), [icons]);
   const [value, setValue] = useControllable<string | null>(valueProp, defaultValue, onChangeProp as (v: string | null) => void);
   const onChange = (v: string) => setValue(v);
   const id = useId();
@@ -153,8 +165,8 @@ export function Select({
             {selected?.label ?? placeholder ?? l.placeholder}
           </SwapText>
         </span>
-        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={springSnappy} className="inline-flex text-muted">
-          <ChevronDown className="size-4" />
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={springSnappy} className="inline-flex text-muted [&>svg]:size-4">
+          {ic.chevron}
         </motion.span>
       </button>
 
@@ -198,9 +210,9 @@ export function Select({
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={springSnappy}
-                    className="inline-flex"
+                    className="inline-flex [&>svg]:size-4 [&>svg]:[stroke-width:2.5]"
                   >
-                    <Check className="size-4" strokeWidth={2.5} />
+                    {ic.check}
                   </motion.span>
                 )}
               </AnimatePresence>

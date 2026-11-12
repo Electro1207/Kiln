@@ -1,4 +1,4 @@
-import { useId, useRef, type ReactNode } from "react";
+import { useId, useMemo, useRef, type ReactNode } from "react";
 import { AnimatePresence, motion, useDragControls, type PanInfo } from "motion/react";
 import { X } from "lucide-react";
 import { cn } from "../../cn";
@@ -11,6 +11,13 @@ export interface DrawerLabels {
   close: string;
 }
 export const drawerLabels: DrawerLabels = { close: "Close" };
+
+/** Icons used by Drawer. Pass a partial via `icons` to swap any of them. */
+export interface DrawerIcons {
+  /** Close button. */
+  close: ReactNode;
+}
+export const drawerIcons: DrawerIcons = { close: <X /> };
 
 export type DrawerSide = "left" | "right" | "bottom";
 
@@ -31,6 +38,8 @@ export type DrawerProps = {
   bodyClassName?: string;
   /** Override any UI text. Merged over `drawerLabels`. */
   labels?: Partial<DrawerLabels>;
+  /** Replace any built-in icon. Merged over `drawerIcons`. */
+  icons?: Partial<DrawerIcons>;
 };
 
 const offscreen: Record<DrawerSide, { x?: string; y?: string }> = {
@@ -51,8 +60,9 @@ export function Drawer(props: DrawerProps) {
   );
 }
 
-function DrawerLayer({ onOpenChange, side = "right", title, label, children, footer, width = 360, className, bodyClassName, labels }: DrawerProps) {
+function DrawerLayer({ onOpenChange, side = "right", title, label, children, footer, width = 360, className, bodyClassName, labels, icons }: DrawerProps) {
   const l = { ...drawerLabels, ...labels };
+  const ic = useMemo(() => ({ ...drawerIcons, ...icons }), [icons]);
   const ref = useRef<HTMLDivElement>(null);
   const drag = useDragControls();
   const titleId = useId();
@@ -128,9 +138,9 @@ function DrawerLayer({ onOpenChange, side = "right", title, label, children, foo
               aria-label={l.close}
               onClick={close}
               whileTap={{ scale: 0.9 }}
-              className="-mr-2 grid size-8 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink"
+              className="-mr-2 grid size-8 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink [&>svg]:size-4"
             >
-              <X className="size-4" />
+              {ic.close}
             </motion.button>
           </div>
         )}

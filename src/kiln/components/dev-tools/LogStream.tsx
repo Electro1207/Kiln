@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowDown, Pause } from "lucide-react";
 import { cn } from "../../cn";
@@ -38,6 +38,14 @@ export const logStreamLabels: LogStreamLabels = {
   jumpToLatest: "Jump to latest",
 };
 
+export interface LogStreamIcons {
+  /** Jump-to-latest pill. */
+  latest: ReactNode;
+  /** Pill while the stream is paused. */
+  paused: ReactNode;
+}
+export const logStreamIcons: LogStreamIcons = { latest: <ArrowDown />, paused: <Pause /> };
+
 export type LogStreamProps = {
   /** Every entry so far, oldest first. The component only renders the rows in view. */
   entries: LogEntry[];
@@ -49,6 +57,8 @@ export type LogStreamProps = {
   className?: string;
   /** Override any UI text. Merged over `logStreamLabels`. */
   labels?: Partial<LogStreamLabels>;
+  /** Replace any built-in icon. Merged over `logStreamIcons`. */
+  icons?: Partial<LogStreamIcons>;
 };
 
 /**
@@ -56,8 +66,9 @@ export type LogStreamProps = {
  * holds still while the pointer is over it (new lines wait behind a "new" pill),
  * and renders only the rows in view, so a hundred thousand lines cost the same as fifty.
  */
-export function LogStream({ entries, title, height = 360, rowHeight = 26, locale, className, labels }: LogStreamProps) {
+export function LogStream({ entries, title, height = 360, rowHeight = 26, locale, className, labels, icons }: LogStreamProps) {
   const lb = { ...logStreamLabels, ...labels };
+  const ic = useMemo(() => ({ ...logStreamIcons, ...icons }), [icons]);
   const [on, setOn] = useState<Set<LogLevel>>(new Set(["info", "warn", "error"]));
   const [hover, setHover] = useState(false);
   const [follow, setFollow] = useState(true);
@@ -67,7 +78,9 @@ export function LogStream({ entries, title, height = 360, rowHeight = 26, locale
   // While paused (pointer over it) the visible list is frozen at the entry count it had.
   const [frozenAt, setFrozenAt] = useState<number | null>(null);
   const count = useRef(entries.length);
-  count.current = entries.length;
+  useLayoutEffect(() => {
+    count.current = entries.length;
+  });
   useEffect(() => setFrozenAt(hover ? count.current : null), [hover]);
   const live = frozenAt == null ? entries : entries.slice(0, frozenAt);
   const waiting = frozenAt == null ? 0 : entries.slice(frozenAt).filter((e) => on.has(e.level)).length;
@@ -170,7 +183,7 @@ export function LogStream({ entries, title, height = 360, rowHeight = 26, locale
           {(waiting > 0 || (!follow && !hover)) && (
             <motion.button
               type="button"
-              className="pointer-events-auto inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-elevated px-3 text-xs font-medium text-ink shadow-float"
+              className="pointer-events-auto inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-elevated px-3 text-xs font-medium text-ink shadow-float [&>svg]:size-3.5"
               onClick={() => {
                 setFollow(true);
                 setHover(false);
@@ -182,7 +195,7 @@ export function LogStream({ entries, title, height = 360, rowHeight = 26, locale
               exit={{ opacity: 0, y: 8, transition: fade }}
               transition={springSoft}
             >
-              {waiting > 0 ? <Pause className="size-3.5" aria-hidden /> : <ArrowDown className="size-3.5" aria-hidden />}
+              {waiting > 0 ? ic.paused : ic.latest}
               <span className="tabular">{waiting > 0 ? lb.paused(waiting) : lb.jumpToLatest}</span>
             </motion.button>
           )}

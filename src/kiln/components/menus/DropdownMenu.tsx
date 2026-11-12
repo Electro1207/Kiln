@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, ChevronRight } from "lucide-react";
 import { cn } from "../../cn";
@@ -14,6 +14,15 @@ export type MenuEntry =
 
 const focusable = (e: MenuEntry) => e.type !== "separator" && e.type !== "label" && !("disabled" in e && e.disabled);
 
+/** Icons used by DropdownMenu and ContextMenu. Pass a partial via `icons` to swap any of them. */
+export interface DropdownMenuIcons {
+  /** Tick on a checked checkbox item. */
+  check: ReactNode;
+  /** Arrow at the end of a submenu row. */
+  submenu: ReactNode;
+}
+export const dropdownMenuIcons: DropdownMenuIcons = { check: <Check />, submenu: <ChevronRight /> };
+
 type MenuContentProps = {
   open: boolean;
   onClose: (reason: "select" | "dismiss") => void;
@@ -26,25 +35,33 @@ type MenuContentProps = {
   onBack?: () => void;
   label?: string;
   minWidth?: number;
+  /** Replace any built-in icon. Merged over `dropdownMenuIcons`. */
+  icons?: Partial<DropdownMenuIcons>;
 };
 
 /** The panel of a menu. Shared by DropdownMenu and ContextMenu; submenus are nested MenuContents. */
-export function MenuContent({ open, onClose, anchor, items, placement = "bottom-start", group, restoreFocus = true, onBack, label, minWidth = 208 }: MenuContentProps) {
+export function MenuContent({ open, onClose, anchor, items, placement = "bottom-start", group, restoreFocus = true, onBack, label, minWidth = 208, icons }: MenuContentProps) {
+  const ic = useMemo(() => ({ ...dropdownMenuIcons, ...icons }), [icons]);
   const id = useId();
   const groupId = group ?? id;
   const panelRef = useRef<HTMLDivElement | null>(null);
   const rowRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [active, setActive] = useState(-1);
   const [sub, setSub] = useState<number | null>(null);
-  const [, setOpenCount] = useState(0);
+  const [wasOpen, setWasOpen] = useState(open);
   const hoverTimer = useRef<number | undefined>(undefined);
   const typed = useRef({ text: "", at: 0 });
 
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) {
+      setActive(-1);
+      setSub(null);
+    }
+  }
+
   useEffect(() => {
     if (!open) return;
-    setOpenCount((c) => c + 1);
-    setActive(-1);
-    setSub(null);
     const raf = requestAnimationFrame(() => panelRef.current?.focus({ preventScroll: true }));
     return () => cancelAnimationFrame(raf);
   }, [open]);
@@ -150,8 +167,8 @@ export function MenuContent({ open, onClose, anchor, items, placement = "bottom-
                 <span className="inline-flex size-4 text-accent">
                   <AnimatePresence initial={false}>
                     {e.checked && (
-                      <motion.span initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ opacity: 0 }} transition={springSnappy} className="inline-flex">
-                        <Check className="size-4" strokeWidth={2.5} />
+                      <motion.span initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ opacity: 0 }} transition={springSnappy} className="inline-flex [&>svg]:size-4 [&>svg]:[stroke-width:2.5]">
+                        {ic.check}
                       </motion.span>
                     )}
                   </AnimatePresence>
@@ -161,7 +178,7 @@ export function MenuContent({ open, onClose, anchor, items, placement = "bottom-
               ) : null}
               <span className="min-w-0 flex-1 truncate">{e.label}</span>
               {shortcut && <span className="pl-4 text-xs text-muted tabular">{shortcut}</span>}
-              {e.type === "submenu" && <ChevronRight className="size-4 text-muted" />}
+              {e.type === "submenu" && <span className="grid text-muted [&>svg]:size-4" aria-hidden>{ic.submenu}</span>}
             </div>
           );
         })}
@@ -176,6 +193,7 @@ export function MenuContent({ open, onClose, anchor, items, placement = "bottom-
           group={groupId}
           restoreFocus={false}
           label={subEntry.label}
+          icons={icons}
           onBack={() => {
             setSub(null);
             panelRef.current?.focus({ preventScroll: true });
@@ -205,10 +223,12 @@ export type DropdownMenuProps = {
   trigger: (props: DropdownTriggerProps & { open: boolean }) => ReactNode;
   placement?: Placement;
   label?: string;
+  /** Replace any built-in icon. Merged over `dropdownMenuIcons`. */
+  icons?: Partial<DropdownMenuIcons>;
 };
 
 /** A menu that opens from a trigger. Items can be actions, checkboxes, labels, separators or submenus. */
-export function DropdownMenu({ items, trigger, placement = "bottom-start", label }: DropdownMenuProps) {
+export function DropdownMenu({ items, trigger, placement = "bottom-start", label, icons }: DropdownMenuProps) {
   const ref = useRef<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
   return (
@@ -229,6 +249,7 @@ export function DropdownMenu({ items, trigger, placement = "bottom-start", label
         items={items}
         placement={placement}
         label={label}
+        icons={icons}
         onClose={(reason) => {
           setOpen(false);
           if (reason === "select") ref.current?.focus();

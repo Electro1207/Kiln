@@ -3,14 +3,14 @@ export { type BentoGridProps, BentoGrid, type BentoTileProps, BentoTile } from "
 export { type BlogPost, type BlogListLabels, blogListLabels, type BlogListProps, BlogList } from "../components/marketing/BlogList";
 export { type CTASectionProps, CTASection } from "../components/marketing/CTASection";
 export { type ChangelogLabels, changelogLabels, type ChangeKind, type Release, type ChangelogProps, Changelog } from "../components/marketing/Changelog";
-export { type ContactSectionLabels, contactSectionLabels, type Office, type ContactValues, type ContactSectionProps, ContactSection } from "../components/marketing/ContactSection";
+export { type ContactSectionLabels, type ContactSectionIcons, contactSectionIcons, contactSectionLabels, type Office, type ContactValues, type ContactSectionProps, ContactSection } from "../components/marketing/ContactSection";
 export { type FAQSectionProps, FAQSection } from "../components/marketing/FAQSection";
 export { type FeatureSplitProps, FeatureSplit } from "../components/marketing/FeatureSplit";
 export { type FeatureTabsLabels, featureTabsLabels, type Feature, type FeatureTabsProps, FeatureTabs } from "../components/marketing/FeatureTabs";
 export { type FooterProps, Footer } from "../components/marketing/Footer";
 export { type HeroProps, Hero } from "../components/marketing/Hero";
-export { type NewsletterSignupLabels, newsletterSignupLabels, type NewsletterSignupProps, NewsletterSignup } from "../components/marketing/NewsletterSignup";
-export { type NotFoundLabels, notFoundLabels, type NotFoundProps, NotFound } from "../components/marketing/NotFound";
+export { type NewsletterSignupLabels, type NewsletterSignupIcons, newsletterSignupIcons, newsletterSignupLabels, type NewsletterSignupProps, NewsletterSignup } from "../components/marketing/NewsletterSignup";
+export { type NotFoundLabels, type NotFoundIcons, notFoundIcons, notFoundLabels, type NotFoundProps, NotFound } from "../components/marketing/NotFound";
 export { type StatItem, type StatsSectionProps, StatsSection } from "../components/marketing/StatsSection";
 export { type TeamLink, type TeamMember, type TeamGridProps, TeamGrid } from "../components/marketing/TeamGrid";
 export { type Testimonial, type TestimonialsProps, Testimonials } from "../components/marketing/Testimonials";

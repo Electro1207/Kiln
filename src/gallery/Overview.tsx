@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, ArrowUpRight, Palette } from "lucide-react";
 import { categories } from "./registry";
 import { href, type Route } from "./useRoute";
-import { useStudio } from "./studio/store";
+import { useStudio } from "./studio/context";
 import { liveCss, PRESETS, type StudioTheme } from "./studio/tokens";
 import { Button } from "../kiln/components/buttons/Button";
 import { Switch } from "../kiln/components/choice-controls/Switch";
@@ -78,10 +78,10 @@ export function Overview({ onNavigate }: { onNavigate: (r: Route) => void }) {
     <div className="space-y-2">
       <Hero total={total} onBrowse={() => first && onNavigate({ page: "category", category: first.id })} onStudio={() => onNavigate({ page: "studio" })} />
       <Orbit total={total} />
-      <Shelf total={total} />
       <CloseUps />
       <InMotion />
       <Stages />
+      <Shelf total={total} />
       <Close total={total} onBrowse={() => first && onNavigate({ page: "category", category: first.id })} />
       <Mark />
     </div>
@@ -205,7 +205,7 @@ function Workbench() {
 }
 
 function Shelf({ total }: { total: number }) {
-  const [open, setOpen] = useState<string | null>(categories[3]?.id ?? categories[0]?.id ?? null);
+  const [open, setOpen] = useState<string | null>(null);
   return (
     <section aria-labelledby="shelf-title" className="dark rounded-[10px] bg-ground px-2 py-6 text-ink sm:px-3 sm:py-8">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4 px-3 sm:px-4">

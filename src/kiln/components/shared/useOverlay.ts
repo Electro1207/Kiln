@@ -51,7 +51,9 @@ function focusables(node: HTMLElement) {
  */
 export function useModalLayer(ref: RefObject<HTMLElement | null>, onClose: () => void, { lockScroll = true } = {}) {
   const closeRef = useRef(onClose);
-  closeRef.current = onClose;
+  useLayoutEffect(() => {
+    closeRef.current = onClose;
+  });
   useScrollLock(lockScroll);
 
   useEffect(() => {
@@ -108,9 +110,11 @@ export function useDismiss(
   refs: Array<RefObject<HTMLElement | null>>,
 ) {
   const closeRef = useRef(onClose);
-  closeRef.current = onClose;
   const refsRef = useRef(refs);
-  refsRef.current = refs;
+  useLayoutEffect(() => {
+    closeRef.current = onClose;
+    refsRef.current = refs;
+  });
   useEffect(() => {
     if (!open) return;
     const id = Symbol("float");
@@ -189,6 +193,10 @@ export function useAnchored<A extends HTMLElement = HTMLElement>(open: boolean, 
   const anchorRef = useRef<A | null>(null);
   const floatingRef = useRef<HTMLDivElement | null>(null);
   const [placement, setPlacement] = useState<Placement | null>(null);
+  const setAnchor = useCallback((el: A | null) => {
+    anchorRef.current = el;
+  }, []);
+  const focusAnchor = useCallback(() => anchorRef.current?.focus({ preventScroll: true }), []);
 
   const update = useCallback(() => {
     const a = anchorRef.current, f = floatingRef.current;
@@ -226,7 +234,7 @@ export function useAnchored<A extends HTMLElement = HTMLElement>(open: boolean, 
     ? { position: "fixed", left: placement.x, top: placement.y }
     : { position: "fixed", left: 0, top: 0, visibility: "hidden" };
 
-  return { anchorRef, floatingRef, placement, floatingStyle };
+  return { anchorRef, setAnchor, focusAnchor, floatingRef, placement, floatingStyle };
 }
 
 /** transform-origin so a floating element grows out of its anchor. */

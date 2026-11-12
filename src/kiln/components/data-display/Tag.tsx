@@ -26,7 +26,15 @@ export type TagProps = Omit<HTMLMotionProps<"span">, "children"> & {
   onRemove?: () => void;
   /** Override any UI text. Merged over `tagLabels`. */
   labels?: Partial<TagLabels>;
+  /** Replace any built-in icon. Merged over `tagIcons`. */
+  icons?: Partial<TagIcons>;
 };
+
+export interface TagIcons {
+  /** Remove button. */
+  remove: ReactNode;
+}
+export const tagIcons: TagIcons = { remove: <X /> };
 
 const tagSizes: Record<Size, string> = { sm: "h-6 text-xs", md: "h-7 text-[13px]", lg: "h-8 text-sm" };
 
@@ -41,10 +49,11 @@ const tones: Record<TagTone, string> = {
 
 /** A tag or chip. Put a list of them in <TagGroup> for smooth add and remove. */
 export const Tag = forwardRef<HTMLSpanElement, TagProps>(function Tag(
-  { children, tone = "neutral", size = "md", leading, onRemove, className, labels, ...rest },
+  { children, tone = "neutral", size = "md", leading, onRemove, className, labels, icons, ...rest },
   ref,
 ) {
   const l = { ...tagLabels, ...labels };
+  const ic = { ...tagIcons, ...icons };
   return (
     <motion.span
       ref={ref}
@@ -70,14 +79,25 @@ export const Tag = forwardRef<HTMLSpanElement, TagProps>(function Tag(
           whileTap={{ scale: 0.85 }}
           transition={springSnappy}
           aria-label={l.remove(typeof children === "string" ? children : l.tag)}
-          className="grid size-5 place-items-center rounded-full opacity-70 transition-[opacity,background-color] hover:bg-ink/10 hover:opacity-100"
+          className="grid size-5 place-items-center rounded-full opacity-70 transition-[opacity,background-color] hover:bg-ink/10 hover:opacity-100 [&>svg]:size-3 [&>svg]:stroke-[2.5]"
         >
-          <X className="size-3" strokeWidth={2.5} />
+          {ic.remove}
         </motion.button>
       )}
     </motion.span>
   );
 });
+
+function flipRects(box: HTMLElement | null) {
+  const m = new Map<string, { x: number; y: number }>();
+  if (!box) return m;
+  const o = box.getBoundingClientRect();
+  box.querySelectorAll<HTMLElement>("[data-flip]").forEach((el) => {
+    const r = el.getBoundingClientRect();
+    m.set(el.dataset.flip!, { x: r.left - o.left, y: r.top - o.top });
+  });
+  return m;
+}
 
 /**
  * A wrapping row of tags (or any keyed elements) that make room for each other
@@ -89,29 +109,36 @@ export function TagGroup({ children, className, label }: { children: ReactNode; 
   const items = Children.toArray(children).filter(isValidElement) as ReactElement<Record<string, unknown>>[];
   const keys = items.map((c) => String(c.key)).join("|");
   const committed = useRef(keys);
-  const before = useRef<Map<string, DOMRect> | null>(null);
+  const snap = useRef(new Map<string, { x: number; y: number }>());
 
-  // The order is about to change and the DOM still shows the old one: note where everything is.
-  if (keys !== committed.current && box.current && !before.current) {
-    const m = new Map<string, DOMRect>();
-    box.current.querySelectorAll<HTMLElement>("[data-flip]").forEach((el) => m.set(el.dataset.flip!, el.getBoundingClientRect()));
-    before.current = m;
-  }
-
+  // Each commit records where every tag sits; when the keys change, the last record is the "before".
   useLayoutEffect(() => {
-    const prev = before.current;
-    before.current = null;
+    const prev = snap.current;
+    const changed = keys !== committed.current;
     committed.current = keys;
-    if (!prev || !box.current || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const next = flipRects(box.current);
+    snap.current = next;
+    if (!changed || !box.current || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     box.current.querySelectorAll<HTMLElement>("[data-flip]").forEach((el) => {
-      const was = prev.get(el.dataset.flip!);
-      if (!was || el.style.position === "absolute") return;
-      const now = el.getBoundingClientRect();
-      const dx = was.left - now.left, dy = was.top - now.top;
+      const id = el.dataset.flip!;
+      const was = prev.get(id);
+      const now = next.get(id);
+      if (!was || !now || el.style.position === "absolute") return;
+      const dx = was.x - now.x, dy = was.y - now.y;
       if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
       el.animate([{ translate: `${dx}px ${dy}px` }, { translate: "0px 0px" }], { duration: 480, easing: `cubic-bezier(${easeOut.join(",")})`, composite: "add" });
     });
-  }, [keys]);
+  });
+
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      snap.current = flipRects(el);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   return (
     <div ref={box} aria-label={label} className={cn("relative flex flex-wrap gap-2", className)}>

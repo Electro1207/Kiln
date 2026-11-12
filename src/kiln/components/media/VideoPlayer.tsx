@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
-import { Captions, Check, ChevronLeft, ChevronRight, Keyboard, Maximize, Minimize, PictureInPicture2, RectangleHorizontal, RotateCcw, Settings, X } from "lucide-react";
+import { Captions, Check, ChevronLeft, ChevronRight, Keyboard, Maximize, Minimize, PictureInPicture2, RectangleHorizontal, RotateCcw, Settings, Volume1, Volume2, VolumeX, X } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, fade, springFirm, springSnappy, springSoft } from "../../motion";
 
@@ -180,8 +180,95 @@ export type VideoPlayerProps = {
   onTheaterChange?: (v: boolean) => void;
   /** Override any UI text. Merged over `videoPlayerLabels`. */
   labels?: Partial<VideoPlayerLabels>;
+  /** Replace any built-in icon. Merged over `videoPlayerIcons`. */
+  icons?: Partial<VideoPlayerIcons>;
   className?: string;
 };
+
+/** Icons used by VideoPlayer. Pass a partial via `icons` to swap any of them. */
+export interface VideoPlayerIcons {
+  /** Play button and the flash on the video. `null` keeps the built-in glyph, which morphs into the pause bars. Set either slot and the two cross-fade instead. */
+  play: ReactNode;
+  /** Pause button, see `play`. */
+  pause: ReactNode;
+  /** Back ten seconds. */
+  back10: ReactNode;
+  /** Forward ten seconds. */
+  forward10: ReactNode;
+  /** Volume at 50 or above. `null` on all three volume slots keeps the built-in speaker, which animates between levels. */
+  volume: ReactNode;
+  /** Volume below 50, see `volume`. */
+  volumeLow: ReactNode;
+  /** Muted or at zero, see `volume`. */
+  mute: ReactNode;
+  /** Captions toggle. */
+  captions: ReactNode;
+  /** Settings button; it turns while the menu is open. */
+  settings: ReactNode;
+  /** Picture in picture. */
+  pictureInPicture: ReactNode;
+  /** Theater mode toggle. */
+  theater: ReactNode;
+  /** Enter fullscreen. */
+  fullscreen: ReactNode;
+  /** Leave fullscreen. */
+  exitFullscreen: ReactNode;
+  /** Keyboard shortcuts row in settings. */
+  shortcuts: ReactNode;
+  /** Close button of the shortcuts sheet. */
+  close: ReactNode;
+  /** Forward arrow: settings rows and the skip readout. */
+  next: ReactNode;
+  /** Back arrow: settings pages and the skip readout. */
+  previous: ReactNode;
+  /** Tick on the selected settings choice. */
+  check: ReactNode;
+  /** The chevron repeated three times in the double-tap seek ripple (points right). */
+  seek: ReactNode;
+  /** Watch again, on the end screen. */
+  replay: ReactNode;
+  /** Buffering spinner. The wrapper spins it. */
+  spinner: ReactNode;
+}
+const skip10 = (dir: -1 | 1) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <g transform={dir < 0 ? "" : "translate(24 0) scale(-1 1)"}>
+      <path d="M4 12a8 8 0 1 0 2.6-5.9" />
+      <path d="M4 3.5v4.5h4.5" />
+    </g>
+    <text x="12" y="15.4" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="currentColor" stroke="none" fontFamily="IBM Plex Sans, sans-serif">10</text>
+  </svg>
+);
+export const videoPlayerIcons: VideoPlayerIcons = {
+  play: null,
+  pause: null,
+  back10: skip10(-1),
+  forward10: skip10(1),
+  volume: null,
+  volumeLow: null,
+  mute: null,
+  captions: <Captions />,
+  settings: <Settings />,
+  pictureInPicture: <PictureInPicture2 />,
+  theater: <RectangleHorizontal />,
+  fullscreen: <Maximize />,
+  exitFullscreen: <Minimize />,
+  shortcuts: <Keyboard />,
+  close: <X />,
+  next: <ChevronRight />,
+  previous: <ChevronLeft />,
+  check: <Check />,
+  seek: <ChevronRight />,
+  replay: <RotateCcw />,
+  spinner: (
+    <svg viewBox="0 0 48 48" aria-hidden>
+      <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="3.5" />
+      <path d="M44 24a20 20 0 0 0-20-20" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+    </svg>
+  ),
+};
+const VideoIconsContext = createContext<VideoPlayerIcons>(videoPlayerIcons);
+const useVideoIcons = () => useContext(VideoIconsContext);
 
 const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 const HIDE_AFTER = 2600;
@@ -223,6 +310,13 @@ type CaptionSize = keyof typeof CAPTION_SIZES;
 
 type Page = "main" | "speed" | "quality" | "captions" | "chapters";
 
+/** The caption track, set to "hidden" so its cues load and fire without the browser drawing them. */
+function captionTrack(v: HTMLVideoElement) {
+  const track = v.textTracks[0];
+  if (track) track.mode = "hidden";
+  return track;
+}
+
 /**
  * A video player in the house style. A poster with the title and one play
  * button; then a quiet top bar (title and chapter) and a bottom bar with a
@@ -235,9 +329,10 @@ type Page = "main" | "speed" | "quality" | "captions" | "chapters";
  * in full screen.
  */
 export function VideoPlayer({
-  title, subtitle, renditions, initialQuality, poster, captions, chapters = [], previews, theater = false, onTheaterChange, labels, className,
+  title, subtitle, renditions, initialQuality, poster, captions, chapters = [], previews, theater = false, onTheaterChange, labels, icons, className,
 }: VideoPlayerProps) {
   const l = { ...videoPlayerLabels, ...labels };
+  const ic = useMemo(() => ({ ...videoPlayerIcons, ...icons }), [icons]);
   const root = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const [quality, setQuality] = useState(initialQuality ?? renditions[Math.floor(renditions.length / 2)].label);
@@ -332,9 +427,8 @@ export function VideoPlayer({
   }, [rendition.src, speed, time, buffered, volume]);
 
   useEffect(() => {
-    const track = video.current?.textTracks[0];
+    const track = video.current && captionTrack(video.current);
     if (!track) return;
-    track.mode = "hidden";
     const onCue = () => {
       const c = track.activeCues?.[0] as VTTCue | undefined;
       setCue(c ? c.text : null);
@@ -544,390 +638,389 @@ export function VideoPlayer({
   const currentChapter = useTransform(time, (t) => chapterAt(chapters, t)?.title ?? "");
 
   return (
-    <div
-      ref={root}
-      tabIndex={0}
-      role="region"
-      aria-label={l.player(title)}
-      aria-keyshortcuts="Space K J L M C F T ?"
-      onKeyDown={onKey}
-      onPointerMove={(e) => e.pointerType === "mouse" && started && wake()}
-      onPointerLeave={() => playing && setActive(false)}
-      onFocus={() => started && wake()}
-      className={cn(
-        // The player is always dark inside: its controls sit on picture, whatever the page theme.
-        "dark group/player relative isolate aspect-video w-full select-none overflow-hidden bg-black text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ground",
-        fullscreen ? "rounded-none" : "rounded-[18px]",
-        started && !showControls && "cursor-none",
-        className,
-      )}
-    >
-      <video
-        ref={video}
-        key={rendition.src}
-        src={rendition.src}
-        poster={poster}
-        preload="metadata"
-        playsInline
-        className="absolute inset-0 size-full object-contain"
-        aria-label={title}
-      >
-        {captions && <track kind="captions" src={captions.src} srcLang={captions.lang} label={captions.label} default />}
-      </video>
-
-      <div className="absolute inset-0" onPointerUp={onSurfaceUp} aria-hidden />
-
-      <AnimatePresence>
-        {ripple && (
-          <motion.div
-            key={`${ripple.side}`}
-            aria-hidden
-            className={cn("pointer-events-none absolute inset-y-0 w-[38%] overflow-hidden", ripple.side < 0 ? "left-0 rounded-r-[50%]" : "right-0 rounded-l-[50%]")}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.35, ease: easeOut } }}
-            transition={{ duration: 0.12, ease: easeOut }}
-          >
-            <div className="absolute inset-0 bg-white/[0.08]" />
-            <div className="absolute inset-0 grid place-items-center">
-              <div className="flex flex-col items-center gap-1.5 text-white">
-                <SeekChevrons side={ripple.side} k={ripple.key} />
-                <span className="text-[13px] font-semibold tabular">{ripple.total} seconds</span>
-              </div>
-            </div>
-          </motion.div>
+    <VideoIconsContext value={ic}>
+      <div
+        ref={root}
+        tabIndex={0}
+        role="region"
+        aria-label={l.player(title)}
+        aria-keyshortcuts="Space K J L M C F T ?"
+        onKeyDown={onKey}
+        onPointerMove={(e) => e.pointerType === "mouse" && started && wake()}
+        onPointerLeave={() => playing && setActive(false)}
+        onFocus={() => started && wake()}
+        className={cn(
+          // The player is always dark inside: its controls sit on picture, whatever the page theme.
+          "dark group/player relative isolate aspect-video w-full select-none overflow-hidden bg-black text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ground",
+          fullscreen ? "rounded-none" : "rounded-[18px]",
+          started && !showControls && "cursor-none",
+          className,
         )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {ripple && (
-          <motion.span
-            key={ripple.key}
-            aria-hidden
-            className="pointer-events-none absolute size-40 rounded-full bg-white/20"
-            style={{ left: ripple.x - 80, top: ripple.y - 80 }}
-            initial={{ scale: 0, opacity: 1 }}
-            animate={{ scale: 2.2, opacity: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease: easeOut }}
-          />
-        )}
-      </AnimatePresence>
-
-      <motion.div
-        aria-live="polite"
-        className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center px-6 pb-5"
-        initial={false}
-        animate={{ y: showControls ? -88 : 0 }}
-        transition={springSoft}
       >
+        <video
+          ref={video}
+          key={rendition.src}
+          src={rendition.src}
+          poster={poster}
+          preload="metadata"
+          playsInline
+          className="absolute inset-0 size-full object-contain"
+          aria-label={title}
+        >
+          {captions && <track kind="captions" src={captions.src} srcLang={captions.lang} label={captions.label} default />}
+        </video>
+
+        <div className="absolute inset-0" onPointerUp={onSurfaceUp} aria-hidden />
+
         <AnimatePresence>
-          {cc && cue && !previewing && (
-            <motion.p
-              key={cue}
+          {ripple && (
+            <motion.div
+              key={`${ripple.side}`}
+              aria-hidden
+              className={cn("pointer-events-none absolute inset-y-0 w-[38%] overflow-hidden", ripple.side < 0 ? "left-0 rounded-r-[50%]" : "right-0 rounded-l-[50%]")}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.12 } }}
-              transition={fade}
-              className={cn("max-w-[80%] whitespace-pre-line rounded-[8px] bg-black/75 px-3.5 py-1.5 text-center font-medium leading-snug text-white", CAPTION_SIZES[ccSize])}
+              exit={{ opacity: 0, transition: { duration: 0.35, ease: easeOut } }}
+              transition={{ duration: 0.12, ease: easeOut }}
             >
-              {cue}
-            </motion.p>
+              <div className="absolute inset-0 bg-white/[0.08]" />
+              <div className="absolute inset-0 grid place-items-center">
+                <div className="flex flex-col items-center gap-1.5 text-white">
+                  <SeekChevrons side={ripple.side} k={ripple.key} />
+                  <span className="text-[13px] font-semibold tabular">{ripple.total} seconds</span>
+                </div>
+              </div>
+            </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
 
-      <AnimatePresence>
-        {!started && (
-          <motion.div key="poster" className="absolute inset-0" initial={false} exit={{ opacity: 0, transition: { duration: 0.3, ease: easeOut } }}>
-            <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent" />
-            <motion.button
-              type="button"
-              aria-label={l.playTitle(title)}
-              onClick={() => {
-                toggle();
-                root.current?.focus({ preventScroll: true });
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={springSoft}
-              className="absolute left-1/2 top-1/2 -ml-8 -mt-8 grid size-16 place-items-center rounded-full bg-white text-black shadow-[0_8px_30px_rgba(0,0,0,0.35)] sm:-ml-10 sm:-mt-10 sm:size-20"
-            >
-              <span className="ml-1 grid"><PlayGlyph playing={false} size={30} /></span>
-            </motion.button>
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-4 text-white sm:p-6">
-              <div className="min-w-0">
-                <p className="truncate text-lg font-semibold tracking-[-0.01em] sm:text-[26px] sm:leading-8">{title}</p>
-                {subtitle && <p className="mt-0.5 truncate text-[13px] text-white/75 sm:text-[15px]">{subtitle}</p>}
-              </div>
-              <p className="shrink-0 text-[13px] font-medium tabular text-white/80">
-                {duration ? fmt(duration) : ""}
-                {chapters.length > 0 && <span className="hidden sm:inline"> · {l.chapterCount(chapters.length)}</span>}
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        <AnimatePresence>
+          {ripple && (
+            <motion.span
+              key={ripple.key}
+              aria-hidden
+              className="pointer-events-none absolute size-40 rounded-full bg-white/20"
+              style={{ left: ripple.x - 80, top: ripple.y - 80 }}
+              initial={{ scale: 0, opacity: 1 }}
+              animate={{ scale: 2.2, opacity: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: easeOut }}
+            />
+          )}
+        </AnimatePresence>
 
-      <AnimatePresence>
-        {waiting && (
-          <motion.div key="wait" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={fade} className="pointer-events-none absolute inset-0 grid place-items-center" role="status" aria-label={l.loading}>
-            <svg viewBox="0 0 48 48" className="size-11 animate-spin text-white" aria-hidden>
-              <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="3.5" />
-              <path d="M44 24a20 20 0 0 0-20-20" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
-            </svg>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {flash && (
-          <motion.div
-            key={flash.key}
-            aria-hidden
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: [0, 1, 1, 0], scale: [0.85, 1, 1.02, 1.1] }}
-            transition={{ duration: 0.8, times: [0, 0.15, 0.6, 1], ease: easeOut }}
-            onAnimationComplete={() => setFlash((f) => (f?.key === flash.key ? null : f))}
-            className={cn(
-              "pointer-events-none absolute left-1/2 top-1/2 grid place-items-center bg-black/55 font-semibold text-white",
-              flash.round ? "-ml-9 -mt-9 size-[72px] rounded-full" : "-translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full px-4 py-2.5 text-sm",
+        <motion.div
+          aria-live="polite"
+          className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center px-6 pb-5"
+          initial={false}
+          animate={{ y: showControls ? -88 : 0 }}
+          transition={springSoft}
+        >
+          <AnimatePresence>
+            {cc && cue && !previewing && (
+              <motion.p
+                key={cue}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                transition={fade}
+                className={cn("max-w-[80%] whitespace-pre-line rounded-[8px] bg-black/75 px-3.5 py-1.5 text-center font-medium leading-snug text-white", CAPTION_SIZES[ccSize])}
+              >
+                {cue}
+              </motion.p>
             )}
-          >
-            {flash.node}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </AnimatePresence>
+        </motion.div>
 
-      <AnimatePresence>
-        {ended && (
-          <motion.div key="end" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={fade} className="absolute inset-0 grid place-items-center bg-black/70 p-4">
-            <div className="flex w-full max-w-[640px] flex-col items-center text-center text-white">
-              <p className="text-[13px] text-white/70">{l.youWatched}</p>
-              <p className="mt-0.5 text-lg font-semibold sm:text-xl">{title}</p>
+        <AnimatePresence>
+          {!started && (
+            <motion.div key="poster" className="absolute inset-0" initial={false} exit={{ opacity: 0, transition: { duration: 0.3, ease: easeOut } }}>
+              <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent" />
               <motion.button
                 type="button"
+                aria-label={l.playTitle(title)}
                 onClick={() => {
-                  seekTo(0);
-                  void video.current?.play();
+                  toggle();
+                  root.current?.focus({ preventScroll: true });
                 }}
-                whileTap={{ scale: 0.96 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 transition={springSoft}
-                className="mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-black"
+                className="absolute left-1/2 top-1/2 -ml-8 -mt-8 grid size-16 place-items-center rounded-full bg-white text-black shadow-[0_8px_30px_rgba(0,0,0,0.35)] sm:-ml-10 sm:-mt-10 sm:size-20"
               >
-                <RotateCcw className="size-4" /> {l.watchAgain}
+                <span className="ml-1 grid"><PlayGlyph playing={false} size={30} /></span>
               </motion.button>
-              {previews && chapters.length > 1 && (
-                <div className="mt-6 hidden w-full grid-cols-4 gap-3 sm:grid">
-                  {chapters.map((c, i) => (
-                    <motion.button
-                      key={c.start}
-                      type="button"
-                      onClick={() => {
-                        seekTo(c.start);
-                        void video.current?.play();
-                      }}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ ...springSoft, delay: 0.08 + i * 0.05 }}
-                      className="group/ch text-left"
-                    >
-                      <span className="block w-fit overflow-hidden rounded-[8px] ring-1 ring-white/15 transition-[box-shadow] group-hover/ch:ring-white/60">
-                        <span className="block transition-transform duration-500 ease-out-soft group-hover/ch:scale-[1.04]" style={frameStyle(previews, c.start + 1, 140)} />
-                      </span>
-                      <span className="mt-1.5 block truncate text-[12px] font-medium text-white">{c.title}</span>
-                      <span className="block text-[11px] tabular text-white/60">{fmt(c.start)}</span>
-                    </motion.button>
-                  ))}
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-4 text-white sm:p-6">
+                <div className="min-w-0">
+                  <p className="truncate text-lg font-semibold tracking-[-0.01em] sm:text-[26px] sm:leading-8">{title}</p>
+                  {subtitle && <p className="mt-0.5 truncate text-[13px] text-white/75 sm:text-[15px]">{subtitle}</p>}
                 </div>
+                <p className="shrink-0 text-[13px] font-medium tabular text-white/80">
+                  {duration ? fmt(duration) : ""}
+                  {chapters.length > 0 && <span className="hidden sm:inline"> · {l.chapterCount(chapters.length)}</span>}
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {waiting && (
+            <motion.div key="wait" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={fade} className="pointer-events-none absolute inset-0 grid place-items-center" role="status" aria-label={l.loading}>
+              <span className="grid animate-spin text-white [&>svg]:size-11" aria-hidden>{ic.spinner}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {flash && (
+            <motion.div
+              key={flash.key}
+              aria-hidden
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: [0, 1, 1, 0], scale: [0.85, 1, 1.02, 1.1] }}
+              transition={{ duration: 0.8, times: [0, 0.15, 0.6, 1], ease: easeOut }}
+              onAnimationComplete={() => setFlash((f) => (f?.key === flash.key ? null : f))}
+              className={cn(
+                "pointer-events-none absolute left-1/2 top-1/2 grid place-items-center bg-black/55 font-semibold text-white",
+                flash.round ? "-ml-9 -mt-9 size-[72px] rounded-full" : "-translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full px-4 py-2.5 text-sm",
               )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <motion.div
-        aria-hidden={!showControls}
-        initial={false}
-        animate={{ opacity: showControls && !ended ? 1 : 0 }}
-        transition={{ duration: showControls ? 0.18 : 0.45, ease: easeOut }}
-        className="pointer-events-none absolute inset-x-0 top-0"
-      >
-        <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
-        <div className="relative flex items-start gap-3 px-4 pt-3.5 text-white sm:px-5 sm:pt-4">
-          <div className="min-w-0">
-            <p className="truncate text-[15px] font-semibold sm:text-base">{title}</p>
-            {chapters.length > 0 && <motion.p className="truncate text-[13px] text-white/70">{currentChapter}</motion.p>}
-          </div>
-        </div>
-      </motion.div>
-
-      <motion.div
-        initial={false}
-        animate={{ opacity: showControls && !ended ? 1 : 0 }}
-        transition={{ duration: showControls ? 0.18 : 0.45, ease: easeOut }}
-        className={cn("absolute inset-x-0 bottom-0", (!showControls || ended) && "pointer-events-none")}
-      >
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/75 via-black/35 to-transparent" />
-        <div className="relative px-3 pb-2 sm:px-5 sm:pb-3">
-          <div className="flex items-center gap-3">
-            <TimeText time={time} className="w-10 text-left" />
-            <Scrubber
-              time={time}
-              played={playedMv}
-              buffered={buffered}
-              duration={duration}
-              chapters={chapters}
-              previews={previews}
-              onSeek={seekTo}
-              onScrub={setScrubbing}
-              onPreview={setPreviewing}
-              l={l}
-            />
-            <button
-              type="button"
-              onClick={() => setRemaining((r) => !r)}
-              aria-label={remaining ? l.showTotal : l.showRemaining}
-              className="w-11 shrink-0 rounded-[6px] text-right text-[12.5px] font-medium tabular text-white/75 transition-colors hover:text-white"
             >
-              {remaining ? <RemainingText time={time} duration={duration} /> : fmt(duration)}
-            </button>
+              {flash.node}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {ended && (
+            <motion.div key="end" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={fade} className="absolute inset-0 grid place-items-center bg-black/70 p-4">
+              <div className="flex w-full max-w-[640px] flex-col items-center text-center text-white">
+                <p className="text-[13px] text-white/70">{l.youWatched}</p>
+                <p className="mt-0.5 text-lg font-semibold sm:text-xl">{title}</p>
+                <motion.button
+                  type="button"
+                  onClick={() => {
+                    seekTo(0);
+                    void video.current?.play();
+                  }}
+                  whileTap={{ scale: 0.96 }}
+                  transition={springSoft}
+                  className="mt-4 inline-flex h-10 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-black"
+                >
+                  <span className="grid [&>svg]:size-4" aria-hidden>{ic.replay}</span> {l.watchAgain}
+                </motion.button>
+                {previews && chapters.length > 1 && (
+                  <div className="mt-6 hidden w-full grid-cols-4 gap-3 sm:grid">
+                    {chapters.map((c, i) => (
+                      <motion.button
+                        key={c.start}
+                        type="button"
+                        onClick={() => {
+                          seekTo(c.start);
+                          void video.current?.play();
+                        }}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ ...springSoft, delay: 0.08 + i * 0.05 }}
+                        className="group/ch text-left"
+                      >
+                        <span className="block w-fit overflow-hidden rounded-[8px] ring-1 ring-white/15 transition-[box-shadow] group-hover/ch:ring-white/60">
+                          <span className="block transition-transform duration-500 ease-out-soft group-hover/ch:scale-[1.04]" style={frameStyle(previews, c.start + 1, 140)} />
+                        </span>
+                        <span className="mt-1.5 block truncate text-[12px] font-medium text-white">{c.title}</span>
+                        <span className="block text-[11px] tabular text-white/60">{fmt(c.start)}</span>
+                      </motion.button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.div
+          aria-hidden={!showControls}
+          initial={false}
+          animate={{ opacity: showControls && !ended ? 1 : 0 }}
+          transition={{ duration: showControls ? 0.18 : 0.45, ease: easeOut }}
+          className="pointer-events-none absolute inset-x-0 top-0"
+        >
+          <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
+          <div className="relative flex items-start gap-3 px-4 pt-3.5 text-white sm:px-5 sm:pt-4">
+            <div className="min-w-0">
+              <p className="truncate text-[15px] font-semibold sm:text-base">{title}</p>
+              {chapters.length > 0 && <motion.p className="truncate text-[13px] text-white/70">{currentChapter}</motion.p>}
+            </div>
           </div>
-          <div className="mt-1 flex items-center gap-0.5 text-white sm:gap-1">
-            <CtlButton label={playing ? l.pause : l.play} onClick={toggle}>
-              <PlayGlyph playing={playing} size={22} />
-            </CtlButton>
-            <CtlButton label={l.back10} onClick={() => skip(-10)} className="hidden sm:grid">
-              <SkipIcon dir={-1} />
-            </CtlButton>
-            <CtlButton label={l.forward10} onClick={() => skip(10)} className="hidden sm:grid">
-              <SkipIcon dir={1} />
-            </CtlButton>
-            <VolumeControl volume={volume} level={volumeState} muted={muted} onToggle={toggleMute} onChange={setVol} l={l} />
-            <span className="flex-1" />
-            {speed !== 1 && (
-              <button type="button" onClick={() => setMenu("speed")} className="mr-1 hidden h-6 items-center rounded-full bg-white/15 px-2 text-[11.5px] font-semibold tabular text-white sm:flex">
-                {speed}×
+        </motion.div>
+
+        <motion.div
+          initial={false}
+          animate={{ opacity: showControls && !ended ? 1 : 0 }}
+          transition={{ duration: showControls ? 0.18 : 0.45, ease: easeOut }}
+          className={cn("absolute inset-x-0 bottom-0", (!showControls || ended) && "pointer-events-none")}
+        >
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/75 via-black/35 to-transparent" />
+          <div className="relative px-3 pb-2 sm:px-5 sm:pb-3">
+            <div className="flex items-center gap-3">
+              <TimeText time={time} className="w-10 text-left" />
+              <Scrubber
+                time={time}
+                played={playedMv}
+                buffered={buffered}
+                duration={duration}
+                chapters={chapters}
+                previews={previews}
+                onSeek={seekTo}
+                onScrub={setScrubbing}
+                onPreview={setPreviewing}
+                l={l}
+              />
+              <button
+                type="button"
+                onClick={() => setRemaining((r) => !r)}
+                aria-label={remaining ? l.showTotal : l.showRemaining}
+                className="w-11 shrink-0 rounded-[6px] text-right text-[12.5px] font-medium tabular text-white/75 transition-colors hover:text-white"
+              >
+                {remaining ? <RemainingText time={time} duration={duration} /> : fmt(duration)}
               </button>
-            )}
-            {captions && (
-              <CtlButton label={l.captionsToggle} onClick={() => setCaptions(!cc)} pressed={cc}>
-                <span className="relative grid">
-                  <Captions className="size-[21px]" />
-                  <motion.span aria-hidden initial={false} animate={{ opacity: cc ? 1 : 0 }} transition={fade} className="absolute -bottom-1.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-white" />
+            </div>
+            <div className="mt-1 flex items-center gap-0.5 text-white sm:gap-1">
+              <CtlButton label={playing ? l.pause : l.play} onClick={toggle}>
+                <PlayGlyph playing={playing} size={22} />
+              </CtlButton>
+              <CtlButton label={l.back10} onClick={() => skip(-10)} className="hidden sm:grid [&>svg]:size-[22px]">
+                {ic.back10}
+              </CtlButton>
+              <CtlButton label={l.forward10} onClick={() => skip(10)} className="hidden sm:grid [&>svg]:size-[22px]">
+                {ic.forward10}
+              </CtlButton>
+              <VolumeControl volume={volume} level={volumeState} muted={muted} onToggle={toggleMute} onChange={setVol} l={l} />
+              <span className="flex-1" />
+              {speed !== 1 && (
+                <button type="button" onClick={() => setMenu("speed")} className="mr-1 hidden h-6 items-center rounded-full bg-white/15 px-2 text-[11.5px] font-semibold tabular text-white sm:flex">
+                  {speed}×
+                </button>
+              )}
+              {captions && (
+                <CtlButton label={l.captionsToggle} onClick={() => setCaptions(!cc)} pressed={cc}>
+                  <span className="relative grid [&>svg]:size-[21px]">
+                    {ic.captions}
+                    <motion.span aria-hidden initial={false} animate={{ opacity: cc ? 1 : 0 }} transition={fade} className="absolute -bottom-1.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-white" />
+                  </span>
+                </CtlButton>
+              )}
+              <CtlButton label={l.settings} onClick={() => setMenu(menu ? null : "main")} pressed={menu !== null} dataMenuButton>
+                <motion.span initial={false} animate={{ rotate: menu ? 60 : 0 }} transition={springSoft} className="grid [&>svg]:size-[20px]">
+                  {ic.settings}
+                </motion.span>
+              </CtlButton>
+              <CtlButton label={l.pictureInPicture} onClick={togglePip} className="hidden sm:grid [&>svg]:size-[20px]">
+                {ic.pictureInPicture}
+              </CtlButton>
+              {onTheaterChange && !fullscreen && (
+                <CtlButton label={theater ? l.defaultView : l.theaterMode} onClick={() => onTheaterChange(!theater)} className="hidden md:grid" pressed={theater}>
+                  <span className={cn("grid transition-transform duration-300 ease-out-soft [&>svg]:size-[21px]", theater ? "scale-x-[0.8]" : "scale-x-110")}>{ic.theater}</span>
+                </CtlButton>
+              )}
+              <CtlButton label={fullscreen ? l.exitFullscreen : l.fullscreen} onClick={toggleFullscreen}>
+                <span className="grid [&>*]:[grid-area:1/1]">
+                  <motion.span initial={false} animate={{ opacity: fullscreen ? 0 : 1, scale: fullscreen ? 0.8 : 1 }} transition={springSnappy} className="grid [&>svg]:size-[19px]">{ic.fullscreen}</motion.span>
+                  <motion.span initial={false} animate={{ opacity: fullscreen ? 1 : 0, scale: fullscreen ? 1 : 0.8 }} transition={springSnappy} className="grid [&>svg]:size-[19px]">{ic.exitFullscreen}</motion.span>
                 </span>
               </CtlButton>
-            )}
-            <CtlButton label={l.settings} onClick={() => setMenu(menu ? null : "main")} pressed={menu !== null} dataMenuButton>
-              <motion.span initial={false} animate={{ rotate: menu ? 60 : 0 }} transition={springSoft} className="grid">
-                <Settings className="size-[20px]" />
-              </motion.span>
-            </CtlButton>
-            <CtlButton label={l.pictureInPicture} onClick={togglePip} className="hidden sm:grid">
-              <PictureInPicture2 className="size-[20px]" />
-            </CtlButton>
-            {onTheaterChange && !fullscreen && (
-              <CtlButton label={theater ? l.defaultView : l.theaterMode} onClick={() => onTheaterChange(!theater)} className="hidden md:grid" pressed={theater}>
-                <RectangleHorizontal className={cn("size-[21px] transition-transform duration-300 ease-out-soft", theater ? "scale-x-[0.8]" : "scale-x-110")} />
-              </CtlButton>
-            )}
-            <CtlButton label={fullscreen ? l.exitFullscreen : l.fullscreen} onClick={toggleFullscreen}>
-              <span className="grid [&>*]:[grid-area:1/1]">
-                <motion.span initial={false} animate={{ opacity: fullscreen ? 0 : 1, scale: fullscreen ? 0.8 : 1 }} transition={springSnappy} className="grid"><Maximize className="size-[19px]" /></motion.span>
-                <motion.span initial={false} animate={{ opacity: fullscreen ? 1 : 0, scale: fullscreen ? 1 : 0.8 }} transition={springSnappy} className="grid"><Minimize className="size-[19px]" /></motion.span>
-              </span>
-            </CtlButton>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
 
-      <SettingsPanel
-        page={menu}
-        setPage={setMenu}
-        speed={speed}
-        onSpeed={changeSpeed}
-        quality={quality}
-        qualities={renditions}
-        onQuality={changeQuality}
-        captions={captions}
-        cc={cc}
-        onCc={setCaptions}
-        ccSize={ccSize}
-        onCcSize={setCcSize}
-        chapters={chapters}
-        previews={previews}
-        time={time}
-        onChapter={(t) => {
-          seekTo(t);
-          setMenu(null);
-        }}
-        onShortcuts={() => {
-          setMenu(null);
-          setHelp(true);
-        }}
-        rootRef={root}
-        l={l}
-      />
+        <SettingsPanel
+          page={menu}
+          setPage={setMenu}
+          speed={speed}
+          onSpeed={changeSpeed}
+          quality={quality}
+          qualities={renditions}
+          onQuality={changeQuality}
+          captions={captions}
+          cc={cc}
+          onCc={setCaptions}
+          ccSize={ccSize}
+          onCcSize={setCcSize}
+          chapters={chapters}
+          previews={previews}
+          time={time}
+          onChapter={(t) => {
+            seekTo(t);
+            setMenu(null);
+          }}
+          onShortcuts={() => {
+            setMenu(null);
+            setHelp(true);
+          }}
+          rootRef={root}
+          l={l}
+        />
 
-      <AnimatePresence>
-        {help && (
-          <motion.div
-            key="help"
-            data-player-menu
-            role="dialog"
-            aria-label={l.keyboardShortcuts}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.14, ease: easeOut } }}
-            transition={fade}
-            onKeyDown={(e) => {
-              if (e.key === "Escape" || e.key === "?") {
-                e.stopPropagation();
-                setHelp(false);
-                root.current?.focus({ preventScroll: true });
-              }
-            }}
-            className="absolute inset-0 z-30 grid place-items-center bg-black/75 p-4"
-            onPointerUp={(e) => e.target === e.currentTarget && setHelp(false)}
-          >
+        <AnimatePresence>
+          {help && (
             <motion.div
-              initial={{ scale: 0.97, y: 6 }}
-              animate={{ scale: 1, y: 0 }}
-              transition={springSoft}
-              className="max-h-full w-full max-w-[520px] overflow-y-auto rounded-[14px] bg-surface p-4 text-white ring-1 ring-white/10 sm:p-5"
+              key="help"
+              data-player-menu
+              role="dialog"
+              aria-label={l.keyboardShortcuts}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.14, ease: easeOut } }}
+              transition={fade}
+              onKeyDown={(e) => {
+                if (e.key === "Escape" || e.key === "?") {
+                  e.stopPropagation();
+                  setHelp(false);
+                  root.current?.focus({ preventScroll: true });
+                }
+              }}
+              className="absolute inset-0 z-30 grid place-items-center bg-black/75 p-4"
+              onPointerUp={(e) => e.target === e.currentTarget && setHelp(false)}
             >
-              <div className="mb-3 flex items-center justify-between">
-                <p className="text-[15px] font-semibold">{l.keyboardShortcuts}</p>
-                <button
-                  type="button"
-                  autoFocus
-                  aria-label={l.closeShortcuts}
-                  onClick={() => {
-                    setHelp(false);
-                    root.current?.focus({ preventScroll: true });
-                  }}
-                  className="grid size-8 place-items-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
-                >
-                  <X className="size-4" />
-                </button>
-              </div>
-              <dl className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-[13px] sm:grid-cols-2">
-                {l.shortcuts.map(([keys, what]) => (
-                  <div key={what} className="flex items-center justify-between gap-3">
-                    <dt className="text-white/75">{what}</dt>
-                    <dd className="flex gap-1">
-                      {keys.split("  ").map((k) => (
-                        <kbd key={k} className="min-w-6 rounded-[5px] bg-white/10 px-1.5 text-center text-[12px] font-medium leading-6 text-white">{k}</kbd>
-                      ))}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
+              <motion.div
+                initial={{ scale: 0.97, y: 6 }}
+                animate={{ scale: 1, y: 0 }}
+                transition={springSoft}
+                className="max-h-full w-full max-w-[520px] overflow-y-auto rounded-[14px] bg-surface p-4 text-white ring-1 ring-white/10 sm:p-5"
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-[15px] font-semibold">{l.keyboardShortcuts}</p>
+                  <button
+                    type="button"
+                    autoFocus
+                    aria-label={l.closeShortcuts}
+                    onClick={() => {
+                      setHelp(false);
+                      root.current?.focus({ preventScroll: true });
+                    }}
+                    className="grid size-8 place-items-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white [&>svg]:size-4"
+                  >
+                    {ic.close}
+                  </button>
+                </div>
+                <dl className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-[13px] sm:grid-cols-2">
+                  {l.shortcuts.map(([keys, what]) => (
+                    <div key={what} className="flex items-center justify-between gap-3">
+                      <dt className="text-white/75">{what}</dt>
+                      <dd className="flex gap-1">
+                        {keys.split("  ").map((k) => (
+                          <kbd key={k} className="min-w-6 rounded-[5px] bg-white/10 px-1.5 text-center text-[12px] font-medium leading-6 text-white">{k}</kbd>
+                        ))}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+          )}
+        </AnimatePresence>
+      </div>
+    </VideoIconsContext>
   );
 }
 
@@ -949,7 +1042,24 @@ function CtlButton({ label, onClick, children, className, pressed, dataMenuButto
   );
 }
 
+function StaticShape({ paths }: { paths: string[] }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden fill="currentColor">
+      {paths.map((d, k) => <path key={k} d={d} />)}
+    </svg>
+  );
+}
+
 function PlayGlyph({ playing, size }: { playing: boolean; size: number }) {
+  const ic = useVideoIcons();
+  if (ic.play !== null || ic.pause !== null) {
+    return (
+      <span className="grid [&>*]:[grid-area:1/1] [&_svg]:size-full" style={{ width: size, height: size }} aria-hidden>
+        <motion.span className="grid" initial={false} animate={{ opacity: playing ? 0 : 1 }} transition={fade}>{ic.play ?? <StaticShape paths={PLAY} />}</motion.span>
+        <motion.span className="grid" initial={false} animate={{ opacity: playing ? 1 : 0 }} transition={fade}>{ic.pause ?? <StaticShape paths={PAUSE} />}</motion.span>
+      </span>
+    );
+  }
   const d = playing ? PAUSE : PLAY;
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden fill="currentColor">
@@ -959,42 +1069,32 @@ function PlayGlyph({ playing, size }: { playing: boolean; size: number }) {
   );
 }
 
-function SkipIcon({ dir }: { dir: -1 | 1 }) {
-  return (
-    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <g transform={dir < 0 ? "" : "translate(24 0) scale(-1 1)"}>
-        <path d="M4 12a8 8 0 1 0 2.6-5.9" />
-        <path d="M4 3.5v4.5h4.5" />
-      </g>
-      <text x="12" y="15.4" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="currentColor" stroke="none" fontFamily="IBM Plex Sans, sans-serif">10</text>
-    </svg>
-  );
-}
-
 function SkipLabel({ seconds }: { seconds: number }) {
+  const ic = useVideoIcons();
   return (
     <span className="flex items-center gap-1.5 tabular text-white">
-      {seconds < 0 ? <ChevronLeft className="size-4" /> : null}
+      {seconds < 0 ? <span className="grid [&>svg]:size-4" aria-hidden>{ic.previous}</span> : null}
       {Math.abs(seconds)} seconds
-      {seconds > 0 ? <ChevronRight className="size-4" /> : null}
+      {seconds > 0 ? <span className="grid [&>svg]:size-4" aria-hidden>{ic.next}</span> : null}
     </span>
   );
 }
 
 /** Three chevrons that light in turn, pointing the way you are seeking. */
 function SeekChevrons({ side, k }: { side: -1 | 1; k: number }) {
+  const ic = useVideoIcons();
   const order = side < 0 ? [2, 1, 0] : [0, 1, 2];
   return (
     <span className={cn("flex", side < 0 && "rotate-180")}>
       {order.map((n, i) => (
         <motion.span
           key={`${k}-${n}`}
-          className="-mx-1 grid"
+          className="-mx-1 grid [&>svg]:size-5 [&>svg]:[stroke-width:2.5]"
           initial={{ opacity: 0.25 }}
           animate={{ opacity: [0.25, 1, 0.25] }}
           transition={{ duration: 0.5, delay: i * 0.09, ease: easeOut }}
         >
-          <ChevronRight className="size-5" strokeWidth={2.5} />
+          {ic.seek}
         </motion.span>
       ))}
     </span>
@@ -1205,17 +1305,31 @@ function VolumeControl({ volume, level, muted, onToggle, onChange, l }: { volume
     return (x - r.left) / r.width;
   };
   const silent = muted || level === 0;
+  const ic = useVideoIcons();
+  const custom = ic.volume !== null || ic.volumeLow !== null || ic.mute !== null;
   return (
     <div className="group/vol flex items-center">
       <CtlButton label={silent ? l.unmute : l.mute} onClick={onToggle}>
-        <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <path d="M11 5 6.5 9H3.5v6h3l4.5 4V5Z" fill="currentColor" stroke="none" />
-          <motion.path d="M15.5 9.5a3.5 3.5 0 0 1 0 5" initial={false} animate={{ opacity: silent ? 0 : 1 }} transition={fade} />
-          <motion.path d="M18 7a7 7 0 0 1 0 10" initial={false} animate={{ opacity: silent || level < 0.5 ? 0 : 1 }} transition={fade} />
-          <motion.g initial={false} animate={{ opacity: silent ? 1 : 0, scale: silent ? 1 : 0.6 }} transition={springSnappy} style={{ originX: "19px", originY: "12px" }}>
-            <path d="m16 9.5 5 5M21 9.5l-5 5" />
-          </motion.g>
-        </svg>
+        {custom ? (
+          <span className="grid [&>*]:[grid-area:1/1] [&_svg]:size-[22px]" aria-hidden>
+            {[
+              { on: silent, el: ic.mute ?? <VolumeX /> },
+              { on: !silent && level < 0.5, el: ic.volumeLow ?? <Volume1 /> },
+              { on: !silent && level >= 0.5, el: ic.volume ?? <Volume2 /> },
+            ].map((v, i) => (
+              <motion.span key={i} className="grid" initial={false} animate={{ opacity: v.on ? 1 : 0 }} transition={fade}>{v.el}</motion.span>
+            ))}
+          </span>
+        ) : (
+          <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M11 5 6.5 9H3.5v6h3l4.5 4V5Z" fill="currentColor" stroke="none" />
+            <motion.path d="M15.5 9.5a3.5 3.5 0 0 1 0 5" initial={false} animate={{ opacity: silent ? 0 : 1 }} transition={fade} />
+            <motion.path d="M18 7a7 7 0 0 1 0 10" initial={false} animate={{ opacity: silent || level < 0.5 ? 0 : 1 }} transition={fade} />
+            <motion.g initial={false} animate={{ opacity: silent ? 1 : 0, scale: silent ? 1 : 0.6 }} transition={springSnappy} style={{ originX: "19px", originY: "12px" }}>
+              <path d="m16 9.5 5 5M21 9.5l-5 5" />
+            </motion.g>
+          </svg>
+        )}
       </CtlButton>
       <div
         ref={track}
@@ -1276,6 +1390,7 @@ type PanelProps = {
  */
 function SettingsPanel(p: PanelProps) {
   const { page, setPage, l } = p;
+  const ic = useVideoIcons();
   const panel = useRef<HTMLDivElement>(null);
   const [now, setNow] = useState(0);
 
@@ -1316,7 +1431,7 @@ function SettingsPanel(p: PanelProps) {
         {p.captions && <MainRow label={l.captions} value={p.cc ? p.captions.label.replace(/ \(.*\)$/, "") : l.off} onClick={() => setPage("captions")} cls={row} />}
         {p.chapters.length > 0 && <MainRow label={l.chapters} value={String(p.chapters.length)} onClick={() => setPage("chapters")} cls={row} />}
         <button type="button" role="menuitem" className={cn(row, "text-white/80")} onClick={p.onShortcuts}>
-          <Keyboard className="size-4 text-white/60" />
+          <span className="grid text-white/60 [&>svg]:size-4" aria-hidden>{ic.shortcuts}</span>
           <span className="flex-1">{l.keyboardShortcuts}</span>
           <kbd className="rounded-[5px] bg-white/10 px-1.5 text-[11px] leading-5 text-white/80">?</kbd>
         </button>
@@ -1464,20 +1579,22 @@ function SettingsPanel(p: PanelProps) {
 }
 
 function MainRow({ label, value, onClick, cls }: { label: string; value: string; onClick: () => void; cls: string }) {
+  const ic = useVideoIcons();
   return (
     <button type="button" role="menuitem" aria-haspopup="menu" className={cls} onClick={onClick}>
       <span className="flex-1">{label}</span>
       <span className="tabular text-white/60">{value}</span>
-      <ChevronRight className="size-4 text-white/50" />
+      <span className="grid text-white/50 [&>svg]:size-4" aria-hidden>{ic.next}</span>
     </button>
   );
 }
 
 function BackRow({ title, onClick, cls }: { title: string; onClick: () => void; cls: string }) {
+  const ic = useVideoIcons();
   return (
     <>
       <button type="button" role="menuitem" className={cn(cls, "gap-2 font-semibold")} onClick={onClick}>
-        <ChevronLeft className="size-4" />
+        <span className="grid [&>svg]:size-4" aria-hidden>{ic.previous}</span>
         {title}
       </button>
       <div className="mx-1.5 my-1 h-px shrink-0 bg-white/10" />
@@ -1486,9 +1603,10 @@ function BackRow({ title, onClick, cls }: { title: string; onClick: () => void; 
 }
 
 function Tick({ on }: { on: boolean }) {
+  const ic = useVideoIcons();
   return (
-    <motion.span initial={false} animate={{ opacity: on ? 1 : 0, scale: on ? 1 : 0.7 }} transition={springSnappy} className="grid size-4 place-items-center">
-      <Check className="size-4" />
+    <motion.span initial={false} animate={{ opacity: on ? 1 : 0, scale: on ? 1 : 0.7 }} transition={springSnappy} className="grid size-4 place-items-center [&>svg]:size-4">
+      {ic.check}
     </motion.span>
   );
 }

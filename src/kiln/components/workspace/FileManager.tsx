@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type DragEvent, type KeyboardEvent, type MouseEvent as ReactMouseEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type DragEvent, type KeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   ChevronRight, File as FileIcon, FileArchive, FileCode2, FileImage, FileText, Folder, FolderOpen, FolderPlus, LayoutGrid, List, Pencil, Trash2,
@@ -10,6 +10,51 @@ import { SegmentedControl } from "../buttons/SegmentedControl";
 
 export type FMNode = { id: string; name: string; kind: "folder" | "file"; parent: string | null; size?: number; modified?: string };
 
+/** Icons used by FileManager. Pass a partial via `icons` to swap any of them. */
+export interface FileManagerIcons {
+  /** Between the levels of the path. */
+  separator: ReactNode;
+  /** New-folder button and menu item. */
+  newFolder: ReactNode;
+  /** The grid view option. */
+  grid: ReactNode;
+  /** The list view option. */
+  list: ReactNode;
+  /** A folder; also the move-to menu item and the empty-folder mark. */
+  folder: ReactNode;
+  /** A folder a file is being dragged over; also the open-folder menu item. */
+  folderOpen: ReactNode;
+  /** A file with no better match. */
+  file: ReactNode;
+  /** An image file. */
+  fileImage: ReactNode;
+  /** An archive file. */
+  fileArchive: ReactNode;
+  /** A code or data file. */
+  fileCode: ReactNode;
+  /** A text or document file; also the open-file menu item. */
+  fileText: ReactNode;
+  /** Rename menu item. */
+  rename: ReactNode;
+  /** Delete menu item. */
+  delete: ReactNode;
+}
+export const fileManagerIcons: FileManagerIcons = {
+  separator: <ChevronRight />,
+  newFolder: <FolderPlus />,
+  grid: <LayoutGrid />,
+  list: <List />,
+  folder: <Folder />,
+  folderOpen: <FolderOpen />,
+  file: <FileIcon />,
+  fileImage: <FileImage />,
+  fileArchive: <FileArchive />,
+  fileCode: <FileCode2 />,
+  fileText: <FileText />,
+  rename: <Pencil />,
+  delete: <Trash2 />,
+};
+
 export type FileManagerProps = {
   initial: FMNode[];
   rootName?: string;
@@ -17,6 +62,8 @@ export type FileManagerProps = {
   onChange?: (nodes: FMNode[]) => void;
   /** Override any UI text. Merged over `fileManagerLabels`. */
   labels?: Partial<Omit<FileManagerLabels, "menu">> & { menu?: Partial<FileManagerLabels["menu"]> };
+  /** Replace any built-in icon. Merged over `fileManagerIcons`. */
+  icons?: Partial<FileManagerIcons>;
   className?: string;
 };
 
@@ -121,13 +168,13 @@ export const fileManagerLabels: FileManagerLabels = {
   },
 };
 
-function iconFor(n: FMNode, open = false) {
-  if (n.kind === "folder") return open ? FolderOpen : Folder;
-  if (/\.(png|jpe?g|gif|svg|webp)$/i.test(n.name)) return FileImage;
-  if (/\.(zip|tar|gz|7z)$/i.test(n.name)) return FileArchive;
-  if (/\.(tsx?|jsx?|py|json|css)$/i.test(n.name)) return FileCode2;
-  if (/\.(md|txt|pdf|docx?|key)$/i.test(n.name)) return FileText;
-  return FileIcon;
+function iconFor(n: FMNode, open = false): "folder" | "folderOpen" | "fileImage" | "fileArchive" | "fileCode" | "fileText" | "file" {
+  if (n.kind === "folder") return open ? "folderOpen" : "folder";
+  if (/\.(png|jpe?g|gif|svg|webp)$/i.test(n.name)) return "fileImage";
+  if (/\.(zip|tar|gz|7z)$/i.test(n.name)) return "fileArchive";
+  if (/\.(tsx?|jsx?|py|json|css)$/i.test(n.name)) return "fileCode";
+  if (/\.(md|txt|pdf|docx?|key)$/i.test(n.name)) return "fileText";
+  return "file";
 }
 
 let seq = 0;
@@ -140,7 +187,8 @@ const newId = () => `n${Date.now().toString(36)}${(seq++).toString(36)}`;
  * Keyboard: arrows move, Shift+arrows extend, Space toggles, Enter opens,
  * Backspace goes up, Delete removes, Cmd/Ctrl+A selects all.
  */
-export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, labels, className }: FileManagerProps) {
+export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, labels, icons, className }: FileManagerProps) {
+  const ic = useMemo(() => ({ ...fileManagerIcons, ...icons }), [icons]);
   const l = { ...fileManagerLabels, ...labels } as FileManagerLabels;
   const lm = { ...fileManagerLabels.menu, ...labels?.menu };
   const id = useId();
@@ -375,7 +423,7 @@ export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, 
   const menuItems = (): MenuEntry[] => {
     if (!menu?.target) {
       return [
-        { label: lm.newFolder, icon: <FolderPlus />, onSelect: newFolder },
+        { label: lm.newFolder, icon: ic.newFolder, onSelect: newFolder },
         { label: lm.selectAll, shortcut: "Ctrl A", onSelect: () => setSel(new Set(children.map((c) => c.id))) },
       ];
     }
@@ -383,26 +431,26 @@ export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, 
     const many = sel.size > 1;
     const folders = nodes.filter((n) => n.kind === "folder" && !sel.has(n.id) && ![...sel].some((s) => isInside(n.id, s)));
     return [
-      ...(!many ? [{ label: t.kind === "folder" ? lm.openFolder : lm.openFile, icon: t.kind === "folder" ? <FolderOpen /> : <FileText />, onSelect: () => open(t) } as MenuEntry] : []),
-      ...(!many ? [{ label: lm.rename, icon: <Pencil />, shortcut: "F2", onSelect: () => setRenaming(t.id) } as MenuEntry] : []),
+      ...(!many ? [{ label: t.kind === "folder" ? lm.openFolder : lm.openFile, icon: t.kind === "folder" ? ic.folderOpen : ic.fileText, onSelect: () => open(t) } as MenuEntry] : []),
+      ...(!many ? [{ label: lm.rename, icon: ic.rename, shortcut: "F2", onSelect: () => setRenaming(t.id) } as MenuEntry] : []),
       {
         type: "submenu",
         label: many ? lm.moveManyTo(sel.size) : lm.moveTo,
-        icon: <Folder />,
+        icon: ic.folder,
         items: [
           ...(cwd ? [{ label: rootName, onSelect: () => move([...sel], null) } as MenuEntry] : []),
           ...folders.filter((f) => f.id !== cwd).map((f) => ({ label: f.name, onSelect: () => move([...sel], f.id) }) as MenuEntry),
         ],
       },
       { type: "separator" },
-      { label: many ? lm.deleteMany(sel.size) : lm.delete, icon: <Trash2 />, shortcut: "Del", danger: true, onSelect: () => remove([...sel]) },
+      { label: many ? lm.deleteMany(sel.size) : lm.delete, icon: ic.delete, shortcut: "Del", danger: true, onSelect: () => remove([...sel]) },
     ];
   };
   const menuAnchor = useCallback(() => new DOMRect(menu?.x ?? 0, menu?.y ?? 0, 0, 0), [menu]);
 
   // A render function, not a component: a component declared here would remount every tile on each render.
   const tile = (n: FMNode) => {
-    const Icon = iconFor(n, dropTarget === n.id);
+    const iconKey = iconFor(n, dropTarget === n.id);
     const on = sel.has(n.id);
     const target = dropTarget === n.id;
     return (
@@ -432,7 +480,7 @@ export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, 
         <motion.span aria-hidden initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className="pointer-events-none absolute inset-0 rounded-card bg-accent-soft" />
         <motion.span aria-hidden initial={false} animate={{ opacity: target ? 1 : 0 }} transition={fade} className="pointer-events-none absolute inset-0 rounded-card ring-2 ring-inset ring-accent" />
         <span className={cn("relative z-[1] flex min-w-0 items-center", view === "grid" ? "flex-col gap-2" : "gap-3")}>
-          <Icon className={cn("shrink-0", view === "grid" ? "size-10" : "size-5", n.kind === "folder" ? "text-accent" : "text-muted")} strokeWidth={view === "grid" ? 1.4 : 1.8} />
+          <span aria-hidden className={cn("grid shrink-0 place-items-center", view === "grid" ? "[&>svg]:size-10 [&>svg]:[stroke-width:1.4]" : "[&>svg]:size-5 [&>svg]:[stroke-width:1.8]", n.kind === "folder" ? "text-accent" : "text-muted")}>{ic[iconKey]}</span>
           {renaming === n.id ? (
             <RenameInput label={l.newName} name={n.name} kind={n.kind} align={view === "grid" ? "center" : "left"} onDone={(v) => (v == null ? (setRenaming(null), focusItem(n.id)) : commitRename(n.id, v))} />
           ) : (
@@ -458,7 +506,7 @@ export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, 
             const key = `crumb-${p.id ?? "root"}`;
             return (
               <span key={key} className={cn("flex items-center gap-0.5", last ? "min-w-0" : "shrink-0")}>
-                {i > 0 && <ChevronRight className="size-3.5 shrink-0 text-faint" aria-hidden />}
+                {i > 0 && <span aria-hidden className="grid shrink-0 place-items-center text-faint [&>svg]:size-3.5">{ic.separator}</span>}
                 <button
                   type="button"
                   aria-current={last ? "location" : undefined}
@@ -482,7 +530,7 @@ export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, 
             onClick={newFolder}
             className="inline-flex h-8 items-center gap-1.5 rounded-control bg-btn-secondary px-3 text-[13px] font-medium text-btn-secondary-ink transition-colors hover:bg-btn-secondary-hover"
           >
-            <FolderPlus className="size-4" /> <span className="hidden @md:inline">{l.newFolder}</span>
+            <span aria-hidden className="grid place-items-center [&>svg]:size-4">{ic.newFolder}</span> <span className="hidden @md:inline">{l.newFolder}</span>
           </button>
           <SegmentedControl
             size="sm"
@@ -490,8 +538,8 @@ export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, 
             value={view}
             onChange={setView}
             options={[
-              { value: "grid", label: <span className="sr-only">{l.grid}</span>, icon: <LayoutGrid className="size-4" /> },
-              { value: "list", label: <span className="sr-only">{l.list}</span>, icon: <List className="size-4" /> },
+              { value: "grid", label: <span className="sr-only">{l.grid}</span>, icon: <span className="grid [&>svg]:size-4">{ic.grid}</span> },
+              { value: "list", label: <span className="sr-only">{l.list}</span>, icon: <span className="grid [&>svg]:size-4">{ic.list}</span> },
             ]}
           />
         </div>
@@ -533,7 +581,7 @@ export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, 
         {children.length === 0 && (
           <div className="absolute inset-0 grid place-items-center p-6 text-center">
             <div>
-              <Folder className="mx-auto size-10 text-faint" strokeWidth={1.3} />
+              <span aria-hidden className="mx-auto grid w-fit place-items-center text-faint [&>svg]:size-10 [&>svg]:[stroke-width:1.3]">{ic.folder}</span>
               <p className="mt-3 text-sm font-medium text-ink">{l.emptyTitle}</p>
               <p className="mt-1 text-[13px] text-muted">{l.emptyHint}</p>
             </div>

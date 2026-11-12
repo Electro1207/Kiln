@@ -1,8 +1,15 @@
-import { forwardRef, useEffect, useRef } from "react";
+import { forwardRef, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { AnimatePresence, motion, useAnimate, type HTMLMotionProps } from "motion/react";
 import { Bell } from "lucide-react";
 import { cn } from "../../cn";
 import { press, springSnappy, springSoft } from "../../motion";
+
+/** Icons used by NotificationBell. Pass a partial via `icons` to swap any of them. */
+export interface NotificationBellIcons {
+  /** The bell. */
+  bell: ReactNode;
+}
+export const notificationBellIcons: NotificationBellIcons = { bell: <Bell /> };
 
 /** Text used by NotificationBell. Pass a partial via `labels` to translate or reword. */
 export interface NotificationBellLabels {
@@ -22,16 +29,19 @@ export type NotificationBellProps = Omit<HTMLMotionProps<"button">, "children"> 
   max?: number;
   /** Override any UI text. Merged over `notificationBellLabels`. */
   labels?: Partial<NotificationBellLabels>;
+  /** Replace any built-in icon. Merged over `notificationBellIcons`. */
+  icons?: Partial<NotificationBellIcons>;
 };
 
 /** A bell with an unread count. When the count goes up the bell rings once and the number rolls. */
 export const NotificationBell = forwardRef<HTMLButtonElement, NotificationBellProps>(function NotificationBell(
-  { count, max = 99, labels, className, ...rest },
+  { count, max = 99, labels, icons, className, ...rest },
   ref,
 ) {
   const [scope, animate] = useAnimate<HTMLSpanElement>();
   const [badge, animateBadge] = useAnimate<HTMLSpanElement>();
   const l = { ...notificationBellLabels, ...labels };
+  const ic = useMemo(() => ({ ...notificationBellIcons, ...icons }), [icons]);
   const prev = useRef(count);
   const up = count > prev.current;
 
@@ -62,8 +72,8 @@ export const NotificationBell = forwardRef<HTMLButtonElement, NotificationBellPr
       )}
       {...rest}
     >
-      <span ref={scope} className="inline-flex" style={{ transformOrigin: "50% 2px" }}>
-        <Bell className="size-5" />
+      <span ref={scope} className="inline-flex [&>svg]:size-5" style={{ transformOrigin: "50% 2px" }}>
+        {ic.bell}
       </span>
       <AnimatePresence>
         {count > 0 && (

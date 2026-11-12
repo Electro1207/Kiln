@@ -67,15 +67,20 @@ export function Slider({
     return () => ro.disconnect();
   }, [width]);
 
-  useEffect(() => {
-    value.forEach((v, i) => {
-      const mv = pcts[i];
-      // While dragging, follow the pointer with jump(): it records no velocity, so the
-      // spring that runs after release can never inherit a fling and overshoot.
-      if (drag === i) mv.jump(toPct(v));
-      else animate(mv, toPct(v), springFirm);
-    });
-  }, [value[0], value[1], drag]);
+  const follow = useRef(() => {});
+  useLayoutEffect(() => {
+    follow.current = () => {
+      value.forEach((v, i) => {
+        const mv = pcts[i];
+        // While dragging, follow the pointer with jump(): it records no velocity, so the
+        // spring that runs after release can never inherit a fling and overshoot.
+        if (drag === i) mv.jump(toPct(v));
+        else animate(mv, toPct(v), springFirm);
+      });
+    };
+  });
+  const v0 = value[0], v1 = value[1];
+  useEffect(() => follow.current(), [v0, v1, drag]);
 
   const fillLeft = useTransform(() => (range ? p0.get() : 0));
   const fillRight = useTransform(() => (range ? p1.get() : p0.get()));

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { X } from "lucide-react";
 import { cn } from "../../cn";
@@ -14,8 +14,17 @@ export type BannerProps = {
   tone?: "inverse" | "brand" | "neutral";
   /** Override any UI text. Merged over `bannerLabels`. */
   labels?: Partial<BannerLabels>;
+  /** Replace any built-in icon. Merged over `bannerIcons`. */
+  icons?: Partial<BannerIcons>;
   className?: string;
 };
+
+/** Icons used by Banner. Pass a partial via `icons` to swap any of them. */
+export interface BannerIcons {
+  /** Dismiss button. */
+  close: ReactNode;
+}
+export const bannerIcons: BannerIcons = { close: <X /> };
 
 /** Text used by Banner. Pass a partial via `labels` to translate or reword. */
 export interface BannerLabels {
@@ -37,8 +46,9 @@ const tones = {
  * space opens as the bar slides down into it, and closes the same way, so the
  * page below moves once and smoothly.
  */
-export function Banner({ open, onDismiss, children, action, tone = "inverse", labels, className }: BannerProps) {
+export function Banner({ open, onDismiss, children, action, tone = "inverse", labels, icons, className }: BannerProps) {
   const l = { ...bannerLabels, ...labels };
+  const ic = useMemo(() => ({ ...bannerIcons, ...icons }), [icons]);
   return (
     <AnimatePresence initial={false}>
       {open && (
@@ -66,9 +76,9 @@ export function Banner({ open, onDismiss, children, action, tone = "inverse", la
                 type="button"
                 aria-label={l.dismiss}
                 onClick={onDismiss}
-                className="-mr-1.5 grid size-7 shrink-0 place-items-center rounded-full opacity-70 transition-opacity hover:opacity-100 sm:absolute sm:right-3"
+                className="-mr-1.5 grid size-7 shrink-0 place-items-center rounded-full [&>svg]:size-4 opacity-70 transition-opacity hover:opacity-100 sm:absolute sm:right-3"
               >
-                <X className="size-4" />
+                {ic.close}
               </button>
             )}
           </motion.div>

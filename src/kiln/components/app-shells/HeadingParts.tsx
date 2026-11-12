@@ -4,6 +4,13 @@ import { cn } from "../../cn";
 import { Button } from "../buttons/Button";
 import { DropdownMenu, type MenuEntry } from "../menus/DropdownMenu";
 
+/** Icons used by CollapsingActions. Pass a partial via `icons` to replace any. */
+export interface CollapsingActionsIcons {
+  /** The overflow button on phones. */
+  more: ReactNode;
+}
+export const collapsingActionsIcons: CollapsingActionsIcons = { more: <MoreHorizontal /> };
+
 /** Text used by CollapsingActions. Pass a partial via `labels` to translate or reword. */
 export interface CollapsingActionsLabels {
   /** Label of the overflow menu and its button on phones. */
@@ -18,13 +25,16 @@ export type HeadingAction = { label: string; icon?: ReactNode; onSelect?: () => 
  * phones the secondary ones fold into a "More" menu and only the primary
  * action stays. Put it in PageHeading's `actions`.
  */
-export function CollapsingActions({ actions, className, labels }: {
+export function CollapsingActions({ actions, className, labels, icons }: {
   actions: HeadingAction[];
   className?: string;
   /** Override any UI text. Merged over `collapsingActionsLabels`. */
   labels?: Partial<CollapsingActionsLabels>;
+  /** Replace any built-in icon. Merged over `collapsingActionsIcons`. */
+  icons?: Partial<CollapsingActionsIcons>;
 }) {
   const l = { ...collapsingActionsLabels, ...labels };
+  const ic = { ...collapsingActionsIcons, ...icons };
   const primary = actions.find((a) => a.primary);
   const rest = actions.filter((a) => !a.primary);
   const menu: MenuEntry[] = rest.map((a) => ({ label: a.label, icon: a.icon, onSelect: a.onSelect, danger: a.danger }));
@@ -49,7 +59,7 @@ export function CollapsingActions({ actions, className, labels }: {
               items={menu}
               trigger={({ open, ...p }) => (
                 <Button {...p} variant="secondary" size="sm" aria-label={l.moreActions} className={cn("w-8 px-0", open && "bg-btn-secondary-hover")}>
-                  <MoreHorizontal className="size-4" />
+                  <span className="grid [&>svg]:size-4" aria-hidden>{ic.more}</span>
                 </Button>
               )}
             />

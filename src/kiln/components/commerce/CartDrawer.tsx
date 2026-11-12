@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Minus, Plus, ShoppingBag, Truck, X } from "lucide-react";
 import { cn } from "../../cn";
@@ -74,8 +74,22 @@ export const cartDrawerLabels: CartDrawerLabels = {
  * The cart as a drawer from the right. Quantities step in place, removed rows
  * fold away, and the summary and the free-shipping bar follow every change.
  */
+export interface CartDrawerIcons {
+  /** Free-shipping bar. */
+  shipping: ReactNode;
+  /** Empty-state badge. */
+  empty: ReactNode;
+  /** Remove button on a line. */
+  remove: ReactNode;
+  /** Quantity stepper, decrease. */
+  fewer: ReactNode;
+  /** Quantity stepper, increase. */
+  more: ReactNode;
+}
+export const cartDrawerIcons: CartDrawerIcons = { shipping: <Truck />, empty: <ShoppingBag />, remove: <X />, fewer: <Minus />, more: <Plus /> };
+
 export function CartDrawer({
-  open, onOpenChange, lines, onChange, pricing, currency = "USD", onCheckout, onContinue, title = "Your cart", labels,
+  open, onOpenChange, lines, onChange, pricing, currency = "USD", onCheckout, onContinue, title = "Your cart", labels, icons,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -89,8 +103,11 @@ export function CartDrawer({
   title?: string;
   /** Override any UI text. Merged over `cartDrawerLabels`. */
   labels?: Partial<CartDrawerLabels>;
+  /** Replace any built-in icon. Merged over `cartDrawerIcons`. */
+  icons?: Partial<CartDrawerIcons>;
 }) {
   const l = { ...cartDrawerLabels, ...labels };
+  const ic = useMemo(() => ({ ...cartDrawerIcons, ...icons }), [icons]);
   const t = cartTotals(lines, pricing);
   const money = (n: number) => formatMoney(n, currency);
   const count = lines.reduce((s, l) => s + l.quantity, 0);
@@ -123,7 +140,7 @@ export function CartDrawer({
         {pricing.freeShippingAt != null && lines.length > 0 && (
           <div className="mb-2 rounded-card bg-raised p-3.5">
             <p className="flex items-center gap-2 text-[13px] text-ink">
-              <Truck className="size-4 shrink-0 text-muted" aria-hidden />
+              <span className="inline-flex shrink-0 text-muted [&>svg]:size-4" aria-hidden>{ic.shipping}</span>
               <span className="grid [&>*]:[grid-area:1/1]">
                 <motion.span initial={false} animate={{ opacity: t.toFreeShipping > 0 ? 1 : 0 }} transition={textSwap(t.toFreeShipping > 0)} aria-hidden={t.toFreeShipping === 0}>
                   {l.addForFreeShipping(<span className="font-medium tabular">{money(t.toFreeShipping)}</span>)}
@@ -143,7 +160,7 @@ export function CartDrawer({
           {lines.length === 0 ? (
             <motion.div key="empty" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={springSoft}
               className="flex flex-1 flex-col items-center justify-center gap-3 px-8 pb-10 text-center">
-              <span className="grid size-14 place-items-center rounded-full bg-raised text-muted"><ShoppingBag className="size-6" /></span>
+              <span className="grid size-14 place-items-center rounded-full bg-raised text-muted [&>svg]:size-6">{ic.empty}</span>
               <p className="text-base font-medium text-ink">{l.emptyTitle}</p>
               <p className="max-w-60 text-sm text-muted">{l.emptyBody}</p>
               <Button variant="secondary" className="mt-2" onClick={() => (onContinue ? onContinue() : onOpenChange(false))}>{l.continueShopping}</Button>
@@ -168,10 +185,10 @@ export function CartDrawer({
                           <p className="shrink-0 text-sm font-medium text-ink tabular">{money(ln.price * ln.quantity)}</p>
                         </div>
                         <div className="mt-auto flex items-center justify-between gap-3 pt-2">
-                          <Stepper value={ln.quantity} max={ln.max ?? 9} name={ln.name} labels={l} onChange={(q) => setQty(ln.id, q)} />
+                          <Stepper value={ln.quantity} max={ln.max ?? 9} name={ln.name} labels={l} icons={ic} onChange={(q) => setQty(ln.id, q)} />
                           <button type="button" onClick={() => remove(ln.id)} aria-label={l.removeItem(ln.name)}
                             className="inline-flex h-8 items-center gap-1 rounded-control px-2 text-[13px] text-muted transition-colors hover:bg-raised hover:text-ink">
-                            <X className="size-3.5" /> {l.remove}
+                            <span className="inline-flex [&>svg]:size-3.5" aria-hidden>{ic.remove}</span> {l.remove}
                           </button>
                         </div>
                       </div>
@@ -197,13 +214,13 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 /** A compact stepper for cart rows. At 1, the minus becomes unavailable; Remove is beside it. */
-function Stepper({ value, onChange, max, name, labels }: { value: number; onChange: (v: number) => void; max: number; name: string; labels: CartDrawerLabels }) {
-  const btn = "grid size-8 place-items-center text-muted transition-colors hover:text-ink disabled:opacity-35 disabled:hover:text-muted";
+function Stepper({ value, onChange, max, name, labels, icons }: { value: number; onChange: (v: number) => void; max: number; name: string; labels: CartDrawerLabels; icons: CartDrawerIcons }) {
+  const btn = "grid size-8 place-items-center [&>svg]:size-3.5 text-muted transition-colors hover:text-ink disabled:opacity-35 disabled:hover:text-muted";
   return (
     <div className="inline-flex h-8 items-center rounded-control bg-raised" role="group" aria-label={labels.quantityOf(name)}>
-      <button type="button" aria-label={labels.fewer} disabled={value <= 1} onClick={() => onChange(value - 1)} className={btn}><Minus className="size-3.5" /></button>
+      <button type="button" aria-label={labels.fewer} disabled={value <= 1} onClick={() => onChange(value - 1)} className={btn}>{icons.fewer}</button>
       <span className="w-6 text-center text-sm font-medium text-ink tabular" aria-live="polite">{value}</span>
-      <button type="button" aria-label={labels.more} disabled={value >= max} onClick={() => onChange(value + 1)} className={btn}><Plus className="size-3.5" /></button>
+      <button type="button" aria-label={labels.more} disabled={value >= max} onClick={() => onChange(value + 1)} className={btn}>{icons.more}</button>
     </div>
   );
 }

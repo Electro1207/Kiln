@@ -87,16 +87,25 @@ export function MediaCard({ image, alt, title, meta, children, href, onClick, cl
   );
 }
 
+/** Icons used by InteractiveCard. Pass a partial via `icons` to replace any. */
+export interface InteractiveCardIcons {
+  /** The arrow at the right that nudges on hover. */
+  arrow: ReactNode;
+}
+export const interactiveCardIcons: InteractiveCardIcons = { arrow: <ArrowUpRight /> };
+
 export type InteractiveCardProps = Omit<HTMLMotionProps<"button">, "title"> & {
   title: ReactNode;
   description?: ReactNode;
   leading?: ReactNode;
   selected?: boolean;
+  /** Replace any built-in icon. Merged over `interactiveCardIcons`. */
+  icons?: Partial<InteractiveCardIcons>;
 };
 
 /** A card that is a button: hover lift, press, and a `selected` state for choosing between options. */
 export const InteractiveCard = forwardRef<HTMLButtonElement, InteractiveCardProps>(function InteractiveCard(
-  { title, description, leading, selected, className, ...rest },
+  { title, description, leading, selected, icons, className, ...rest },
   ref,
 ) {
   return (
@@ -125,11 +134,11 @@ export const InteractiveCard = forwardRef<HTMLButtonElement, InteractiveCardProp
       </span>
       <motion.span
         aria-hidden
-        className="shrink-0 text-muted"
+        className="shrink-0 text-muted [&>svg]:size-4"
         variants={{ rest: { x: 0, y: 0, opacity: 0.5 }, hover: { x: 2, y: -2, opacity: 1 } }}
         transition={spring}
       >
-        <ArrowUpRight className="size-4" />
+        {icons?.arrow ?? interactiveCardIcons.arrow}
       </motion.span>
     </motion.button>
   );

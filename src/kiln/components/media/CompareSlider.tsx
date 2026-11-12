@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { animate, motion, useMotionValue, useMotionValueEvent, useTransform } from "motion/react";
 import { ChevronsLeftRight } from "lucide-react";
 import { cn } from "../../cn";
@@ -24,6 +24,8 @@ export type CompareSliderProps = {
   label?: string;
   /** Override any UI text. Merged over `compareSliderLabels`. */
   labels?: Partial<CompareSliderLabels>;
+  /** Replace any built-in icon. Merged over `compareSliderIcons`. */
+  icons?: Partial<CompareSliderIcons>;
   className?: string;
 };
 
@@ -32,8 +34,16 @@ export type CompareSliderProps = {
  * the arrow keys. The reveal is a window that slides by transform, so even
  * large pictures stay smooth.
  */
-export function CompareSlider({ before, after, beforeLabel = "Before", afterLabel = "After", initial = 50, label = "Compare", labels, className }: CompareSliderProps) {
+/** Icons used by CompareSlider. Pass a partial via `icons` to swap any of them. */
+export interface CompareSliderIcons {
+  /** Drag handle. */
+  handle: ReactNode;
+}
+export const compareSliderIcons: CompareSliderIcons = { handle: <ChevronsLeftRight /> };
+
+export function CompareSlider({ before, after, beforeLabel = "Before", afterLabel = "After", initial = 50, label = "Compare", labels, icons, className }: CompareSliderProps) {
   const l = { ...compareSliderLabels, ...labels };
+  const ic = useMemo(() => ({ ...compareSliderIcons, ...icons }), [icons]);
   const box = useRef<HTMLDivElement>(null);
   const pos = useMotionValue(initial);
   const [value, setValue] = useState(initial);
@@ -99,9 +109,9 @@ export function CompareSlider({ before, after, beforeLabel = "Before", afterLabe
             e.preventDefault();
             animate(pos, Math.min(100, Math.max(0, to)), springFirm);
           }}
-          className="pointer-events-auto absolute left-0 top-1/2 grid size-9 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize place-items-center rounded-full bg-surface text-ink shadow-float"
+          className="pointer-events-auto absolute left-0 top-1/2 grid size-9 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize place-items-center rounded-full bg-surface text-ink shadow-float [&>svg]:size-4"
         >
-          <ChevronsLeftRight className="size-4" />
+          {ic.handle}
         </button>
       </motion.div>
     </div>

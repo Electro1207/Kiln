@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { useControllable } from "../../controllable";
 import { AnimatePresence, motion } from "motion/react";
 import { SlidersHorizontal, X } from "lucide-react";
@@ -74,11 +74,37 @@ export function activeChips(facets: Facet[], v: FilterValue) {
   return chips;
 }
 
+const SwatchOn = createContext(false);
+
+function DrawnTick() {
+  const on = useContext(SwatchOn);
+  return (
+    <svg viewBox="0 0 16 16">
+      <motion.path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+        initial={false} animate={{ pathLength: on ? 1 : 0, opacity: on ? 1 : 0 }} transition={on ? springSnappy : { duration: 0.1 }} />
+    </svg>
+  );
+}
+
+export interface CategoryFiltersIcons {
+  /** Phone button that opens the drawer. */
+  filters: ReactNode;
+  /** Removes an active-filter chip. */
+  remove: ReactNode;
+  /** Tick on a selected colour swatch; draws in; stroke should be currentColor. */
+  check: ReactNode;
+}
+export const categoryFiltersIcons: CategoryFiltersIcons = {
+  filters: <SlidersHorizontal />,
+  remove: <X />,
+  check: <DrawnTick />,
+};
+
 /**
  * Faceted filters: a sidebar on wide screens, a drawer on phones, and the
  * active filters as chips above the results.
  */
-export function CategoryFilters({ facets, value: valueProp, defaultValue, onChange: onChangeProp, resultCount, children, className, labels }: {
+export function CategoryFilters({ facets, value: valueProp, defaultValue, onChange: onChangeProp, resultCount, children, className, labels, icons }: {
   facets: Facet[];
   /** Active filters; leave out to let the component keep them. */
   value?: FilterValue;
@@ -91,8 +117,11 @@ export function CategoryFilters({ facets, value: valueProp, defaultValue, onChan
   className?: string;
   /** Override any UI text. Merged over `categoryFiltersLabels`. */
   labels?: Partial<CategoryFiltersLabels>;
+  /** Replace any built-in icon. Merged over `categoryFiltersIcons`. */
+  icons?: Partial<CategoryFiltersIcons>;
 }) {
   const l = { ...categoryFiltersLabels, ...labels };
+  const ic = useMemo(() => ({ ...categoryFiltersIcons, ...icons }), [icons]);
   const [value, onChange] = useControllable<FilterValue>(valueProp, defaultValue ?? emptyFilters(facets), onChangeProp);
   const [drawer, setDrawer] = useState(false);
   const chips = activeChips(facets, value);
@@ -101,7 +130,7 @@ export function CategoryFilters({ facets, value: valueProp, defaultValue, onChan
   return (
     <div className={cn("grid w-full gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10", className)}>
       <aside className="hidden lg:block" aria-label={l.filters}>
-        <FilterPanel facets={facets} value={value} onChange={onChange} labels={l} />
+        <FilterPanel facets={facets} value={value} onChange={onChange} labels={l} icons={ic} />
       </aside>
 
       <div className="flex min-w-0 flex-col gap-4">
@@ -109,7 +138,7 @@ export function CategoryFilters({ facets, value: valueProp, defaultValue, onChan
           <p className="text-sm text-muted" aria-live="polite">
             {l.results(resultCount, <span className="font-medium text-ink tabular">{resultCount}</span>)}
           </p>
-          <Button variant="outline" size="sm" leading={<SlidersHorizontal />} onClick={() => setDrawer(true)} className="lg:hidden">
+          <Button variant="outline" size="sm" leading={ic.filters} onClick={() => setDrawer(true)} className="lg:hidden">
             {chips.length ? l.filtersWithCount(chips.length) : l.filters}
           </Button>
         </div>
@@ -131,7 +160,7 @@ export function CategoryFilters({ facets, value: valueProp, defaultValue, onChan
                     aria-label={l.removeFilter(c.label)}
                     className="inline-flex h-8 items-center gap-1.5 rounded-full bg-btn-secondary pl-3 pr-2 text-[13px] font-medium text-btn-secondary-ink transition-colors hover:bg-btn-secondary-hover"
                   >
-                    {c.label} <X className="size-3.5 opacity-70" aria-hidden />
+                    {c.label} <span className="inline-flex opacity-70 [&>svg]:size-3.5" aria-hidden>{ic.remove}</span>
                   </motion.button>
                 ))}
                 <motion.button key="__clear" layout="position" transition={springFirm} type="button" onClick={clearAll} className="h-8 px-2 text-[13px] font-medium text-accent hover:underline">
@@ -152,15 +181,16 @@ export function CategoryFilters({ facets, value: valueProp, defaultValue, onChan
             <Button className="flex-1" onClick={() => setDrawer(false)}>{l.showResults(resultCount)}</Button>
           </div>
         }>
-        <FilterPanel facets={facets} value={value} onChange={onChange} labels={l} />
+        <FilterPanel facets={facets} value={value} onChange={onChange} labels={l} icons={ic} />
       </Drawer>
     </div>
   );
 }
 
 /** The facet groups themselves; used in the sidebar and in the phone drawer. */
-export function FilterPanel({ facets, value, onChange, labels }: { facets: Facet[]; value: FilterValue; onChange: (v: FilterValue) => void; labels?: Partial<CategoryFiltersLabels> }) {
+export function FilterPanel({ facets, value, onChange, labels, icons }: { facets: Facet[]; value: FilterValue; onChange: (v: FilterValue) => void; labels?: Partial<CategoryFiltersLabels>; /** Replace any built-in icon. Merged over `categoryFiltersIcons`. */ icons?: Partial<CategoryFiltersIcons> }) {
   const l = { ...categoryFiltersLabels, ...labels };
+  const ic = { ...categoryFiltersIcons, ...icons };
   const toggle = (id: string, val: string, on: boolean) => {
     const cur = value[id] as string[];
     onChange({ ...value, [id]: on ? [...cur, val] : cur.filter((x) => x !== val) });
@@ -193,10 +223,9 @@ export function FilterPanel({ facets, value, onChange, labels }: { facets: Facet
                   >
                     <motion.span aria-hidden initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className="pointer-events-none absolute inset-0 rounded-full border-2 border-ink" />
                     <span className="grid size-7 place-items-center rounded-full ring-1 ring-ink/10 ring-inset" style={{ background: o.swatch }}>
-                      <svg viewBox="0 0 16 16" className={cn("size-3.5", o.light ? "text-black/80" : "text-white")} aria-hidden>
-                        <motion.path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-                          initial={false} animate={{ pathLength: on ? 1 : 0, opacity: on ? 1 : 0 }} transition={on ? springSnappy : { duration: 0.1 }} />
-                      </svg>
+                      <span aria-hidden className={cn("grid [&>svg]:size-3.5", o.light ? "text-black/80" : "text-white")}>
+                        <SwatchOn.Provider value={on}>{ic.check}</SwatchOn.Provider>
+                      </span>
                     </span>
                   </button>
                 );

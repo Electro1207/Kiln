@@ -36,6 +36,12 @@ export const productTourLabels: ProductTourLabels = {
   done: "Done",
 };
 
+export interface ProductTourIcons {
+  /** Skip button in the corner of the card. */
+  close: ReactNode;
+}
+export const productTourIcons: ProductTourIcons = { close: <X /> };
+
 export type ProductTourProps = {
   steps: TourStep[];
   open: boolean;
@@ -44,6 +50,8 @@ export type ProductTourProps = {
   onFinish?: () => void;
   /** Override any UI text. Merged over `productTourLabels`. */
   labels?: Partial<ProductTourLabels>;
+  /** Replace any built-in icon. Merged over `productTourIcons`. */
+  icons?: Partial<ProductTourIcons>;
 };
 
 const GAP = 14;
@@ -92,8 +100,9 @@ export function ProductTour(props: ProductTourProps) {
   );
 }
 
-function TourLayer({ steps, onOpenChange, onFinish, labels }: ProductTourProps) {
+function TourLayer({ steps, onOpenChange, onFinish, labels, icons }: ProductTourProps) {
   const l = { ...productTourLabels, ...labels };
+  const ic = { ...productTourIcons, ...icons };
   const reduced = !!useReducedMotion();
   const narrow = useMediaQuery("(max-width: 639px)");
   const [index, setIndex] = useState(0);
@@ -106,7 +115,9 @@ function TourLayer({ steps, onOpenChange, onFinish, labels }: ProductTourProps) 
   const sideRef = useRef<Place["side"]>("right");
   const reserveRef = useRef(-1);
   const indexRef = useRef(0);
-  indexRef.current = index;
+  useLayoutEffect(() => {
+    indexRef.current = index;
+  });
   // Glide offsets (px): how far what is drawn is from where the part is. They ease to nothing.
   const gx = useMotionValue(0);
   const gy = useMotionValue(0);
@@ -323,9 +334,9 @@ function TourLayer({ steps, onOpenChange, onFinish, labels }: ProductTourProps) 
               type="button"
               onClick={close}
               aria-label={l.skip}
-              className="-mr-1.5 -mt-1 grid size-7 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink"
+              className="-mr-1.5 -mt-1 grid size-7 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink [&>svg]:size-4"
             >
-              <X className="size-4" />
+              {ic.close}
             </button>
           </div>
           <div aria-live="polite">

@@ -1,4 +1,4 @@
-import { useId, useRef, type KeyboardEvent } from "react";
+import { createContext, useContext, useId, useMemo, useRef, type KeyboardEvent, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
@@ -6,12 +6,35 @@ import { spring, springSnappy, fade } from "../../motion";
 
 export type Swatch = { value: string; name: string; /** Set for pale colours so the tick is drawn dark. */ light?: boolean };
 
+const SwatchOn = createContext(false);
+
+/** The default tick: it draws itself in and out as the swatch is chosen. */
+function DrawnTick() {
+  const on = useContext(SwatchOn);
+  return (
+    <svg viewBox="0 0 16 16">
+      <motion.path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+        initial={false} animate={{ pathLength: on ? 1 : 0 }} transition={on ? { ...springSnappy, delay: 0.08 } : { duration: 0.1 }} />
+    </svg>
+  );
+}
+
+/** Icons used by ColorSwatches. Pass a partial via `icons` to replace any. */
+export interface ColorSwatchesIcons {
+  /** On the chosen swatch. It takes dark or light ink to suit the colour. */
+  check: ReactNode;
+}
+export const colorSwatchesIcons: ColorSwatchesIcons = { check: <DrawnTick /> };
+
 /** Pick one colour. The ring slides to the choice; the tick pops in. */
-export function ColorSwatches({ label = "Colour", swatches, value: valueProp, defaultValue, onChange: onChangeProp, className }: {
+export function ColorSwatches({ label = "Colour", swatches, value: valueProp, defaultValue, onChange: onChangeProp, className, icons }: {
   label?: string; swatches: Swatch[];
   /** Controlled value. Leave out and use `defaultValue` (or nothing: the first swatch) to let it keep its own. */
   value?: string; defaultValue?: string; onChange?: (v: string) => void; className?: string;
+  /** Replace any built-in icon. Merged over `colorSwatchesIcons`. */
+  icons?: Partial<ColorSwatchesIcons>;
 }) {
+  const ic = useMemo(() => ({ ...colorSwatchesIcons, ...icons }), [icons]);
   const [value, onChange] = useControllable(valueProp, defaultValue ?? swatches[0]?.value ?? "", onChangeProp);
   const id = useId();
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -54,10 +77,15 @@ export function ColorSwatches({ label = "Colour", swatches, value: valueProp, de
                 whileTap={{ scale: 0.9 }}
                 transition={spring}
               >
-                <svg viewBox="0 0 16 16" className={cn("size-3.5", s.light ? "text-black/80" : "text-white")} aria-hidden>
-                  <motion.path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-                    initial={false} animate={{ pathLength: on ? 1 : 0, opacity: on ? 1 : 0 }} transition={on ? { ...springSnappy, delay: 0.08 } : { duration: 0.1 }} />
-                </svg>
+                <motion.span
+                  aria-hidden
+                  className={cn("grid [&>svg]:size-3.5", s.light ? "text-black/80" : "text-white")}
+                  initial={false}
+                  animate={{ opacity: on ? 1 : 0 }}
+                  transition={on ? { ...springSnappy, delay: 0.08 } : { duration: 0.1 }}
+                >
+                  <SwatchOn.Provider value={on}>{ic.check}</SwatchOn.Provider>
+                </motion.span>
               </motion.span>
             </button>
           );

@@ -1,4 +1,4 @@
-import { memo, useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { memo, useCallback, useDeferredValue, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { cn } from "../../cn";
@@ -66,6 +66,8 @@ export type DocsNavProps = {
   storageKey?: string;
   /** Override any UI text. Merged over `docsNavLabels`. */
   labels?: Partial<DocsNavLabels>;
+  /** Replace any built-in icon. Merged over `docsNavIcons`. Pass a stable object, as the rows are memoised. */
+  icons?: Partial<DocsNavIcons>;
   className?: string;
   "aria-label"?: string;
 };
@@ -91,11 +93,19 @@ function Hit({ text, q }: { text: string; q: string }) {
  * keyboard shortcut, counts, and a pinned footer. The active row's fill fades in place; opening a
  * group shows its rows at once and fades them in, so nothing slides or folds under the pointer.
  */
+/** Icons used by DocsNav. Pass a partial via `icons` to swap any of them. */
+export interface DocsNavIcons {
+  /** Chevron on a group; it turns when the group is open. */
+  expand: ReactNode;
+}
+export const docsNavIcons: DocsNavIcons = { expand: <ChevronRight /> };
+
 export function DocsNav({
   sections, value, onSelect, searchable = true, shortcut = "/", placeholder, emptyText,
-  header, footer, rowHeight = 32, groupClick = "link", storageKey, labels, className, "aria-label": ariaLabelProp,
+  header, footer, rowHeight = 32, groupClick = "link", storageKey, labels, icons, className, "aria-label": ariaLabelProp,
 }: DocsNavProps) {
   const l = useMemo(() => ({ ...docsNavLabels, ...labels }), [labels]);
+  const ic = useMemo(() => ({ ...docsNavIcons, ...icons }), [icons]);
   const ariaLabel = ariaLabelProp ?? l.sidebar;
   const groups = useMemo(() => sections.flatMap((s) => s.groups), [sections]);
   const activeGroup = useMemo(
@@ -113,9 +123,11 @@ export function DocsNav({
   });
   /* Landing in a group (a link, the palette, the overview) opens it. Nothing ever closes a group
      except its own header, so what you opened stays open. */
-  useEffect(() => {
+  const [seenGroup, setSeenGroup] = useState(activeGroup);
+  if (activeGroup !== seenGroup) {
+    setSeenGroup(activeGroup);
     if (activeGroup) setOpen((o) => (o.has(activeGroup) ? o : new Set(o).add(activeGroup)));
-  }, [activeGroup]);
+  }
   useEffect(() => {
     if (!storageKey) return;
     try { localStorage.setItem(storageKey, JSON.stringify([...open])); } catch { /* storage unavailable */ }
@@ -169,7 +181,9 @@ export function DocsNav({
   }, [value, q, open]);
 
   const onSelectRef = useRef(onSelect);
-  onSelectRef.current = onSelect;
+  useLayoutEffect(() => {
+    onSelectRef.current = onSelect;
+  });
   const select = useCallback((e: MouseEvent, id: string, groupId: string) => {
     const f = onSelectRef.current;
     if (!f || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -238,6 +252,7 @@ export function DocsNav({
                     onReveal={reveal}
                     onPick={select}
                     l={l}
+                    ic={ic}
                   />
                 ))}
               </ul>
@@ -264,9 +279,10 @@ type GroupBlockProps = {
   onReveal: (id: string) => void;
   onPick: (e: MouseEvent, id: string, groupId: string) => void;
   l: DocsNavLabels;
+  ic: DocsNavIcons;
 };
 
-const GroupBlock = memo(function GroupBlock({ g, on, holds, activeItem, isOpen, toggleMode, q, rowHeight, onToggle, onReveal, onPick, l }: GroupBlockProps) {
+const GroupBlock = memo(function GroupBlock({ g, on, holds, activeItem, isOpen, toggleMode, q, rowHeight, onToggle, onReveal, onPick, l, ic }: GroupBlockProps) {
   const leaf = !g.items;
   const uid = useId();
   const count = q ? g.items?.length : (g.count ?? g.items?.length);
@@ -290,8 +306,8 @@ const GroupBlock = memo(function GroupBlock({ g, on, holds, activeItem, isOpen, 
               toggleMode && (on || holds ? "font-medium text-ink" : "text-muted group-hover/row:text-ink"),
             )}
           >
-            <motion.span initial={false} animate={{ rotate: isOpen ? 90 : 0 }} transition={springSnappy} className={cn("inline-flex", toggleMode && "grid w-7 shrink-0 place-items-center")}>
-              <ChevronRight className="size-3.5 text-faint" />
+            <motion.span initial={false} animate={{ rotate: isOpen ? 90 : 0 }} transition={springSnappy} className={cn("inline-flex text-faint [&>svg]:size-3.5", toggleMode && "grid w-7 shrink-0 place-items-center")}>
+              {ic.expand}
             </motion.span>
             {toggleMode && (
               <>
@@ -344,14 +360,13 @@ function Collapse({ id, open, instant, children }: { id: string; open: boolean; 
   const [mounted, setMounted] = useState(open);
   const [expanded, setExpanded] = useState(open);
   if (open && !mounted) setMounted(true);
+  if (open && instant && !expanded) setExpanded(true);
+  if (!open && expanded) setExpanded(false);
+  if (!open && instant && mounted) setMounted(false);
   useEffect(() => {
-    if (open) {
-      if (instant) { setExpanded(true); return; }
-      const r = requestAnimationFrame(() => requestAnimationFrame(() => setExpanded(true)));
-      return () => cancelAnimationFrame(r);
-    }
-    setExpanded(false);
-    if (instant) setMounted(false);
+    if (!open || instant) return;
+    const r = requestAnimationFrame(() => requestAnimationFrame(() => setExpanded(true)));
+    return () => cancelAnimationFrame(r);
   }, [open, instant]);
   if (!mounted) return null;
   return (

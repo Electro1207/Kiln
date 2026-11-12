@@ -1,10 +1,8 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { DEFAULT_THEME, liveCss, type StudioTheme } from "./tokens";
+import { StudioContext, type Ctx } from "./context";
 
 const KEY = "kiln-studio";
-
-type Ctx = { theme: StudioTheme; setTheme: (t: StudioTheme) => void; reset: () => void; edited: boolean };
-const StudioContext = createContext<Ctx | null>(null);
 
 function load(): StudioTheme | null {
   try {
@@ -53,10 +51,4 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     [theme, edited],
   );
   return <StudioContext.Provider value={value}>{children}</StudioContext.Provider>;
-}
-
-export function useStudio() {
-  const c = useContext(StudioContext);
-  if (!c) throw new Error("useStudio needs <StudioProvider>");
-  return c;
 }

@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
+import { useId, useLayoutEffect, useMemo, useRef, type KeyboardEvent, type ReactNode } from "react";
 import { animate, AnimatePresence, motion, useMotionValue } from "motion/react";
 import { ArrowUp, ChevronDown, FileText, Paperclip, X } from "lucide-react";
 import { cn } from "../../cn";
@@ -54,6 +54,32 @@ export type PromptInputProps = {
   className?: string;
   /** Override any UI text. Merged over `promptInputLabels`. */
   labels?: Partial<PromptInputLabels>;
+  /** Replace any built-in icon. Merged over `promptInputIcons`. */
+  icons?: Partial<PromptInputIcons>;
+};
+
+/** Icons used by PromptInput. Pass a partial via `icons` to replace any. */
+export interface PromptInputIcons {
+  /** Attach-files button. */
+  attach: ReactNode;
+  /** Beside each attachment. */
+  file: ReactNode;
+  /** Remove button on an attachment. */
+  remove: ReactNode;
+  /** The chevron on the model picker. */
+  chevron: ReactNode;
+  /** Send button. */
+  send: ReactNode;
+  /** Send button while a reply streams. */
+  stop: ReactNode;
+}
+export const promptInputIcons: PromptInputIcons = {
+  attach: <Paperclip />,
+  file: <FileText />,
+  remove: <X />,
+  chevron: <ChevronDown />,
+  send: <ArrowUp />,
+  stop: <svg viewBox="0 0 12 12"><rect width="12" height="12" rx="3" fill="currentColor" /></svg>,
 };
 
 const LINE = 22;
@@ -65,9 +91,10 @@ const LINE = 22;
  */
 export function PromptInput({
   value, onChange, onSubmit, streaming, onStop, models, model, onModelChange, attachments = [], onAttachmentsChange,
-  placeholder: placeholderProp, tools, maxRows = 8, className, labels,
+  placeholder: placeholderProp, tools, maxRows = 8, className, labels, icons,
 }: PromptInputProps) {
   const l = { ...promptInputLabels, ...labels };
+  const ic = useMemo(() => ({ ...promptInputIcons, ...icons }), [icons]);
   const placeholder = placeholderProp ?? l.placeholder;
   const id = useId();
   const area = useRef<HTMLTextAreaElement>(null);
@@ -128,7 +155,7 @@ export function PromptInput({
                     transition={springSoft}
                     className="flex h-11 items-center gap-2.5 rounded-[12px] bg-raised pl-2 pr-1.5"
                   >
-                    <span className="grid size-7 place-items-center rounded-[8px] bg-surface text-muted"><FileText className="size-4" /></span>
+                    <span className="grid size-7 place-items-center rounded-[8px] bg-surface text-muted"><span className="grid [&>svg]:size-4" aria-hidden>{ic.file}</span></span>
                     <span className="min-w-0">
                       <span className="block max-w-40 truncate text-[13px] font-medium leading-4">{a.name}</span>
                       <span className="block text-[11.5px] leading-4 text-muted">{a.size}</span>
@@ -139,7 +166,7 @@ export function PromptInput({
                       onClick={() => onAttachmentsChange?.(attachments.filter((x) => x.id !== a.id))}
                       className="grid size-6 place-items-center rounded-full text-muted transition-colors hover:bg-active hover:text-ink"
                     >
-                      <X className="size-3.5" />
+                      <span className="grid [&>svg]:size-3.5" aria-hidden>{ic.remove}</span>
                     </button>
                   </motion.li>
                 ))}
@@ -187,7 +214,7 @@ export function PromptInput({
               onClick={() => file.current?.click()}
               className="grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink"
             >
-              <Paperclip className="size-[18px]" />
+              <span className="grid [&>svg]:size-[18px]" aria-hidden>{ic.attach}</span>
             </button>
           </>
         )}
@@ -211,7 +238,7 @@ export function PromptInput({
                 )}
               >
                 {current.name}
-                <ChevronDown className={cn("size-3.5 transition-transform duration-300", open && "rotate-180")} />
+                <span className={cn("grid transition-transform duration-300 [&>svg]:size-3.5", open && "rotate-180")} aria-hidden>{ic.chevron}</span>
               </button>
             )}
           />
@@ -227,11 +254,11 @@ export function PromptInput({
           transition={springSoft}
           className="grid size-9 place-items-center rounded-full bg-btn-primary text-btn-primary-ink transition-[background-color,opacity] duration-200 hover:bg-btn-primary-hover disabled:opacity-35 [&>*]:[grid-area:1/1]"
         >
-          <motion.span initial={false} animate={{ opacity: streaming ? 0 : 1, scale: streaming ? 0.6 : 1 }} transition={springFirm} className="grid place-items-center">
-            <ArrowUp className="size-[18px]" strokeWidth={2.25} />
+          <motion.span initial={false} animate={{ opacity: streaming ? 0 : 1, scale: streaming ? 0.6 : 1 }} transition={springFirm} className="grid place-items-center [&>svg]:size-[18px] [&>svg]:stroke-[2.25]" aria-hidden>
+            {ic.send}
           </motion.span>
-          <motion.span initial={false} animate={{ opacity: streaming ? 1 : 0, scale: streaming ? 1 : 0.6 }} transition={springFirm} className="grid place-items-center">
-            <span className="size-3 rounded-[3px] bg-current" />
+          <motion.span initial={false} animate={{ opacity: streaming ? 1 : 0, scale: streaming ? 1 : 0.6 }} transition={springFirm} className="grid place-items-center [&>svg]:size-3" aria-hidden>
+            {ic.stop}
           </motion.span>
         </motion.button>
       </div>

@@ -21,7 +21,6 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      WRANGLER: wrangler@4.160.1
       PROJECT: usekiln
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -36,8 +35,8 @@ jobs:
       - run: npm run build
       - name: Create the Pages project on first run
         run: |
-          if ! npx --yes "$WRANGLER" pages project list | grep -qw "$PROJECT"; then
-            npx --yes "$WRANGLER" pages project create "$PROJECT" --production-branch=main
+          if ! npx --no-install wrangler pages project list | grep -qw "$PROJECT"; then
+            npx --no-install wrangler pages project create "$PROJECT" --production-branch=main
           fi
       - name: Deploy
-        run: npx --yes "$WRANGLER" pages deploy dist --project-name="$PROJECT" --branch=main --commit-dirty=true
+        run: npx --no-install wrangler pages deploy dist --project-name="$PROJECT" --branch=main --commit-dirty=true

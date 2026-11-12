@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useControllable } from "../../controllable";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
@@ -32,15 +32,29 @@ export type SidebarNavProps = {
   defaultCollapsed?: boolean;
   /** Override any UI text. Merged over `sidebarNavLabels`. */
   labels?: Partial<SidebarNavLabels>;
+  /** Replace any built-in icon. Merged over `sidebarNavIcons`. */
+  icons?: Partial<SidebarNavIcons>;
   className?: string;
 };
+
+/** Icons used by SidebarNav. Pass a partial via `icons` to swap any of them. */
+export interface SidebarNavIcons {
+  /** Collapses the rail. */
+  collapse: ReactNode;
+  /** Opens the collapsed rail. */
+  expand: ReactNode;
+  /** Chevron on an item with children; it flips when open. */
+  chevron: ReactNode;
+}
+export const sidebarNavIcons: SidebarNavIcons = { collapse: <PanelLeftClose />, expand: <PanelLeftOpen />, chevron: <ChevronDown /> };
 
 /**
  * A side navigation. Each row owns its fill, which fades in when active; the whole bar folds into an icon rail.
  * Controlled with `value` + `onChange`, or uncontrolled with `defaultValue`.
  */
-export function SidebarNav({ sections, value: valueProp, defaultValue, onChange: onChangeProp, header, collapsible = true, defaultCollapsed = false, labels, className }: SidebarNavProps) {
+export function SidebarNav({ sections, value: valueProp, defaultValue, onChange: onChangeProp, header, collapsible = true, defaultCollapsed = false, labels, icons, className }: SidebarNavProps) {
   const l = { ...sidebarNavLabels, ...labels };
+  const ic = useMemo(() => ({ ...sidebarNavIcons, ...icons }), [icons]);
   const [value, onChange] = useControllable<string>(valueProp, defaultValue ?? sections[0]?.items[0]?.id ?? "", onChangeProp);
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const [expanded, setExpanded] = useState<string[]>(() =>
@@ -76,9 +90,9 @@ export function SidebarNav({ sections, value: valueProp, defaultValue, onChange:
             type="button"
             aria-label={l.collapse}
             onClick={() => setCollapsed(true)}
-            className="grid size-8 shrink-0 place-items-center rounded-control text-muted transition-colors hover:bg-active hover:text-ink"
+            className="grid size-8 shrink-0 place-items-center rounded-control text-muted transition-colors hover:bg-active hover:text-ink [&>svg]:size-4"
           >
-            <PanelLeftClose className="size-4" />
+            {ic.collapse}
           </button>
         )}
       </div>
@@ -87,9 +101,9 @@ export function SidebarNav({ sections, value: valueProp, defaultValue, onChange:
           type="button"
           aria-label={l.expand}
           onClick={() => setCollapsed(false)}
-          className="mb-2 grid size-10 shrink-0 place-items-center rounded-control text-muted transition-colors hover:bg-active hover:text-ink"
+          className="mb-2 grid size-10 shrink-0 place-items-center rounded-control text-muted transition-colors hover:bg-active hover:text-ink [&>svg]:size-4"
         >
-          <PanelLeftOpen className="size-4" />
+          {ic.expand}
         </button>
       )}
 
@@ -161,8 +175,8 @@ export function SidebarNav({ sections, value: valueProp, defaultValue, onChange:
                       )}
                     </AnimatePresence>
                     {it.children && !collapsed && (
-                      <motion.span initial={false} animate={{ rotate: isOpen ? 180 : 0 }} transition={springSnappy} className="relative z-[1] inline-flex text-faint">
-                        <ChevronDown className="size-4" />
+                      <motion.span initial={false} animate={{ rotate: isOpen ? 180 : 0 }} transition={springSnappy} className="relative z-[1] inline-flex text-faint [&>svg]:size-4">
+                        {ic.chevron}
                       </motion.span>
                     )}
                   </button>

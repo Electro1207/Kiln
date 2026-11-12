@@ -37,7 +37,7 @@ export function Popover({ trigger, children, side = "bottom", align = "center", 
     onOpenChange?.(v);
   };
   const id = useId();
-  const { anchorRef, floatingRef, placement, floatingStyle } = useAnchored(open, side, align, 8);
+  const { anchorRef, setAnchor, focusAnchor, floatingRef, placement, floatingStyle } = useAnchored(open, side, align, 8);
   useDismiss(open, () => setOpen(false), [anchorRef, floatingRef]);
 
   useEffect(() => {
@@ -48,11 +48,11 @@ export function Popover({ trigger, children, side = "bottom", align = "center", 
 
   const close = () => {
     setOpen(false);
-    anchorRef.current?.focus({ preventScroll: true });
+    focusAnchor();
   };
 
   const triggerEl = cloneElement(trigger, {
-    ref: anchorRef as Ref<HTMLElement>,
+    ref: setAnchor as Ref<HTMLElement>,
     onClick: (e: React.MouseEvent) => {
       trigger.props.onClick?.(e);
       setOpen(!open);

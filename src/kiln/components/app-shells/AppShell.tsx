@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { animate, motion, useMotionValue } from "motion/react";
 import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "../../cn";
@@ -32,6 +32,17 @@ export const appShellLabels: AppShellLabels = {
   menu: "Menu",
 };
 
+/** Icons used by AppShell. Pass a partial via `icons` to replace any. */
+export interface AppShellIcons {
+  /** Opens the drawer on narrow widths. */
+  menu: ReactNode;
+  /** Collapses the sidebar. */
+  collapse: ReactNode;
+  /** Expands the sidebar. */
+  expand: ReactNode;
+}
+export const appShellIcons: AppShellIcons = { menu: <Menu />, collapse: <PanelLeftClose />, expand: <PanelLeftOpen /> };
+
 export type AppShellProps = {
   /** Mark and name, shown at the top of the sidebar. `collapsed` is true in the icon rail. */
   brand: (collapsed: boolean) => ReactNode;
@@ -48,6 +59,8 @@ export type AppShellProps = {
   className?: string;
   /** Override any UI text. Merged over `appShellLabels`. */
   labels?: Partial<AppShellLabels>;
+  /** Replace any built-in icon. Merged over `appShellIcons`. */
+  icons?: Partial<AppShellIcons>;
 };
 
 const FULL = 240;
@@ -60,8 +73,9 @@ const RAIL = 64;
  * so the content never reflows mid-animation. Below 768px of its own width the
  * sidebar moves into a drawer behind a menu button.
  */
-export function AppShell({ brand, nav, value, onNavigate, topBar, footer, children, height = 640, className, labels: labelsProp }: AppShellProps) {
+export function AppShell({ brand, nav, value, onNavigate, topBar, footer, children, height = 640, className, labels: labelsProp, icons }: AppShellProps) {
   const l = { ...appShellLabels, ...labelsProp };
+  const ic = useMemo(() => ({ ...appShellIcons, ...icons }), [icons]);
   const [collapsed, setCollapsed] = useState(false);
   const [labels, setLabels] = useState(true);
   /** Rail-width hit areas: only once the collapse has landed, so nothing visibly squeezes. */
@@ -200,9 +214,9 @@ export function AppShell({ brand, nav, value, onNavigate, topBar, footer, childr
               type="button"
               aria-label={l.openMenu}
               onClick={() => setDrawer(true)}
-              className="grid size-9 place-items-center rounded-control text-ink transition-colors duration-200 hover:bg-raised @3xl:hidden"
+              className="grid size-9 place-items-center rounded-control text-ink transition-colors duration-200 hover:bg-raised @3xl:hidden [&>span>svg]:size-5"
             >
-              <Menu className="size-5" />
+              <span className="grid" aria-hidden>{ic.menu}</span>
             </button>
             <div className="min-w-0 @3xl:hidden">{brand(false)}</div>
             <button
@@ -212,11 +226,11 @@ export function AppShell({ brand, nav, value, onNavigate, topBar, footer, childr
               onClick={labels ? collapse : expand}
               className="hidden size-9 place-items-center rounded-control text-muted transition-colors duration-200 hover:bg-raised hover:text-ink @3xl:grid [&>*]:[grid-area:1/1]"
             >
-              <motion.span className="grid" initial={false} animate={{ opacity: labels ? 1 : 0 }} transition={fade}>
-                <PanelLeftClose className="size-[18px]" />
+              <motion.span className="grid [&>svg]:size-[18px]" aria-hidden initial={false} animate={{ opacity: labels ? 1 : 0 }} transition={fade}>
+                {ic.collapse}
               </motion.span>
-              <motion.span className="grid" initial={false} animate={{ opacity: labels ? 0 : 1 }} transition={fade}>
-                <PanelLeftOpen className="size-[18px]" />
+              <motion.span className="grid [&>svg]:size-[18px]" aria-hidden initial={false} animate={{ opacity: labels ? 0 : 1 }} transition={fade}>
+                {ic.expand}
               </motion.span>
             </button>
             <div className="flex min-w-0 flex-1 items-center justify-end gap-2">{topBar}</div>

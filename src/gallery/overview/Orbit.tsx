@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useAnimationFrame, useInView, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform, type MotionValue } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 import { categories } from "../registry";
@@ -130,13 +130,13 @@ const swapVariants = {
 
 type Scene = { t: MotionValue<number>; px: MotionValue<number>; py: MotionValue<number>; sp: MotionValue<number> };
 
-const Card = memo(function Card({ slot, i, first, scene, handles, amp }: { slot: Slot; i: number; first: Live; amp: Amp; scene: Scene; handles: MutableRefObject<(Handle | null)[]> }) {
+const Card = memo(function Card({ slot, i, first, scene, register, amp }: { slot: Slot; i: number; first: Live; amp: Amp; scene: Scene; register: (i: number, h: Handle | null) => void }) {
   const [piece, setPiece] = useState(first);
   const [tick, setTick] = useState(0);
   useEffect(() => {
-    handles.current[i] = { swap: setPiece, poke: () => setTick((n) => n + 1) };
-    return () => { handles.current[i] = null; };
-  }, [handles, i]);
+    register(i, { swap: setPiece, poke: () => setTick((n) => n + 1) });
+    return () => register(i, null);
+  }, [register, i]);
 
   const { t, px, py, sp } = scene;
   const { d } = slot;
@@ -190,6 +190,9 @@ export function Orbit({ total }: { total: number }) {
   const slots = phone ? NARROW : tablet ? TABLET : mid ? MID : WIDE;
   const amp = phone ? PHONE : tablet ? TABLET_AMP : mid ? MID_AMP : FULL;
   const handles = useRef<(Handle | null)[]>([]);
+  const register = useCallback((i: number, h: Handle | null) => {
+    handles.current[i] = h;
+  }, []);
   const t = useMotionValue(0);
   const rawX = useMotionValue(0), rawY = useMotionValue(0);
   const px = useSpring(rawX, { stiffness: 60, damping: 20, mass: 0.6 });
@@ -205,7 +208,9 @@ export function Orbit({ total }: { total: number }) {
     return { first: [...first, ...rest].slice(0, WIDE.length), rest: shuffle([...LIVE]) };
   }, []);
   const shown = useRef<string[]>([]);
-  shown.current = shown.current.length ? shown.current : opening.first.map((p) => p.id);
+  useEffect(() => {
+    shown.current = opening.first.map((p) => p.id);
+  }, [opening]);
 
   useEffect(() => {
     if (!active) return;
@@ -270,7 +275,7 @@ export function Orbit({ total }: { total: number }) {
       <div aria-hidden className="absolute left-1/2 top-[64%] h-[44%] w-[84%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-line/70" />
       <div aria-hidden className="absolute left-1/2 top-[64%] h-[78%] w-[118%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-line/40" />
       {slots.map((slot, i) => (
-        <Card key={`${slots.length}-${i}`} slot={slot} i={i} first={opening.first[i]} scene={scene} handles={handles} amp={amp} />
+        <Card key={`${slots.length}-${i}`} slot={slot} i={i} first={opening.first[i]} scene={scene} register={register} amp={amp} />
       ))}
       {copy}
     </section>

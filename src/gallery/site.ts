@@ -6,3 +6,11 @@ export const KILN_SITE = "https://usekiln.pages.dev";
 
 /** The npm package name. */
 export const KILN_PACKAGE = "@electro1207/kiln";
+
+/** The source repository, and where people ask for things. */
+export const KILN_REPO = "https://github.com/Electro1207/Kiln";
+export const KILN_LINKS = {
+  feature: `${KILN_REPO}/issues/new?template=feature_request.yml`,
+  bug: `${KILN_REPO}/issues/new?template=bug_report.yml`,
+  discussions: `${KILN_REPO}/discussions`,
+};

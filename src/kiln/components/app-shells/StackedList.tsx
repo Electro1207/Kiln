@@ -1,8 +1,15 @@
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { TickBox } from "../tables/Table";
+
+/** Icons used by StackedList. Pass a partial via `icons` to replace any. */
+export interface StackedListIcons {
+  /** The arrow at the end of a row that opens. */
+  open: ReactNode;
+}
+export const stackedListIcons: StackedListIcons = { open: <ChevronRight /> };
 
 /** Text used by StackedList. Pass a partial via `labels` to translate or reword. */
 export interface StackedListLabels {
@@ -31,7 +38,7 @@ export type StackedRow = {
  * The right column folds under the title on narrow containers.
  */
 export function StackedList({
-  rows, selected: selectedProp, defaultSelected, onSelectedChange, onOpen, label, className, labels,
+  rows, selected: selectedProp, defaultSelected, onSelectedChange, onOpen, label, className, labels, icons,
 }: {
   rows: StackedRow[];
   /** Selected row ids. Passing `selected`, `defaultSelected` or `onSelectedChange` turns on the checkboxes. */
@@ -44,8 +51,11 @@ export function StackedList({
   className?: string;
   /** Override any UI text. Merged over `stackedListLabels`. */
   labels?: Partial<StackedListLabels>;
+  /** Replace any built-in icon. Merged over `stackedListIcons`. */
+  icons?: Partial<StackedListIcons>;
 }) {
   const l = { ...stackedListLabels, ...labels };
+  const ic = useMemo(() => ({ ...stackedListIcons, ...icons }), [icons]);
   const selectable = !!(selectedProp || defaultSelected || onSelectedChange);
   const [selected, setSelected] = useControllable<Set<string>>(selectedProp, defaultSelected ?? new Set(), onSelectedChange);
   const toggle = (id: string) => {
@@ -73,7 +83,7 @@ export function StackedList({
                 </span>
               )}
             </span>
-            {!selectable && <ChevronRight aria-hidden className="size-4 shrink-0 text-faint transition-transform duration-200 group-hover:translate-x-0.5" />}
+            {!selectable && <span aria-hidden className="grid shrink-0 text-faint transition-transform duration-200 group-hover:translate-x-0.5 [&>svg]:size-4">{ic.open}</span>}
           </>
         );
         const rowCls = cn(

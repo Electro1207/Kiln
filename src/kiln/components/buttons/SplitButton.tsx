@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "../../cn";
@@ -11,18 +11,28 @@ export interface SplitButtonLabels {
 }
 export const splitButtonLabels: SplitButtonLabels = { moreActions: "More actions" };
 
+/** Icons used by SplitButton. Pass a partial via `icons` to replace any. */
+export interface SplitButtonIcons {
+  /** The chevron on the menu button; it turns when open. */
+  chevron: ReactNode;
+}
+export const splitButtonIcons: SplitButtonIcons = { chevron: <ChevronDown /> };
+
 export type SplitAction = { label: string; description?: string; icon?: ReactNode; onSelect: () => void };
 
 /** A main action with a menu of related ones beside it. */
-export function SplitButton({ label, onClick, actions, className, labels }: {
+export function SplitButton({ label, onClick, actions, className, labels, icons }: {
   label: ReactNode;
   onClick: () => void;
   actions: SplitAction[];
   className?: string;
   /** Override any UI text. Merged over `splitButtonLabels`. */
   labels?: Partial<SplitButtonLabels>;
+  /** Replace any built-in icon. Merged over `splitButtonIcons`. */
+  icons?: Partial<SplitButtonIcons>;
 }) {
   const l = { ...splitButtonLabels, ...labels };
+  const ic = useMemo(() => ({ ...splitButtonIcons, ...icons }), [icons]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const root = useRef<HTMLDivElement>(null);
@@ -59,7 +69,7 @@ export function SplitButton({ label, onClick, actions, className, labels }: {
         transition={springSnappy}
         className="grid h-10 w-10 place-items-center rounded-r-control border-l border-btn-primary-ink/25 bg-btn-primary text-btn-primary-ink transition-colors duration-200 hover:bg-btn-primary-hover"
       >
-        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={springSnappy} className="grid"><ChevronDown className="size-4" /></motion.span>
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={springSnappy} className="grid [&>svg]:size-4" aria-hidden>{ic.chevron}</motion.span>
       </motion.button>
       <AnimatePresence>
         {open && (

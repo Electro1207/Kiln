@@ -15,6 +15,15 @@ export interface ComparisonTableLabels {
   /** Screen-reader text for a dash. */
   notIncluded: string;
 }
+/** Icons used by ComparisonTable. Pass a partial via `icons` to replace them. */
+export interface ComparisonTableIcons {
+  /** Feature included in a plan. */
+  included: ReactNode;
+  /** Feature not in a plan. */
+  notIncluded: ReactNode;
+}
+export const comparisonTableIcons: ComparisonTableIcons = { included: <Check />, notIncluded: <Minus /> };
+
 export const comparisonTableLabels: ComparisonTableLabels = { included: "Included", notIncluded: "Not included" };
 
 export type ComparisonGroup = { title: string; rows: ComparisonRow[] };
@@ -24,13 +33,16 @@ export type ComparisonGroup = { title: string; rows: ComparisonRow[] };
  * of the scroll area and the feature column stays at the left on phones.
  */
 export function ComparisonTable({
-  plans, groups, caption, maxHeight = 520, className, labels,
+  plans, groups, caption, maxHeight = 520, className, labels, icons,
 }: {
   plans: ComparisonPlan[]; groups: ComparisonGroup[]; caption: string; maxHeight?: number; className?: string;
   /** Override any UI text. Merged over `comparisonTableLabels`. */
   labels?: Partial<ComparisonTableLabels>;
+  /** Replace any built-in icon. Merged over `comparisonTableIcons`. */
+  icons?: Partial<ComparisonTableIcons>;
 }) {
   const l = { ...comparisonTableLabels, ...labels };
+  const ic = { ...comparisonTableIcons, ...icons };
   return (
     <div
       className={cn("w-full overflow-auto rounded-card border border-line bg-surface", className)}
@@ -89,12 +101,12 @@ export function ComparisonTable({
                       >
                         {v === true ? (
                           <span className="flex items-center text-ink">
-                            <Check className="size-4 text-accent" aria-hidden />
+                            <span className="grid place-items-center text-accent [&>svg]:size-4" aria-hidden>{ic.included}</span>
                             <span className="sr-only">{l.included}</span>
                           </span>
                         ) : v === false || v == null ? (
                           <span className="flex items-center text-faint">
-                            <Minus className="size-4" aria-hidden />
+                            <span className="grid place-items-center [&>svg]:size-4" aria-hidden>{ic.notIncluded}</span>
                             <span className="sr-only">{l.notIncluded}</span>
                           </span>
                         ) : (

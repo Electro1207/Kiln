@@ -1,10 +1,24 @@
-import { forwardRef, type ReactNode } from "react";
+import { forwardRef, useMemo, type ReactNode } from "react";
 import { AnimatePresence, motion, type HTMLMotionProps } from "motion/react";
 import { cn } from "../../cn";
 import { press, spring, springSnappy } from "../../motion";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
+
+/** Icons used by Button. Pass a partial via `icons` to replace any. */
+export interface ButtonIcons {
+  /** Shown while `loading`; it spins. */
+  spinner: ReactNode;
+}
+export const buttonIcons: ButtonIcons = {
+  spinner: (
+    <svg viewBox="0 0 16 16">
+      <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="2" />
+      <path d="M14 8a6 6 0 0 0-6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  ),
+};
 
 export type ButtonProps = Omit<HTMLMotionProps<"button">, "children"> & {
   variant?: ButtonVariant;
@@ -15,6 +29,8 @@ export type ButtonProps = Omit<HTMLMotionProps<"button">, "children"> & {
   /** Icon after the label. */
   trailing?: ReactNode;
   children?: ReactNode;
+  /** Replace any built-in icon. Merged over `buttonIcons`. */
+  icons?: Partial<ButtonIcons>;
 };
 
 const variants: Record<ButtonVariant, string> = {
@@ -33,9 +49,10 @@ const sizes: Record<ButtonSize, string> = {
 
 /** The main action. Five variants, three sizes, optional icons and a loading state that keeps its width. Extra props and `ref` go to the `<button>`. */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = "primary", size = "md", loading = false, leading, trailing, children, className, disabled, ...rest },
+  { variant = "primary", size = "md", loading = false, leading, trailing, children, className, disabled, icons, ...rest },
   ref,
 ) {
+  const ic = useMemo(() => ({ ...buttonIcons, ...icons }), [icons]);
   const inert = disabled || loading;
   return (
     <motion.button
@@ -73,19 +90,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
             transition={springSnappy}
             className="absolute inset-0 grid place-items-center"
           >
-            <Spinner />
+            <span className="grid animate-spin [&>svg]:size-4" aria-hidden>{ic.spinner}</span>
           </motion.span>
         )}
       </AnimatePresence>
     </motion.button>
   );
 });
-
-function Spinner() {
-  return (
-    <svg viewBox="0 0 16 16" className="size-4 animate-spin" aria-hidden>
-      <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="2" />
-      <path d="M14 8a6 6 0 0 0-6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}

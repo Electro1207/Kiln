@@ -41,7 +41,12 @@ const CELL = 12;
 const GAP = 3;
 const PITCH = CELL + GAP;
 
-const fmt = (iso: string, locale?: string) => new Date(iso + "T12:00:00").toLocaleDateString(locale ?? "en-GB", { weekday: "short", day: "numeric", month: "short" });
+const formatters = new Map<string, Intl.DateTimeFormat>();
+const fmt = (iso: string, locale = "en-GB") => {
+  let f = formatters.get(locale);
+  if (!f) formatters.set(locale, (f = new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric", month: "short" })));
+  return f.format(new Date(iso + "T12:00:00"));
+};
 
 /**
  * A half-year-at-a-glance strip, one square per day, weeks in columns.
@@ -53,7 +58,8 @@ const fmt = (iso: string, locale?: string) => new Date(iso + "T12:00:00").toLoca
  * re-renders. The entrance runs on the compositor (Web Animations), not React.
  */
 export function HeatStrip({ days, unit, locale, className, labels }: HeatStripProps) {
-  const l = { ...heatStripLabels, ...labels };
+  // Stable, so the memoised cells don't re-render on every hover.
+  const l = useMemo(() => ({ ...heatStripLabels, ...labels }), [labels]);
   const [active, setActive] = useState<number | null>(null);
   const activeRef = useRef<number | null>(null);
   const grid = useRef<HTMLDivElement>(null);

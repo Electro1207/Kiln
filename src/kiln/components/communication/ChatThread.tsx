@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { cn } from "../../cn";
@@ -35,6 +35,14 @@ export const chatThreadLabels: ChatThreadLabels = {
   send: "Send",
 };
 
+export interface ChatThreadIcons {
+  /** Jump-to-latest pill. */
+  latest: ReactNode;
+  /** Send button. */
+  send: ReactNode;
+}
+export const chatThreadIcons: ChatThreadIcons = { latest: <ArrowDown />, send: <ArrowUp /> };
+
 export type ChatThreadProps = {
   messages: ChatMessage[];
   /** The author name that is "me": right-aligned, filled bubbles. */
@@ -48,6 +56,8 @@ export type ChatThreadProps = {
   className?: string;
   /** Override any UI text. Merged over `chatThreadLabels`. */
   labels?: Partial<ChatThreadLabels>;
+  /** Replace any built-in icon. Merged over `chatThreadIcons`. */
+  icons?: Partial<ChatThreadIcons>;
 };
 
 /** Messages from one author closer together than this share one group. */
@@ -99,10 +109,11 @@ function groupMessages(messages: ChatMessage[]): Group[] {
  * rise in from the composer. If you have scrolled up when something arrives,
  * a pill offers to take you down to it instead of yanking the view.
  */
-export function ChatThread({ messages, me, typing, onSend, height = 420, placeholder = "Message", className, labels }: ChatThreadProps) {
+export function ChatThread({ messages, me, typing, onSend, height = 420, placeholder = "Message", className, labels, icons }: ChatThreadProps) {
   const l = { ...chatThreadLabels, ...labels };
+  const ic = useMemo(() => ({ ...chatThreadIcons, ...icons }), [icons]);
   const scroller = useRef<HTMLDivElement>(null);
-  const seen = useRef(new Set(messages.map((m) => m.id)));
+  const [initialIds] = useState(() => new Set(messages.map((m) => m.id)));
   const [atBottom, setAtBottom] = useState(true);
   // Where the reader was before anything new arrived: following along, or reading back.
   const following = useRef(true);
@@ -131,10 +142,6 @@ export function ChatThread({ messages, me, typing, onSend, height = 420, placeho
     if (following.current || (isNew && mine)) toBottom(true);
     else if (isNew) setUnseen((n) => n + 1);
   }, [lastId, typing, me, messages, toBottom]);
-
-  useEffect(() => {
-    for (const m of messages) seen.current.add(m.id);
-  });
 
   const onScroll = () => {
     const el = scroller.current;
@@ -178,7 +185,7 @@ export function ChatThread({ messages, me, typing, onSend, height = 420, placeho
                   {!mine && <span className="px-3 pb-0.5 text-xs font-medium text-muted">{g.author}</span>}
                   {g.messages.map((m, i) => {
                     const first = i === 0, last = i === g.messages.length - 1;
-                    const fresh = !seen.current.has(m.id);
+                    const fresh = !initialIds.has(m.id);
                     return (
                       <motion.div
                         key={m.id}
@@ -236,9 +243,9 @@ export function ChatThread({ messages, me, typing, onSend, height = 420, placeho
             animate={{ opacity: 1, y: 0, x: "-50%" }}
             exit={{ opacity: 0, y: 10, x: "-50%", transition: { duration: 0.16, ease: easeOut } }}
             transition={springSoft}
-            className="absolute bottom-[68px] left-1/2 z-10 flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3 text-[13px] font-medium text-ink shadow-float"
+            className="absolute bottom-[68px] left-1/2 z-10 flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3 [&>svg]:size-3.5 text-[13px] font-medium text-ink shadow-float"
           >
-            <ArrowDown className="size-3.5" />
+            {ic.latest}
             <span className="grid [&>*]:[grid-area:1/1]">
               <motion.span initial={false} animate={{ opacity: unseen > 0 ? 1 : 0 }} transition={fade}>
                 {l.newMessages(unseen)}
@@ -267,9 +274,9 @@ export function ChatThread({ messages, me, typing, onSend, height = 420, placeho
           disabled={!draft.trim()}
           whileTap={{ scale: 0.9 }}
           transition={springSoft}
-          className="grid size-10 shrink-0 place-items-center rounded-full bg-btn-primary text-btn-primary-ink transition-[background-color,opacity] hover:bg-btn-primary-hover disabled:opacity-40"
+          className="grid size-10 shrink-0 place-items-center rounded-full bg-btn-primary text-btn-primary-ink transition-[background-color,opacity] hover:bg-btn-primary-hover disabled:opacity-40 [&>svg]:size-[18px] [&>svg]:stroke-[2.25]"
         >
-          <ArrowUp className="size-[18px]" strokeWidth={2.25} />
+          {ic.send}
         </motion.button>
       </form>
     </div>

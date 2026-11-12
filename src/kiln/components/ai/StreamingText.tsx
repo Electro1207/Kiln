@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { cn } from "../../cn";
 import { usePrefersReducedMotion } from "../shared/useLoop";
 
@@ -31,14 +31,15 @@ export function StreamingText({ text, streaming, rate = 32, onDone, stopped, cla
   const [shown, setShown] = useState(streaming && !reduce ? 0 : tokens.length);
   const done = useRef(false);
   const doneRef = useRef(onDone);
-  doneRef.current = onDone;
+  useLayoutEffect(() => {
+    doneRef.current = onDone;
+  });
+
+  const instant = !streaming || reduce;
+  if (instant && shown !== tokens.length) setShown(tokens.length);
 
   useEffect(() => {
-    if (!streaming || reduce) {
-      setShown(tokens.length);
-      return;
-    }
-    if (stopped) return;
+    if (instant || stopped) return;
     let raf = 0;
     let last = performance.now();
     let acc = 0;
@@ -55,7 +56,7 @@ export function StreamingText({ text, streaming, rate = 32, onDone, stopped, cla
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [streaming, stopped, rate, tokens.length, reduce]);
+  }, [instant, stopped, rate, tokens.length]);
 
   useEffect(() => {
     if (shown >= tokens.length && !done.current) {
