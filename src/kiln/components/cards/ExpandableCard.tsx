@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { X } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { fade, springSoft } from "../../motion";
 
 export type ExpandableItem = {
@@ -33,8 +34,14 @@ export const expandableCardsLabels: ExpandableCardsLabels = { close: "Close" };
  * Cards that grow into a full detail view. The picture, title and frame are
  * shared elements, so the card itself becomes the dialog.
  */
-export function ExpandableCards({ items, className, labels, icons }: {
+export function ExpandableCards({ items, value, defaultValue = null, onChange, className, labels, icons }: {
   items: ExpandableItem[];
+  /** Controlled id of the open card, or `null` for none. Leave out to let the cards keep their own. */
+  value?: string | null;
+  /** Which card starts open when uncontrolled. Default none. */
+  defaultValue?: string | null;
+  /** Called with the id of the card that opens, or `null` when it closes, controlled or not. */
+  onChange?: (id: string | null) => void;
   className?: string;
   /** Override any UI text. Merged over `expandableCardsLabels`. */
   labels?: Partial<ExpandableCardsLabels>;
@@ -44,7 +51,7 @@ export function ExpandableCards({ items, className, labels, icons }: {
   const l = { ...expandableCardsLabels, ...labels };
   const ic = useMemo(() => ({ ...expandableCardsIcons, ...icons }), [icons]);
   const uid = useId();
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openId, setOpenId] = useControllable<string | null>(value, defaultValue, onChange);
   /** The card flying home after a close; it stays above its neighbours until it lands. */
   const [returning, setReturning] = useState<string | null>(null);
   const open = items.find((i) => i.id === openId) ?? null;
@@ -64,7 +71,7 @@ export function ExpandableCards({ items, className, labels, icons }: {
       window.removeEventListener("keydown", onKey);
       window.clearTimeout(t);
     };
-  }, [openId]);
+  }, [openId, setOpenId]);
 
   const close = () => {
     const id = openId;
