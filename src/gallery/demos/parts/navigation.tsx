@@ -5,6 +5,7 @@ import {
 import { Stage, Variant, Btn } from "../../ui";
 import { Button } from "../../../kiln/components/buttons/Button";
 import { Navbar } from "../../../kiln/components/menus/Navbar";
+import { ThemeToggle } from "../../../kiln/components/primitives/ThemeToggle";
 import { Tabs } from "../../../kiln/components/wayfinding/Tabs";
 import { Breadcrumbs } from "../../../kiln/components/wayfinding/Breadcrumbs";
 import { Pagination, type PaginationLabels } from "../../../kiln/components/wayfinding/Pagination";
@@ -47,6 +48,7 @@ export function NavbarDemo() {
       current={current}
       onNavigate={setCurrent}
       action={<Btn size="sm">Who you gonna call?</Btn>}
+      utility={<ThemeToggle />}
     />
   );
   return (

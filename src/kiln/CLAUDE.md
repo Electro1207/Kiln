@@ -210,7 +210,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `DocsNav` — The sidebar this gallery uses: labelled sections of collapsible groups, a filter field (with an optional shortcut key), counts, and an active row whose fill fades in place
 - `DropdownMenu` (MenuContent, DropdownMenu) — Actions with icons, shortcuts, ticks and a submenu
 - `FlyoutNav` — Navigation with wide panels of grouped links and a featured card; hover intent, keyboard, and an accordion on phones
-- `Navbar` (MenuToggle, Navbar) — Wordmark, links and one action; on a phone the links fold into a menu with a morphing button
+- `Navbar` (MenuToggle, Navbar) — Wordmark, links and one action; on a phone the links fold into a menu with a morphing button, while a `utility` slot (theme switch, search) stays in the bar at every width
 - `SidebarNav` — Side navigation with nested groups that folds into an icon rail
 - `SpotlightSearch` — A search window with categories, recent searches and a live preview of the highlighted result
 
