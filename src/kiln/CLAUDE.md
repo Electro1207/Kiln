@@ -206,7 +206,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `Marquee` — An endless row without a seam, which eases to a stop under the pointer
 - `Masonry` — Pictures of mixed heights in columns, rising in as they scroll into view
 - `MediaPlayer` — An audio player that scrubs along the track’s real waveform, with skip, playback speed and volume
-- `VideoPlayer` — Chapters and frame previews on the scrubber, speed and quality that keep your place, captions, picture-in-picture, theater and full screen
+- `VideoPlayer` — Chapters and frame previews on the scrubber, speed and quality that keep your place, captions, picture-in-picture, theater and full screen; `autoPlay` plays it muted while it is on screen, `loop` repeats it
 
 ### `menus/`
 - `CommandPalette` — A keyboard-first launcher with grouped results; the highlight fades between rows

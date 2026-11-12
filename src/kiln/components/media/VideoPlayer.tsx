@@ -175,6 +175,16 @@ export type VideoPlayerProps = {
   chapters?: VideoChapter[];
   /** A sprite of preview frames for the scrubber: `cols` across, one frame every `interval` seconds. */
   previews?: Previews;
+  /**
+   * Plays on its own, muted, while at least 40% of it is on screen, and pauses when
+   * it scrolls away. Once the viewer pauses it, it stays paused. Browsers only allow
+   * muted autoplay, so this also starts the player muted.
+   */
+  autoPlay?: boolean;
+  /** Start again from the beginning when it ends. */
+  loop?: boolean;
+  /** Start with the sound off. Defaults to `autoPlay`. */
+  defaultMuted?: boolean;
   /** Theater mode is the page's to lay out; the player only asks for it. */
   theater?: boolean;
   onTheaterChange?: (v: boolean) => void;
@@ -329,7 +339,7 @@ function captionTrack(v: HTMLVideoElement) {
  * in full screen.
  */
 export function VideoPlayer({
-  title, subtitle, renditions, initialQuality, poster, captions, chapters = [], previews, theater = false, onTheaterChange, labels, icons, className,
+  title, subtitle, renditions, initialQuality, poster, captions, chapters = [], previews, autoPlay = false, loop = false, defaultMuted, theater = false, onTheaterChange, labels, icons, className,
 }: VideoPlayerProps) {
   const l = { ...videoPlayerLabels, ...labels };
   const ic = useMemo(() => ({ ...videoPlayerIcons, ...icons }), [icons]);
@@ -344,7 +354,8 @@ export function VideoPlayer({
   const [waiting, setWaiting] = useState(false);
   const [duration, setDuration] = useState(0);
   const [speed, setSpeed] = useState(1);
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(defaultMuted ?? autoPlay);
+  const heldByViewer = useRef(false);
   const [volumeState, setVolumeState] = useState(0.8);
   const [cc, setCc] = useState(false);
   const [ccSize, setCcSize] = useState<CaptionSize>("M");
@@ -361,6 +372,29 @@ export function VideoPlayer({
   const time = useMotionValue(0);
   const buffered = useMotionValue(0);
   const volume = useMotionValue(0.8);
+  const mutedRef = useRef(muted);
+  useEffect(() => {
+    mutedRef.current = muted;
+  }, [muted]);
+
+  // Muted autoplay while the player is mostly on screen; a viewer's own pause wins.
+  useEffect(() => {
+    const el = root.current;
+    if (!autoPlay || !el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        const v = video.current;
+        if (!v) return;
+        if (e.isIntersecting && !heldByViewer.current) {
+          v.muted = mutedRef.current;
+          void v.play().catch(() => {});
+        } else if (!e.isIntersecting && !v.paused) v.pause();
+      },
+      { threshold: 0.4 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [autoPlay, rendition.src]);
 
   useEffect(() => {
     const v = video.current;
@@ -385,6 +419,7 @@ export function VideoPlayer({
     const on: Record<string, () => void> = {
       loadedmetadata: () => {
         setDuration(v.duration);
+        v.muted = mutedRef.current;
         if (resume.current) {
           v.currentTime = resume.current.t;
           if (resume.current.play) void v.play();
@@ -460,8 +495,13 @@ export function VideoPlayer({
   const toggle = () => {
     const v = video.current;
     if (!v) return;
-    if (v.paused || v.ended) void v.play();
-    else v.pause();
+    if (v.paused || v.ended) {
+      heldByViewer.current = false;
+      void v.play();
+    } else {
+      heldByViewer.current = true;
+      v.pause();
+    }
   };
   const seekTo = (t: number) => {
     const v = video.current;
@@ -662,7 +702,9 @@ export function VideoPlayer({
           key={rendition.src}
           src={rendition.src}
           poster={poster}
-          preload="metadata"
+          preload={autoPlay ? "auto" : "metadata"}
+          muted={muted}
+          loop={loop}
           playsInline
           className="absolute inset-0 size-full object-contain"
           aria-label={title}
