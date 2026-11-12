@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": [],
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "erasableSyntaxOnly": true,
+
+    /* Declarations only: the JS comes from vite.lib.config.ts. */
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": "src/kiln",
+    "outDir": "packages/kiln/lib"
+  },
+  "include": ["src/kiln"]
+}

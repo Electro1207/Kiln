@@ -1,0 +1,39 @@
+{
+  "name": "@electro1207/kiln",
+  "version": "0.1.0",
+  "description": "About 200 animated React components for Tailwind v4 and Motion, in light and dark.",
+  "keywords": ["react", "react-19", "components", "ui", "tailwindcss", "tailwind-v4", "motion", "animation", "design-system", "dark-mode", "shadcn"],
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://github.com/Electro1207/Kiln#readme",
+  "bugs": "https://github.com/Electro1207/Kiln/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Electro1207/Kiln.git",
+    "directory": "src/kiln"
+  },
+  "sideEffects": ["*.css"],
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": { "types": "./lib/index.d.ts", "import": "./lib/index.js" },
+    "./styles.css": "./styles.css",
+    "./tokens.css": "./tokens.css",
+    "./CLAUDE.md": "./CLAUDE.md",
+    "./package.json": "./package.json",
+    "./*": { "types": "./lib/groups/*.d.ts", "import": "./lib/groups/*.js" }
+  },
+  "files": ["lib", "styles.css", "tokens.css", "CLAUDE.md", "README.md", "LICENSE"],
+  "peerDependencies": {
+    "lucide-react": "^1.72.0",
+    "motion": "^14.12.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
