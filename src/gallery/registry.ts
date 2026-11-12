@@ -85,7 +85,7 @@ export const TAXONOMY: SectionSpec[] = [
     name: "Motion",
     groups: [
       { id: "text-effects", name: "Text effects", summary: "Words that arrive, type, rotate and decode, with nothing reflowing around them.", entries: ["text-animate", "typewriter", "word-rotate", "scramble-text", "scroll-words"] },
-      { id: "effects", name: "Effects", summary: "Loops and pointer effects that hum on the compositor: docks, beams, orbits, lists and scroll reveals.", entries: ["reveal", "dock", "animated-beam", "orbiting-circles", "animated-list", "border-beam", "sticky-scroll-reveal", "parallax"] },
+      { id: "effects", name: "Effects", summary: "Loops and pointer effects that hum on the compositor: docks, beams, orbits, lists and scroll reveals.", entries: ["reveal", "dock", "animated-beam", "orbiting-circles", "animated-list", "border-beam", "sticky-scroll-reveal", "scroll-timeline", "parallax"] },
     ],
   },
 ];
