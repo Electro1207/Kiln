@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, type ReactNode } from "react";
 import { animate, motion, useMotionValue } from "motion/react";
 import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { fade, springFirm } from "../../motion";
 import { Drawer } from "../overlays/Drawer";
 
@@ -47,8 +48,12 @@ export type AppShellProps = {
   /** Mark and name, shown at the top of the sidebar. `collapsed` is true in the icon rail. */
   brand: (collapsed: boolean) => ReactNode;
   nav: ShellNavSection[];
-  value: string;
-  onNavigate: (id: string) => void;
+  /** Controlled active nav id. Leave out to let the shell keep its own. */
+  value?: string;
+  /** Where the uncontrolled shell starts. Default the first nav item. */
+  defaultValue?: string;
+  /** Called with the id of the nav item picked, controlled or not. */
+  onNavigate?: (id: string) => void;
   /** The top bar's contents (search, actions, account). */
   topBar?: ReactNode;
   /** Pinned to the bottom of the sidebar (account, settings). */
@@ -73,9 +78,10 @@ const RAIL = 64;
  * so the content never reflows mid-animation. Below 768px of its own width the
  * sidebar moves into a drawer behind a menu button.
  */
-export function AppShell({ brand, nav, value, onNavigate, topBar, footer, children, height = 640, className, labels: labelsProp, icons }: AppShellProps) {
+export function AppShell({ brand, nav, value: valueProp, defaultValue, onNavigate, topBar, footer, children, height = 640, className, labels: labelsProp, icons }: AppShellProps) {
   const l = { ...appShellLabels, ...labelsProp };
   const ic = useMemo(() => ({ ...appShellIcons, ...icons }), [icons]);
+  const [value, setValue] = useControllable<string | undefined>(valueProp, defaultValue ?? nav[0]?.items[0]?.id);
   const [collapsed, setCollapsed] = useState(false);
   const [labels, setLabels] = useState(true);
   /** Rail-width hit areas: only once the collapse has landed, so nothing visibly squeezes. */
@@ -140,7 +146,8 @@ export function AppShell({ brand, nav, value, onNavigate, topBar, footer, childr
                 aria-label={rail ? it.label : undefined}
                 aria-current={on ? "page" : undefined}
                 onClick={() => {
-                  onNavigate(it.id);
+                  setValue(it.id);
+                  onNavigate?.(it.id);
                   onPick?.();
                 }}
                 className={cn(
