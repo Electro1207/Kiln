@@ -1,0 +1,31 @@
+name: Bug report
+description: Something in a component looks or behaves wrong.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: input
+    id: component
+    attributes:
+      label: Component
+      description: Which component, e.g. Switch, DatePicker.
+    validations: { required: true }
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: A short code snippet or a link to a reproduction helps most.
+  - type: dropdown
+    id: install
+    attributes:
+      label: How do you use Kiln?
+      options: [npm package, Copied in (registry / CLI), Copied by hand]
+  - type: input
+    id: env
+    attributes:
+      label: Browser and OS
+      placeholder: Chrome 140, macOS 15

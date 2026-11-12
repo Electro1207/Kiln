@@ -1,0 +1,15 @@
+name: Feature request
+description: A new component, or a change to an existing one.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What do you need, and what is it for?
+    validations: { required: true }
+  - type: textarea
+    id: example
+    attributes:
+      label: Example or reference
+      description: A link, screenshot or sketch of how it should look or behave.
