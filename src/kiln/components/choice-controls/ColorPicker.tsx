@@ -3,6 +3,7 @@ import { motion, useMotionValue, useMotionValueEvent, useTransform, type MotionV
 import { Pipette, Plus } from "lucide-react";
 import { cn } from "../../cn";
 import { fade } from "../../motion";
+import { useControllable } from "../../controllable";
 import { SegmentedControl } from "../buttons/SegmentedControl";
 import { AnchoredLayer, panelClass } from "../shared/Anchored";
 
@@ -161,10 +162,14 @@ type EyeDropperCtor = new () => { open: () => Promise<{ sRGBHex: string }> };
  * `onChange` fires when a change is committed (release, Enter, a swatch).
  */
 export function ColorPickerPanel({
-  value, onChange, swatches, onSwatchesChange, alpha = true, className, labels, icons,
+  value: valueProp, defaultValue = "#000000", onChange, swatches, onSwatchesChange, alpha = true, className, labels, icons,
 }: {
-  value: string;
-  onChange: (hex: string) => void;
+  /** Controlled colour as a hex string. Leave out to let the picker keep its own. */
+  value?: string;
+  /** Where an uncontrolled picker starts. Default `#000000`. */
+  defaultValue?: string;
+  /** Called with the new colour, controlled or not. */
+  onChange?: (hex: string) => void;
   swatches?: string[];
   onSwatchesChange?: (s: string[]) => void;
   alpha?: boolean;
@@ -176,6 +181,7 @@ export function ColorPickerPanel({
 }) {
   const l = { ...colorPickerLabels, ...labels };
   const ic = useMemo(() => ({ ...colorPickerIcons, ...icons }), [icons]);
+  const [value, setValue] = useControllable(valueProp, defaultValue, onChange);
   const start = parseColor(value) ?? { h: 0, s: 0, v: 0, a: 1 };
   const h = useMotionValue(start.h);
   const s = useMotionValue(start.s);
@@ -186,7 +192,7 @@ export function ColorPickerPanel({
   const hasDropper = typeof window !== "undefined" && "EyeDropper" in window;
 
   const read = (): HSVA => ({ h: h.get(), s: s.get(), v: v.get(), a: alpha ? a.get() : 1 });
-  const commit = () => { const hex = toHex(read()); emitted.current = hex; onChange(hex); };
+  const commit = () => { const hex = toHex(read()); emitted.current = hex; setValue(hex); };
   const setAll = (c: HSVA) => { h.set(c.h); s.set(c.s); v.set(c.v); a.set(c.a); };
 
   // A value set from outside (not one this panel emitted) moves the controls.
@@ -468,9 +474,13 @@ function Fields({ t, format, h, s, v, a, alpha, read, setAll, commit }: {
 }
 
 /** A swatch button that opens the picker in a popover. */
-export function ColorPicker({ value, onChange, label = "Colour", swatches, onSwatchesChange, alpha = true, className, labels, icons }: {
-  value: string;
-  onChange: (hex: string) => void;
+export function ColorPicker({ value: valueProp, defaultValue = "#000000", onChange, label = "Colour", swatches, onSwatchesChange, alpha = true, className, labels, icons }: {
+  /** Controlled colour as a hex string. Leave out to let the picker keep its own. */
+  value?: string;
+  /** Where an uncontrolled picker starts. Default `#000000`. */
+  defaultValue?: string;
+  /** Called with the new colour, controlled or not. */
+  onChange?: (hex: string) => void;
   label?: string;
   swatches?: string[];
   onSwatchesChange?: (s: string[]) => void;
@@ -482,6 +492,7 @@ export function ColorPicker({ value, onChange, label = "Colour", swatches, onSwa
   icons?: Partial<ColorPickerIcons>;
 }) {
   const l = { ...colorPickerLabels, ...labels };
+  const [value, setValue] = useControllable(valueProp, defaultValue, onChange);
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   return (
@@ -504,7 +515,7 @@ export function ColorPicker({ value, onChange, label = "Colour", swatches, onSwa
         <span className="tabular uppercase">{value}</span>
       </button>
       <AnchoredLayer open={open} onClose={() => setOpen(false)} anchor={trigger} placement="bottom-start" role="dialog" aria-label={label} className={cn(panelClass, "w-[304px] p-3")}>
-        <ColorPickerPanel value={value} onChange={onChange} swatches={swatches} onSwatchesChange={onSwatchesChange} alpha={alpha} labels={labels} icons={icons} />
+        <ColorPickerPanel value={value} onChange={setValue} swatches={swatches} onSwatchesChange={onSwatchesChange} alpha={alpha} labels={labels} icons={icons} />
       </AnchoredLayer>
     </div>
   );
