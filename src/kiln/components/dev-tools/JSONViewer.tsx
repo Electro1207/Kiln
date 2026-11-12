@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { ChevronRight, Search } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { fade, springSnappy } from "../../motion";
 
 type Json = null | boolean | number | string | Json[] | { [k: string]: Json };
@@ -98,11 +99,36 @@ function Leaf({ value, q }: { value: Json; q: string }) {
  * A JSON document as a tree. Branches fold and unfold; every row can copy its
  * path or its value; search marks matches and opens the branches that hold them.
  */
-export function JSONViewer({ data: input, title, defaultDepth = 1, className, labels, icons }: { data: unknown; title?: string; defaultDepth?: number; className?: string; /** Override any UI text. Merged over `jsonViewerLabels`. */ labels?: Partial<JSONViewerLabels>; /** Replace any built-in icon. Merged over `jsonViewerIcons`. Keep it stable between renders. */ icons?: Partial<JSONViewerIcons> }) {
+export function JSONViewer({
+  data: input, title, defaultDepth = 1, expanded, defaultExpanded, onExpandedChange, query: queryProp, defaultQuery = "", onQueryChange, className, labels, icons,
+}: {
+  data: unknown;
+  title?: string;
+  /** How many levels start open when `defaultExpanded` is not given. */
+  defaultDepth?: number;
+  /** Controlled set of open branch paths, e.g. `$`, `$.crew`, `$.crew[0]`. Leave out to let the viewer keep its own. */
+  expanded?: Set<string>;
+  /** Where the uncontrolled open branches start. Default the first `defaultDepth` levels. */
+  defaultExpanded?: Set<string>;
+  /** Called with the new open branches, controlled or not. */
+  onExpandedChange?: (expanded: Set<string>) => void;
+  /** Controlled search text. Leave out to let the viewer keep its own. */
+  query?: string;
+  /** Where the uncontrolled search starts. Default empty. */
+  defaultQuery?: string;
+  /** Called with the new search text, controlled or not. */
+  onQueryChange?: (query: string) => void;
+  className?: string;
+  /** Override any UI text. Merged over `jsonViewerLabels`. */
+  labels?: Partial<JSONViewerLabels>;
+  /** Replace any built-in icon. Merged over `jsonViewerIcons`. Keep it stable between renders. */
+  icons?: Partial<JSONViewerIcons>;
+}) {
   const l = useMemo(() => ({ ...jsonViewerLabels, ...labels }), [labels]);
   const ic = useMemo(() => ({ ...jsonViewerIcons, ...icons }), [icons]);
   const data = input as Json;
-  const [openSet, setOpenSet] = useState<Set<string>>(() => {
+  const [startOpen] = useState<Set<string>>(() => {
+    if (defaultExpanded) return defaultExpanded;
     const s = new Set<string>();
     const walk = (v: Json, p: string, d: number) => {
       if (v && typeof v === "object" && d < defaultDepth) {
@@ -113,7 +139,8 @@ export function JSONViewer({ data: input, title, defaultDepth = 1, className, la
     walk(data, "$", 0);
     return s;
   });
-  const [query, setQuery] = useState("");
+  const [openSet, setOpenSet] = useControllable<Set<string>>(expanded, startOpen, onExpandedChange);
+  const [query, setQuery] = useControllable(queryProp, defaultQuery, onQueryChange);
   /** The row showing its copy buttons: only one at a time, so a big tree mounts no buttons up front. */
   const [tools, setTools] = useState<{ path: string; top: number; height: number } | null>(null);
   const q = query.trim().toLowerCase();
@@ -124,13 +151,16 @@ export function JSONViewer({ data: input, title, defaultDepth = 1, className, la
     return s;
   }, [data, q]);
 
-  const toggle = (p: string) =>
-    setOpenSet((s) => {
-      const n = new Set(s);
-      if (n.has(p)) n.delete(p);
-      else n.add(p);
-      return n;
-    });
+  const toggle = useCallback(
+    (p: string) =>
+      setOpenSet((s) => {
+        const n = new Set(s);
+        if (n.has(p)) n.delete(p);
+        else n.add(p);
+        return n;
+      }),
+    [setOpenSet],
+  );
 
   // The rows depend only on the data, what is open and the search; hover never rebuilds them.
   const { rows, values } = useMemo(() => {
@@ -195,7 +225,7 @@ export function JSONViewer({ data: input, title, defaultDepth = 1, className, la
     };
     walk(null, data, "$", 0, true);
     return { rows, values };
-  }, [data, openSet, hits, q, l, ic]);
+  }, [data, openSet, hits, q, l, ic, toggle]);
 
   const pickRow = (target: EventTarget | null) => {
     const row = (target as HTMLElement | null)?.closest?.("[data-path]") as HTMLElement | null;
