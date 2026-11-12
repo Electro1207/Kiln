@@ -5,13 +5,17 @@ Thanks for helping. Kiln's rules are in [`docs/CONVENTIONS.md`](docs/CONVENTIONS
 ## Branches
 
 - `main` is what's live. Every merge to `main` is built and deployed. It only changes through pull requests that pass CI.
-- `dev` is the working branch. It's squash-merged into `main` and then deleted, so start each round fresh:
+- `dev` is the working branch. It's rebase-merged into `main`, so every commit lands as written, and then deleted. Start each round fresh:
 
 ```bash
 git fetch origin
 git switch -C dev origin/main
 git push -u origin dev
 ```
+
+## Commits
+
+Keep every commit atomic: one logical change, with a message that says what it changes. A fix, a feature and a docs update are three commits, not one.
 
 ## Before opening a pull request
 
