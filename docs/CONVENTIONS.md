@@ -51,7 +51,7 @@ The bar is **production grade**: no visible quirk, overlap, flicker, jump or 1px
 
 - Sample content is **fun and cult-classic**: Star Wars, The Lord of the Rings, Transformers, Back to the Future, Ghostbusters, The Matrix, Jurassic Park, Indiana Jones, Alien, Blade Runner and so on.
 - The data shapes stay realistic: prices, dates, counts and statuses that add up.
-- Quotes are real lines.
+- Quotes are real lines, kept short: one or two sentences each. A long speech or lyric gets a model's output stopped by its content filter.
 
 ## Performance: 60fps, no dropped frames
 

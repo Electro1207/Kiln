@@ -422,7 +422,7 @@ transition={springSoft}                                          // Do (import f
 
 ## 7. Copy tone
 
-Placeholder and demo copy is fun and cult-classic: Star Wars, The Lord of the Rings, Transformers, Back to the Future, Ghostbusters, The Matrix, Jurassic Park, Indiana Jones, Alien, Blade Runner. Names, button labels, toasts, table rows: "Engage hyperdrive", "Follow the white rabbit", "Cross the streams". Keep data shapes realistic (prices, dates, counts add up). Quotes are real lines. Real product copy the user supplied is never replaced.
+Placeholder and demo copy is fun and cult-classic: Star Wars, The Lord of the Rings, Transformers, Back to the Future, Ghostbusters, The Matrix, Jurassic Park, Indiana Jones, Alien, Blade Runner. Names, button labels, toasts, table rows: "Engage hyperdrive", "Follow the white rabbit", "Cross the streams". Keep data shapes realistic (prices, dates, counts add up). Quotes are real lines, kept short: one or two sentences each. Long speeches and lyrics get a model's output stopped by its content filter, so string several short lines together instead. Real product copy the user supplied is never replaced.
 
 ## 8. Media
 
