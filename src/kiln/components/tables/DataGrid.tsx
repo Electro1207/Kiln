@@ -8,7 +8,8 @@ import { DropdownMenu } from "../menus/DropdownMenu";
 import { Pagination } from "../wayfinding/Pagination";
 import { SearchField, type SearchFieldIcons } from "../text-input/SearchField";
 import { SegmentedControl } from "../buttons/SegmentedControl";
-import { TickBox, tableIcons, useRowFlip, type TableIcons } from "./Table";
+import { useControllable } from "../../controllable";
+import { TickBox, tableIcons, useRowFlip, type TableIcons, type TableSort } from "./Table";
 
 export type GridColumn<T> = {
   key: string;
@@ -91,6 +92,30 @@ export type DataGridProps<T> = {
   noun: [string, string];
   caption: string;
   pageSize?: number;
+  /** Controlled filter text. Leave out to let the grid keep its own. */
+  query?: string;
+  /** Where the uncontrolled filter starts. Default empty. */
+  defaultQuery?: string;
+  /** Called with the new filter text, controlled or not. */
+  onQueryChange?: (query: string) => void;
+  /** Controlled sort, or `null` for the original order. Leave out to let the grid keep its own. */
+  sort?: TableSort;
+  /** Where uncontrolled sorting starts. Default `null`. */
+  defaultSort?: TableSort;
+  /** Called with the new sort, controlled or not. */
+  onSortChange?: (sort: TableSort) => void;
+  /** Controlled page, from 1. Leave out to let the grid keep its own. */
+  page?: number;
+  /** Where the uncontrolled page starts. Default 1. */
+  defaultPage?: number;
+  /** Called with the new page, controlled or not. */
+  onPageChange?: (page: number) => void;
+  /** Controlled selected row ids. Leave out to let the grid keep its own. */
+  selected?: Set<string>;
+  /** Where uncontrolled selection starts. Default none. */
+  defaultSelected?: Set<string>;
+  /** Called with the new selection, controlled or not. */
+  onSelectedChange?: (selected: Set<string>) => void;
   bulkActions?: BulkAction[];
   className?: string;
   /** Override any UI text. Merged over `dataGridLabels`. */
@@ -100,21 +125,23 @@ export type DataGridProps<T> = {
 };
 
 type Density = "compact" | "comfortable";
-type Sort = { key: string; dir: "asc" | "desc" } | null;
 
 /**
  * A working table: filter, sort, choose columns, page through, change density
  * and act on a selection. The first column stays put while the rest scrolls.
  */
-export function DataGrid<T>({ rows, columns, rowKey, noun, caption, pageSize = 8, bulkActions = [], className, labels, icons }: DataGridProps<T>) {
+export function DataGrid<T>({
+  rows, columns, rowKey, noun, caption, pageSize = 8, query: queryProp, defaultQuery = "", onQueryChange, sort: sortProp, defaultSort = null, onSortChange,
+  page: pageProp, defaultPage = 1, onPageChange, selected: selectedProp, defaultSelected, onSelectedChange, bulkActions = [], className, labels, icons,
+}: DataGridProps<T>) {
   const l = { ...dataGridLabels, ...labels };
   const ic = useMemo(() => ({ ...dataGridIcons, ...icons }), [icons]);
-  const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<Sort>(null);
-  const [page, setPage] = useState(1);
+  const [query, setQuery] = useControllable(queryProp, defaultQuery, onQueryChange);
+  const [sort, setSort] = useControllable<TableSort>(sortProp, defaultSort, onSortChange);
+  const [pageRaw, setPage] = useControllable(pageProp, defaultPage, onPageChange);
   const [density, setDensity] = useState<Density>("comfortable");
   const [hidden, setHidden] = useState<Set<string>>(() => new Set(columns.filter((c) => c.hidden).map((c) => c.key)));
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useControllable<Set<string>>(selectedProp, defaultSelected ?? new Set(), onSelectedChange);
 
   const visible = columns.filter((c) => !hidden.has(c.key));
 
@@ -141,7 +168,7 @@ export function DataGrid<T>({ rows, columns, rowKey, noun, caption, pageSize = 8
   }, [filtered, columns, sort]);
 
   const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
-  if (page > pageCount) setPage(pageCount);
+  const page = Math.min(Math.max(1, pageRaw), pageCount);
   const pageRows = sorted.slice((page - 1) * pageSize, page * pageSize);
 
   const pageIds = pageRows.map(rowKey);
@@ -162,7 +189,7 @@ export function DataGrid<T>({ rows, columns, rowKey, noun, caption, pageSize = 8
   const capture = useRowFlip(body, pageRows.map(rowKey).join("|") + `|${page}|${query}`);
   const cycle = (key: string) => {
     capture();
-    setSort((s) => (s?.key !== key ? { key, dir: "asc" } : s.dir === "asc" ? { key, dir: "desc" } : null));
+    setSort(sort?.key !== key ? { key, dir: "asc" } : sort.dir === "asc" ? { key, dir: "desc" } : null);
   };
 
   const rowH = density === "compact" ? "h-10" : "h-[52px]";
