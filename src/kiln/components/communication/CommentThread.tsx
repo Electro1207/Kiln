@@ -2,6 +2,7 @@ import { useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } fro
 import { AnimatePresence, motion } from "motion/react";
 import { Heart, Laugh, MoreHorizontal, Pencil, ThumbsUp, Trash2 } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { easeOut, fade, springFirm, springSnappy, springSoft } from "../../motion";
 import { Avatar } from "../data-display/Avatar";
 import { Button } from "../buttons/Button";
@@ -69,8 +70,12 @@ export const commentThreadLabels: CommentThreadLabels = {
 };
 
 export type CommentThreadProps = {
-  comments: Comment[];
-  onChange: (comments: Comment[]) => void;
+  /** Controlled comments. Leave out to let the thread keep its own. */
+  comments?: Comment[];
+  /** Where an uncontrolled thread starts. Default empty. */
+  defaultComments?: Comment[];
+  /** Called with the new comments, controlled or not. */
+  onChange?: (comments: Comment[]) => void;
   /** The viewer's name: their comments get Edit and Delete. */
   me: string;
   /** How deep replies may nest. Default 2 (a comment and its replies). */
@@ -130,9 +135,10 @@ const mapTree = (list: Comment[], id: string, fn: (c: Comment) => Comment | null
  * A discussion with replies, reactions and an Edit / Delete menu on your own
  * comments. Counts roll when they change; deleted comments fold away.
  */
-export function CommentThread({ comments, onChange, me, maxDepth = 2, className, labels, icons }: CommentThreadProps) {
+export function CommentThread({ comments: commentsProp, defaultComments, onChange: onChangeProp, me, maxDepth = 2, className, labels, icons }: CommentThreadProps) {
   const l = { ...commentThreadLabels, ...labels };
   const ic = useMemo(() => ({ ...commentThreadIcons, ...icons }), [icons]);
+  const [comments, onChange] = useControllable<Comment[]>(commentsProp, defaultComments ?? [], onChangeProp);
   return (
     <div className={cn("space-y-1", className)}>
       <CommentList list={comments} depth={1} root={comments} onChange={onChange} me={me} maxDepth={maxDepth} l={l} ic={ic} />
