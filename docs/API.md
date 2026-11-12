@@ -1,0 +1,261 @@
+# Kiln API conventions
+
+Every component follows the same few rules. Once you know them, you can guess how a component works before you open its file. The file is still the reference: each exported component and prop has a short JSDoc comment, so hovering in your editor shows it.
+
+## 1. The minimal call is one line
+
+Required props are kept to what the component can't guess. Everything else has a default.
+
+```tsx
+<Button>Engage</Button>
+<Switch label="Retinal scan" />
+<Select aria-label="Ship" options={ships} />
+<Tabs items={tabs} />
+<Slider label="Volume" />
+```
+
+## 2. State: controlled or uncontrolled
+
+Every stateful component works both ways.
+
+- **Uncontrolled.** Leave out the value prop. The component keeps its own state; pass a `default…` prop to set where it starts.
+- **Controlled.** Pass the value prop and its change handler, and the component shows exactly what you give it.
+
+```tsx
+// Uncontrolled: starts on, keeps its own state, tells you about changes.
+<Switch label="Wi-Fi" defaultChecked onCheckedChange={save} />
+
+// Controlled: you own the state.
+const [on, setOn] = useState(true);
+<Switch label="Wi-Fi" checked={on} onCheckedChange={setOn} />
+```
+
+Components use the shared hook `useControllable(value, defaultValue, onChange)` from `src/kiln/controllable.ts`. Use it for your own components too.
+
+### Prop names
+
+| Kind of state | Value | Start value | Change handler | Components |
+| --- | --- | --- | --- | --- |
+| A chosen value | `value` | `defaultValue` | `onChange(value)` | Select, Combobox, RadioGroup, SegmentedControl, CheckboxGroup, ColorSwatches, Slider (`number[]`), NumberField, TagInput, OTPInput, Tabs, Accordion (open ids; start with `defaultOpen`), ChipFilter (`string[]`, or `string \| null` with `multiple={false}`), PhoneInput (`{ country, national }`), CurrencyInput (cents or `null`), DatePicker (`Date \| null`), Calendar (`Date | null`, or `{ start, end }` with `mode="range"`; also `defaultMonth`), DateRangePicker (`{ start, end }`), TimePicker (`{ hours, minutes }`), InlineEdit, SizePicker, SidebarNav (active id), CategoryFilters |
+| Several values at once | `filters` / `query` / `sort` | `defaultFilters` / `defaultQuery` / `defaultSort` | `onFiltersChange` / `onQueryChange` / `onSortChange` | FilterBar |
+| A list of rows or ids | `rows` / `selected` | `defaultRows` / `defaultSelected` | `onChange(rows)` / `onSelectedChange(set)` | KeyValueEditor, StackedList (passing any of the three turns its checkboxes on) |
+| A page | `page` | `defaultPage` | `onChange(page)` | Pagination |
+| On/off | `checked` | `defaultChecked` | `onCheckedChange(bool)` | Switch, Checkbox (also accepts `"indeterminate"`) |
+| Pressed | `pressed` | `defaultPressed` | `onPressedChange(bool)` | ToggleButton |
+| Open/closed | `open` | `defaultOpen` (Select) | `onOpenChange(bool)` | Select, Popover (open is optional). Dialog, Drawer, AlertDialog and CommandPalette are always controlled. |
+| Text in a native input | `value` | `defaultValue` | `onChange(event)` **and** `onValueChange(text)` | TextField, Textarea, PasswordField, SearchField |
+| Text with mentions | `value` (`@[Name](id)` tokens) | `defaultValue` | `onValueChange(text)`; `onChange({ text, mentions })` is unchanged | MentionsTextarea |
+| Playback | `playing` / `volume` (0 to 100) / `muted` / `currentTime` (seconds) | `defaultPlaying` / `defaultVolume` / `defaultMuted` / `defaultCurrentTime` | `onPlayingChange` / `onVolumeChange` / `onMutedChange` / `onTimeChange` | MediaPlayer |
+
+Components that wrap a native `<input>` or `<textarea>` also take every native attribute: `name`, `required`, `autoComplete`, `onKeyDown`, `aria-*` and so on. Their `onChange` keeps the native signature, so form libraries work unchanged. `onValueChange` gives you the plain string.
+
+## 3. Sizes
+
+Controls share one scale from `src/kiln/controllable.ts`: `type Size = "sm" | "md" | "lg"`. The default is always `md`.
+
+| Size | Height | Text | Use for |
+| --- | --- | --- | --- |
+| `sm` | 32px | 13px | Toolbars, table rows, dense panels |
+| `md` | 40px | 14px | Forms and most UI (default) |
+| `lg` | 48px | 15px | Heroes, touch-first screens, sign-up flows |
+
+These take `size`:
+
+- Button, IconButton, ToggleButton, SegmentedControl, Tabs
+- TextField, PasswordField, SearchField, Select, NumberField, Textarea (text size and padding)
+- Combobox, TagInput, DatePicker, DateRangePicker, TimePicker, PhoneInput, CurrencyInput
+- Tag, Kbd (like Badge, these are smaller than a control: Tag is 24, 28 and 32px, Kbd 20, 24 and 28px)
+- Switch, Checkbox, CheckboxGroup, RadioGroup
+- Badge, Avatar, AvatarGroup, Progress (bar thickness), Dialog (width)
+
+Things measured in pixels take a number:
+
+```tsx
+<Avatar name="Kyle Reese" size={64} />   // also "sm" | "md" | "lg"
+<Spinner size={32} />
+<ProgressRing value={72} size={120} stroke={10} />
+<StatusDot status="online" size={10} />
+<LineChart title="Visitors" data={d} height={280} />
+```
+
+**Width.** Inputs, Select, Combobox, TagInput, the date and time pickers, Slider, Progress, Separator and Tabs fill their container. To size one, set a width on its root. That is `className` for most components, and `containerClassName` for TextField and Textarea:
+
+```tsx
+<Select className="w-[240px]" … />
+<TextField containerClassName="max-w-sm" … />
+```
+
+## 4. className and slots
+
+- **`className` lands on the root element.** It is appended to the component's own classes. For TextField and Textarea it lands on the `<input>`/`<textarea>`, so typed-text styles work.
+- **Slot classNames** reach inner parts:
+
+  | Component | Slot | Styles |
+  | --- | --- | --- |
+  | TextField | `containerClassName` | the root (label, box, message) |
+  | TextField | `boxClassName` | the bordered box |
+  | Textarea | `containerClassName` | the root |
+  | Select | `triggerClassName` | the button |
+  | Tabs | `listClassName` | the tab row |
+
+- **Overriding a built-in value.** `cn` joins classes and does not dedupe, so when two classes set the same property, the stylesheet decides which wins, not the order you wrote them in. To beat a built-in height or padding, prefer the `size` prop. Otherwise use Tailwind's important modifier, e.g. `boxClassName="h-14!"`.
+- **Rest props.** Button, IconButton, Card, Badge, Switch, Tag, Link the text inputs, Kbd, StatusDot, Separator, Skeleton, Spinner, Progress and Avatar spread any other prop (`id`, `data-*`, `aria-*`, event handlers) onto their root or their native element, and forward `ref` to it. Where the default width is `k-fill` or the height is `k-ctl-*`, a utility in `className` wins.
+
+## 5. Labels and accessibility
+
+- `label` is the visible label, and it becomes the accessible name.
+- Leave it out and pass `aria-label` instead. Icon-only controls (IconButton, an icon ToggleButton) require one.
+- RadioGroup has `hideLabel` to keep the name but hide the text.
+- `disabled` works the same everywhere: dimmed, not focusable, no hover.
+- `error` on a field shows the message in place of the hint, sets `aria-invalid` and gives the field one shake.
+
+## 6. One example per family
+
+**Actions**
+
+```tsx
+<Button variant="secondary" size="sm" leading={<Plus />} loading={saving}>Add crew</Button>
+<IconButton icon={<Trash />} aria-label="Delete" variant="ghost" />
+<ToggleButton icon={<Heart />} pressedIcon={<Heart fill="currentColor" />} aria-label="Like" />
+<SegmentedControl options={[{ value: "grid", label: "Grid" }, { value: "list", label: "List" }]} />
+```
+
+**Inputs**
+
+```tsx
+<TextField label="Email" type="email" name="email" required onValueChange={setEmail} />
+<PasswordField meter onValueChange={setPassword} />
+<Checkbox label="I agree to the InGen waiver" name="terms" />
+<RadioGroup label="Route" options={routes} defaultValue="moria" size="lg" />
+<Slider label="Bounty" defaultValue={[40, 180]} max={300} format={(n) => `${n}k`} />
+<NumberField label="Proton packs" defaultValue={2} min={0} max={4} />
+<OTPInput onComplete={verify} />
+```
+
+**Pickers**
+
+```tsx
+<Select label="Droid" options={droids} defaultValue="r2" />
+<Combobox label="Planet" options={planets} onChange={setPlanet} />
+<TagInput label="Crew" suggestions={names} defaultValue={["Ripley"]} />
+```
+
+**Navigation**
+
+```tsx
+<Tabs variant="pill" size="sm" items={[{ id: "day", label: "Day", content: <Day /> }, …]} />
+<Pagination pageCount={12} onChange={load} />
+<Accordion items={faq} type="multiple" defaultOpen={["shipping"]} />
+```
+
+**Overlays** (always controlled: you decide when they open)
+
+```tsx
+<Dialog open={open} onOpenChange={setOpen} title="Eject the warp core?" footer={<Button onClick={eject}>Eject</Button>} />
+<Popover trigger={<Button variant="outline">Filters</Button>}>…</Popover>
+<Tooltip content="Copy link"><IconButton icon={<Link />} aria-label="Copy link" /></Tooltip>
+<DropdownMenu items={[{ label: "Rename", onSelect: rename }, { type: "separator" }, { label: "Delete", danger: true, onSelect: remove }]}
+  trigger={(p) => <IconButton {...p} icon={<MoreHorizontal />} aria-label="More" />} />
+```
+
+**Feedback**
+
+```tsx
+const { toast, promise } = useToast();            // inside <ToastProvider>
+toast({ title: "Saved", variant: "success", action: { label: "Undo", onClick: undo } });
+<Alert tone="warning" title="Low fuel">Refuel before the Kessel Run.</Alert>
+<Badge tone="positive" dot size="sm">Online</Badge>
+<Progress value={64} label="Uploading" valueText="64%" />
+```
+
+**Data and charts**
+
+```tsx
+<Table rows={rows} columns={columns} rowKey={(r) => r.id} selectable />
+<Avatar name="Leia Organa" status="online" />
+<LineChart title="Visitors" data={points} height={240} format={(n) => n.toLocaleString()} />
+```
+
+**Surfaces**
+
+```tsx
+<Card>…</Card>                                   // padded by default; padded={false} to opt out
+<InteractiveCard title="Full crew" description="Four busters" selected={plan === "crew"} onClick={() => setPlan("crew")} />
+```
+
+## 7. Text and labels
+
+Kiln has no built-in i18n. Every piece of user-visible text can be changed through props.
+
+- **Content** (a title, a body, a caption) is a prop or children, as in `<Alert title="Low fuel">`.
+- **Chrome text** (button labels, aria-labels, empty states, tooltips, units, screen-reader text) goes through one prop: `labels?: Partial<XLabels>`. The component exports `XLabels` (the type) and `xLabels` (the English defaults). Your partial is merged over the defaults, so you only pass what you change.
+- Strings that depend on values are functions: `pageOf: (page, count) => ...`.
+- A dedicated prop that already existed (`placeholder`, `emptyText`, `doneLabel`, `aria-label`, `label`) is kept and wins over `labels`.
+- Components that show dates or numbers accept `locale?: string` and format with `Intl`. Left unset, the output is the same English as before.
+- Pass a stable `labels` object (module constant or `useMemo`) to the few components that memoise their rows (JSONViewer, DocsNav).
+
+```tsx
+import { Pagination, type PaginationLabels } from "kiln/components/wayfinding/Pagination";
+
+const klingon: Partial<PaginationLabels> = {
+  nav: "paghmey",
+  previous: "pa' paq",
+  next: "veb paq",
+  page: (p) => `paq ${p}`,
+  pageOf: (p, n) => `paq ${p} vo' ${n}`,
+  of: (n) => `vo' ${n}`,
+};
+
+<Pagination pageCount={24} labels={klingon} />
+<DatePicker locale="de-DE" labels={{ placeholder: "Datum wählen" }} />
+```
+
+Defaults are exported too, so you can extend them: `{ ...paginationLabels, next: "Onward" }`.
+
+**Components that accept `labels`** (each exports `<name>Labels`, e.g. `paginationLabels`):
+
+- AI: ChatMessage, MessageActions, Reasoning, ToolCall, PromptInput, Citation and Sources (shared `citationLabels`)
+- App shells: AppShell, CollapsingActions, StackedLayout, StackedList
+- Buttons: CopyButton, HoldButton, SplitButton
+- Cards: ExpandableCards, BillingToggle, PricingCard (+ `locale`)
+- Charts: DonutChart, YearHeatmap (has `locale`)
+- Choice controls: CheckboxGroup, Slider, ColorPicker and ColorPickerPanel (shared `colorPickerLabels`), Rating (prop is `uiLabels`, because `labels` is already the per-value words)
+- Commerce: CartDrawer, CategoryFilters (and FilterPanel), CheckoutForm, Invoice, OrderHistory (+ `locale`), ProductGallery, ProductQuickView, ReviewsSummary (+ `locale`), Stars, SizePicker
+- Communication: ChatThread, CommentFeed, CommentThread, MessageComposer
+- Data display: Avatar, AvatarGroup, CodeBlock, DescriptionList, HeatStrip (+ `locale`), ListItem, Tag
+- Dev tools: DiffViewer, JSONViewer, LogStream (+ `locale`), Terminal
+- Effects: Dock, StickyScrollReveal
+- Forms: AuthForms, AvatarUpload (`cropperLabels` for the cropper), ImageCropper, InlineEdit, KeyValueEditor, SaveBar
+- Guidance: KeyboardShortcutsSheet, OnboardingWizard, ProductTour
+- Marketing: Changelog, BlogList, ContactSection, NewsletterSignup, NotFound, FeatureTabs, StatsSection (only `locale`)
+- Media: Carousel, CompareSlider, MediaPlayer, VideoPlayer
+- Menus: CommandPalette, ContextMenu, Navbar (and MenuToggle), FlyoutNav, SidebarNav, SpotlightSearch, DocsNav
+- Notices: Alert, Banner, CookieConsent, NotificationBell, NotificationCenter, UndoBar, ToastProvider
+- Overlays: AlertDialog, Dialog, Drawer, Lightbox
+- Pickers: BookingSlots (+ `locale`), Calendar (+ `locale`), DatePicker (+ `locale`), DateRangePicker (+ `locale`), Combobox, FileDropzone, Select, SignaturePad, TagInput, TimeWheels, TimePicker
+- Primitives: ThemeToggle, ThemeSwitcher
+- Status: StatusDot, Spinner, Meter, MultiStepLoader
+- Tables: Table, ComparisonTable, InfiniteFeed, DataGrid
+- Text inputs: Field, TextField, SearchField, PasswordField, NumberField, OTPInput, PlaceholderInput, MentionsTextarea, PhoneInput, RichTextEditor
+- Wayfinding: Pagination, BackToTop, ScrollProgress, Breadcrumbs, Stepper
+- Workspace: CalendarMonth (+ `locale`), WeekCalendar, FilterBar, FileManager, GanttChart, KanbanBoard, NotificationPreferences, ResizablePanels, SortableList
+
+**Left in code on purpose**
+
+- Caller data: chart aria-labels built from `title` and series names, GridList action labels, and anything that is a `label`, `title` or `aria-label` prop.
+- Symbols and punctuation: `×`, `%`, range dashes, `" · "`, the `m:ss` time format, key names such as `Ctrl` and `F2`, single-letter colour channels (R, G, B, H, S, L).
+- Technical unit abbreviations in `formatBytes` (B, KB, MB).
+- Week start is Monday in Calendar and CalendarMonth for every locale (changing it would change behaviour).
+- Data lists with their own prop: PhoneInput country names (`countries`), PasswordField rules (`rules`).
+- DataGrid does not forward labels to its inner Pagination and SearchField.
+- Components with no chrome text (Button, Card, Switch, Tabs, Accordion, Badge and similar) take all their text from props and children.
+
+## 8. When you add a component
+
+1. Give it a typed `…Props` export, plus a one-line JSDoc on the component and on any prop that isn't obvious.
+2. Give it a default for every prop it can guess.
+3. If it holds state, make it controllable with `useControllable`, and name the props as in the table above.
+4. If it is a control, give it `size?: Size` with the shared heights.
+5. Pass `className` to the root, and spread `...rest` onto it when it renders one meaningful element.
+6. Put every UI-chrome string in an exported `xLabels` object behind `labels?: Partial<XLabels>` (section 7), and accept `locale` for dates and numbers.
+7. Follow `docs/CONVENTIONS.md` for motion, colour and copy.
