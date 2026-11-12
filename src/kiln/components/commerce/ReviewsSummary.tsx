@@ -2,6 +2,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { PenLine, ThumbsUp } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { easeOut, fade, springFirm } from "../../motion";
 import { Button } from "../buttons/Button";
 import { SegmentedControl } from "../buttons/SegmentedControl";
@@ -111,8 +112,14 @@ export interface ReviewsSummaryIcons {
 }
 export const reviewsSummaryIcons: ReviewsSummaryIcons = { write: <PenLine />, helpful: <ThumbsUp />, star: starsIcons.star };
 
-export function ReviewsSummary({ reviews, onWrite, className, locale, labels, icons }: {
+export function ReviewsSummary({ reviews, sort: sortProp, defaultSort = "helpful", onSortChange, onWrite, className, locale, labels, icons }: {
   reviews: Review[];
+  /** Controlled order. Leave out to let the list keep its own. */
+  sort?: "helpful" | "newest";
+  /** Where the uncontrolled order starts. Default `"helpful"`. */
+  defaultSort?: "helpful" | "newest";
+  /** Called with the new order, controlled or not. */
+  onSortChange?: (sort: "helpful" | "newest") => void;
   onWrite: () => void;
   className?: string;
   /** BCP 47 locale for dates and numbers. Defaults to "en-US". */
@@ -124,7 +131,7 @@ export function ReviewsSummary({ reviews, onWrite, className, locale, labels, ic
 }) {
   const l = { ...reviewsSummaryLabels, ...labels };
   const ic = useMemo(() => ({ ...reviewsSummaryIcons, ...icons }), [icons]);
-  const [sort, setSort] = useState<"helpful" | "newest">("helpful");
+  const [sort, setSort] = useControllable<"helpful" | "newest">(sortProp, defaultSort, onSortChange);
   const [voted, setVoted] = useState<Record<string, boolean>>({});
   const total = reviews.length;
   const average = total ? reviews.reduce((s, r) => s + r.rating, 0) / total : 0;
