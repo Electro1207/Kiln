@@ -2,6 +2,7 @@ import { useMemo, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Minus, Plus, ShoppingBag, Truck, X } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { easeOut, springFirm, springSoft } from "../../motion";
 
 /** Text swaps hand over rather than overlap. */
@@ -89,12 +90,16 @@ export interface CartDrawerIcons {
 export const cartDrawerIcons: CartDrawerIcons = { shipping: <Truck />, empty: <ShoppingBag />, remove: <X />, fewer: <Minus />, more: <Plus /> };
 
 export function CartDrawer({
-  open, onOpenChange, lines, onChange, pricing, currency = "USD", onCheckout, onContinue, title = "Your cart", labels, icons,
+  open, onOpenChange, lines: linesProp, defaultLines, onChange, pricing, currency = "USD", onCheckout, onContinue, title = "Your cart", labels, icons,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  lines: CartLine[];
-  onChange: (lines: CartLine[]) => void;
+  /** Controlled cart lines. Leave out to let the drawer keep its own (the drawer stays controlled through `open`). */
+  lines?: CartLine[];
+  /** Where uncontrolled lines start. Default empty. */
+  defaultLines?: CartLine[];
+  /** Called with the new lines after a quantity change or a removal, controlled or not. */
+  onChange?: (lines: CartLine[]) => void;
   pricing: TotalsOptions;
   currency?: string;
   onCheckout: () => void;
@@ -108,11 +113,12 @@ export function CartDrawer({
 }) {
   const l = { ...cartDrawerLabels, ...labels };
   const ic = useMemo(() => ({ ...cartDrawerIcons, ...icons }), [icons]);
+  const [lines, setLines] = useControllable<CartLine[]>(linesProp, defaultLines ?? [], onChange);
   const t = cartTotals(lines, pricing);
   const money = (n: number) => formatMoney(n, currency);
   const count = lines.reduce((s, l) => s + l.quantity, 0);
-  const setQty = (id: string, q: number) => onChange(lines.map((l) => (l.id === id ? { ...l, quantity: q } : l)));
-  const remove = (id: string) => onChange(lines.filter((l) => l.id !== id));
+  const setQty = (id: string, q: number) => setLines(lines.map((l) => (l.id === id ? { ...l, quantity: q } : l)));
+  const remove = (id: string) => setLines(lines.filter((l) => l.id !== id));
   const progress = pricing.freeShippingAt ? Math.min(1, t.subtotal / pricing.freeShippingAt) : 1;
 
   return (
