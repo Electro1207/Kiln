@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { animate, motion, useMotionValue } from "motion/react";
 import { ArrowDown, ArrowUp, ArrowUpToLine, MoreHorizontal, MoveRight } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { springFirm, springSoft } from "../../motion";
 import { SwapText } from "../shared/Anchored";
 import { DropdownMenu, type MenuEntry } from "../menus/DropdownMenu";
@@ -12,8 +13,12 @@ export type KanbanCard = { id: string; title: string; tag?: { label: string; ton
 export type KanbanColumn = { id: string; title: string; cards: KanbanCard[] };
 
 export type KanbanBoardProps = {
-  columns: KanbanColumn[];
-  onChange: (columns: KanbanColumn[]) => void;
+  /** Controlled columns. Leave out to let the board keep its own. */
+  columns?: KanbanColumn[];
+  /** Where an uncontrolled board starts. Default empty. */
+  defaultColumns?: KanbanColumn[];
+  /** Called with the new columns after a card moves, controlled or not. */
+  onChange?: (columns: KanbanColumn[]) => void;
   /** Replace the default card body. */
   renderCard?: (card: KanbanCard) => ReactNode;
   /** Override any UI text. Merged over `kanbanBoardLabels`. */
@@ -134,7 +139,8 @@ function DefaultCard({ card }: { card: KanbanCard }) {
  * Columns of cards. Drag a card within or between columns (a long press
  * starts the drag on touch), or use its menu to move it from the keyboard.
  */
-export function KanbanBoard({ columns, onChange, renderCard, labels, icons, className }: KanbanBoardProps) {
+export function KanbanBoard({ columns: columnsProp, defaultColumns, onChange: onChangeProp, renderCard, labels, icons, className }: KanbanBoardProps) {
+  const [columns, onChange] = useControllable<KanbanColumn[]>(columnsProp, defaultColumns ?? [], onChangeProp);
   const l = { ...kanbanBoardLabels, ...labels };
   const ic = { ...kanbanBoardIcons, ...icons };
   const boardRef = useRef<HTMLDivElement>(null);
