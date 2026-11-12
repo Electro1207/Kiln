@@ -19,6 +19,8 @@ export type NavbarProps = {
   links: NavLink[];
   /** The one action on the right, usually a Button. */
   action?: ReactNode;
+  /** Small controls that stay in the bar at every width, beside the menu button on a phone (a theme switch, a search button). */
+  utility?: ReactNode;
   /** Href of the current page. */
   current?: string;
   onNavigate?: (href: string) => void;
@@ -58,7 +60,7 @@ export function MenuToggle({ open, onClick, controls, labels }: { open: boolean;
 }
 
 /** Wordmark, a few links and one action. Below 640px of its own width the links fold into a menu. */
-export function Navbar({ brand, links, action, current, onNavigate, contained, labels, className }: NavbarProps) {
+export function Navbar({ brand, links, action, utility, current, onNavigate, contained, labels, className }: NavbarProps) {
   const id = useId();
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState<string | null>(null);
@@ -115,6 +117,7 @@ export function Navbar({ brand, links, action, current, onNavigate, contained, l
 
         <div className="ml-auto flex items-center gap-2">
           <div className="hidden @md:block">{action}</div>
+          {utility}
           <div className="@2xl:hidden">
             <MenuToggle open={open} onClick={() => setOpen((o) => !o)} controls={`${id}-menu`} labels={labels} />
           </div>
