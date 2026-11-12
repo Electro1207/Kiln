@@ -20,6 +20,7 @@ import { BorderBeam } from "../../../kiln/components/effects/BorderBeam";
 import { ScrollProgress } from "../../../kiln/components/wayfinding/ScrollProgress";
 import { StickyScrollReveal } from "../../../kiln/components/effects/StickyScrollReveal";
 import { Parallax } from "../../../kiln/components/effects/Parallax";
+import { ScrollStory } from "../../../kiln/components/effects/ScrollStory";
 import { ScrollTimeline } from "../../../kiln/components/effects/ScrollTimeline";
 import { ScrollWords } from "../../../kiln/components/text-effects/ScrollWords";
 import { cn } from "../../../kiln/cn";
@@ -478,6 +479,38 @@ export function ScrollTimelineDemo() {
         <div className="grid h-56 place-items-center text-sm text-muted">Scroll down</div>
         <ScrollTimeline container={box} items={QUEST} labels={{ current: "Now" }} />
         <div className="h-80" />
+      </div>
+    </Stage>
+  );
+}
+
+const CHAPTERS = [
+  { id: "park", eyebrow: "01", title: "Open the gates", body: "“Welcome to Jurassic Park.” A park on an island, a very large skeleton in the lobby, and a jeep ride that keeps to the rails.", icon: <Map />, figure: "Isla Nublar" },
+  { id: "power", eyebrow: "02", title: "Mind the fences", body: "“Hold on to your butts.” Ten thousand volts, and the fences are only as good as the power behind them.", icon: <Zap />, figure: "10,000 V" },
+  { id: "storm", eyebrow: "03", title: "Wait out the storm", body: "“Clever girl.” The rain arrives on time and the tour stops exactly where it shouldn’t.", icon: <Snowflake />, figure: "Tour paused" },
+  { id: "home", eyebrow: "04", title: "Fly home", body: "“Life, uh, finds a way.” A helicopter, a long look back over the trees, and a firm decision never to return.", icon: <Plane />, figure: "Wheels up" },
+];
+
+export function ScrollStoryDemo() {
+  const box = useBox();
+  const steps = CHAPTERS.map((c) => ({
+    id: c.id,
+    eyebrow: c.eyebrow,
+    title: c.title,
+    body: c.body,
+    visual: (
+      <div className="grid size-full min-h-48 place-items-center p-6">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <span className="text-accent [&>svg]:size-10">{c.icon}</span>
+          <span className="text-3xl font-semibold tracking-[-0.02em] text-ink">{c.figure}</span>
+        </div>
+      </div>
+    ),
+  }));
+  return (
+    <Stage className="flex-col items-stretch">
+      <div ref={box} className={cn(BOX, "h-[520px] px-6")}>
+        <ScrollStory container={box} steps={steps} className="[--story-vh:520px]" />
       </div>
     </Stage>
   );

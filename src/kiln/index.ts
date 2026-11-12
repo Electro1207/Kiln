@@ -110,6 +110,7 @@ export { type DockItem, type DockLabels, dockLabels, type DockProps, Dock } from
 export { type OrbitingCirclesProps, OrbitingCircles } from "./components/effects/OrbitingCircles";
 export { type ParallaxProps, Parallax } from "./components/effects/Parallax";
 export { type RevealProps, Reveal } from "./components/effects/Reveal";
+export { type ScrollStoryStep, type ScrollStoryLabels, scrollStoryLabels, type ScrollStoryProps, ScrollStory } from "./components/effects/ScrollStory";
 export { type ScrollTimelineItem, type ScrollTimelineLabels, scrollTimelineLabels, type ScrollTimelineProps, ScrollTimeline } from "./components/effects/ScrollTimeline";
 export { type RevealStep, type StickyScrollRevealLabels, stickyScrollRevealLabels, type StickyScrollRevealProps, StickyScrollReveal } from "./components/effects/StickyScrollReveal";
 
