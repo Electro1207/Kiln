@@ -1,6 +1,7 @@
-import { useId, useState, type ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { springSoft } from "../../motion";
 import { Avatar } from "../data-display/Avatar";
 import { Button } from "../buttons/Button";
@@ -26,18 +27,24 @@ export const commentFeedLabels: CommentFeedLabels = { addComment: "Add a comment
  * into place at the end.
  */
 export function CommentFeed({
-  entries, me, onComment, className, labels,
+  entries, me, value, defaultValue = "", onChange, onComment, className, labels,
 }: {
   entries: FeedEntry[];
   /** The current person, shown beside the composer. */
   me: { name: string; avatar?: string };
+  /** Controlled draft text. Leave out to let the box keep its own; it clears after a send. */
+  value?: string;
+  /** Where the uncontrolled draft starts. Default empty. */
+  defaultValue?: string;
+  /** Called with the new draft text, controlled or not. */
+  onChange?: (text: string) => void;
   onComment: (text: string) => void;
   className?: string;
   /** Override any UI text. Merged over `commentFeedLabels`. */
   labels?: Partial<CommentFeedLabels>;
 }) {
   const l = { ...commentFeedLabels, ...labels };
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useControllable(value, defaultValue, onChange);
   const id = useId();
   const submit = () => {
     const t = draft.trim();
