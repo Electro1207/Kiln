@@ -1,5 +1,5 @@
 import type { Category } from "../types";
-import { AnimatedListDemo, BeamDemo, BorderBeamDemo, CompareDemo, DockDemo, MagneticDemo, MultiStepDemo, OrbitDemo, PlaceholderDemo, RevealDemo, ScrambleDemo, ScrollProgressDemo, StickyDemo, TextAnimateDemo, TiltDemo, TypewriterDemo, WordRotateDemo } from "./parts/effects";
+import { AnimatedListDemo, BeamDemo, BorderBeamDemo, CompareDemo, DockDemo, MagneticDemo, MultiStepDemo, OrbitDemo, ParallaxDemo, PlaceholderDemo, RevealDemo, ScrambleDemo, ScrollProgressDemo, StickyDemo, TextAnimateDemo, TiltDemo, TypewriterDemo, WordRotateDemo } from "./parts/effects";
 
 export const category: Category = {
   id: "effects",
@@ -21,6 +21,7 @@ export const category: Category = {
     { id: "border-beam", name: "Border beam", summary: "A short bright segment running round a card’s border, following its radius exactly.", files: ["src/kiln/components/effects/BorderBeam.tsx", "src/kiln/components/shared/useLoop.ts", "src/kiln/cn.ts"], Demo: BorderBeamDemo },
     { id: "scroll-progress", name: "Scroll progress", summary: "A reading bar that fills as you scroll, smoothed so it never jumps.", files: ["src/kiln/components/wayfinding/ScrollProgress.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: ScrollProgressDemo },
     { id: "sticky-scroll-reveal", name: "Sticky scroll reveal", summary: "Words scroll past a picture that stays pinned and cross-fades with each step. Scroll-linked, so nothing re-renders per frame.", files: ["src/kiln/components/effects/StickyScrollReveal.tsx", "src/kiln/cn.ts"], Demo: StickyDemo },
+    { id: "parallax", name: "Parallax", summary: "Layers that drift at their own speed as the page scrolls, and can tilt as they go. Transform only.", files: ["src/kiln/components/effects/Parallax.tsx", "src/kiln/components/shared/useLoop.ts", "src/kiln/cn.ts"], Demo: ParallaxDemo },
     { id: "multi-step-loader", name: "Multi-step loader", summary: "A checklist that completes itself, with a line filling down as it goes.", files: ["src/kiln/components/status/MultiStepLoader.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: MultiStepDemo },
     { id: "placeholder-input", name: "Placeholder input", summary: "Example questions cycle while empty; sent text drifts up and dissolves.", files: ["src/kiln/components/text-input/PlaceholderInput.tsx", "src/kiln/components/shared/useLoop.ts", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: PlaceholderDemo },
   ],

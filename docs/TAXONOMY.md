@@ -381,7 +381,7 @@ Group id: `text-effects` · Folder: `text-effects/` · 4 entries
 | Scramble text | `scramble-text` | `ScrambleText.tsx`, `src/kiln/components/useLoop.ts` |
 
 ### Effects
-Group id: `effects` · Folder: `effects/` · 7 entries
+Group id: `effects` · Folder: `effects/` · 8 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -392,6 +392,7 @@ Group id: `effects` · Folder: `effects/` · 7 entries
 | Animated list | `animated-list` | `AnimatedList.tsx`, `src/kiln/components/useLoop.ts` |
 | Border beam | `border-beam` | `BorderBeam.tsx`, `src/kiln/components/useLoop.ts` |
 | Sticky scroll reveal | `sticky-scroll-reveal` | `StickyScrollReveal.tsx` |
+| Parallax | `parallax` | `Parallax.tsx`, `src/kiln/components/shared/useLoop.ts` |
 
 ## Where files live now
 

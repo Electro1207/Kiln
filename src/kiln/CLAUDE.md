@@ -163,6 +163,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `BorderBeam` — A short bright segment running round a card’s border, following its radius exactly
 - `Dock` — macOS magnification by transform only: icons swell, neighbours part, the bar widens
 - `OrbitingCircles` — Icons circling a centre on the compositor, upright the whole way round
+- `Parallax` — Layers that drift at their own speed as the page scrolls, and can tilt as they go; `distance` sets how far
 - `Reveal` — Anything you wrap rises into place, with a fade, the first time it scrolls into view; stagger siblings with `delay`
 - `StickyScrollReveal` — Words scroll past a picture that stays pinned and cross-fades with each step
 
