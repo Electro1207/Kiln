@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useSta
 import { animate, motion, useMotionValue, type PanInfo } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { springFirm, springSnappy } from "../../motion";
 
 /** Text used by Carousel. Pass a partial via `labels` to translate or reword. */
@@ -31,6 +32,12 @@ export const carouselLabels: CarouselLabels = {
 export type CarouselProps = {
   slides: ReactNode[];
   label: string;
+  /** Controlled index of the first visible slide. Leave out to let the carousel keep its own. */
+  value?: number;
+  /** Where an uncontrolled carousel starts. Default 0. */
+  defaultValue?: number;
+  /** Called with the new index, controlled or not. */
+  onChange?: (index: number) => void;
   /** Slides visible at once from 720px wide. Phones always show one with a peek of the next. */
   perView?: number;
   gap?: number;
@@ -51,13 +58,14 @@ export interface CarouselIcons {
 }
 export const carouselIcons: CarouselIcons = { previous: <ChevronLeft />, next: <ChevronRight /> };
 
-export function Carousel({ slides, label, perView = 2, gap = 16, labels, icons, className }: CarouselProps) {
+export function Carousel({ slides, label, value, defaultValue = 0, onChange, perView = 2, gap = 16, labels, icons, className }: CarouselProps) {
   const l = { ...carouselLabels, ...labels };
   const ic = useMemo(() => ({ ...carouselIcons, ...icons }), [icons]);
   const uid = useId();
   const viewport = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useControllable(value, defaultValue, onChange);
+  const settled = useRef(index);
   const x = useMotionValue(0);
   const dragging = useRef(false);
 
@@ -88,9 +96,17 @@ export function Carousel({ slides, label, perView = 2, gap = 16, labels, icons, 
 
   const go = (i: number, velocity = 0) => {
     const next = Math.max(0, Math.min(maxIndex, i));
+    settled.current = next;
     setIndex(next);
     animate(x, posFor(next), { ...springFirm, velocity });
   };
+
+  // An index set from outside slides the track; one go() just made is already on its way.
+  useEffect(() => {
+    if (index === settled.current) return;
+    settled.current = index;
+    if (width) animate(x, posFor(Math.min(index, maxIndex)), springFirm);
+  }, [index, width, maxIndex, posFor, x]);
 
   useEffect(() => () => x.stop(), [x]);
 
