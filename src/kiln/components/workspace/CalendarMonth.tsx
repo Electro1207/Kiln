@@ -1,7 +1,8 @@
-import { useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { springFirm, springSoft } from "../../motion";
 import { AnchoredLayer } from "../shared/Anchored";
 
@@ -10,7 +11,14 @@ export type CalEvent = { id: string; date: Date; title: string; time?: string; p
 
 export type CalendarMonthProps = {
   events: CalEvent[];
+  /** Controlled selected day. Leave out to let the calendar keep its own. */
+  value?: Date;
+  /** Where the uncontrolled calendar starts. Default today. */
+  defaultValue?: Date;
+  /** Same as `defaultValue`; kept for existing code. */
   defaultDate?: Date;
+  /** Called with the day picked, controlled or not. */
+  onChange?: (date: Date) => void;
   /** Chips shown in a day cell before “+N more”. */
   maxPerDay?: number;
   /** BCP 47 locale for month and day names. Weeks always start on Monday. Defaults to English. */
@@ -93,7 +101,7 @@ function grid(month: Date) {
 }
 
 /** A month of events with a day agenda. Months slide in the direction you move; so do days. */
-export function CalendarMonth({ events, defaultDate, maxPerDay = 2, locale, labels, icons, className }: CalendarMonthProps) {
+export function CalendarMonth({ events, value, defaultValue, defaultDate, onChange, maxPerDay = 2, locale, labels, icons, className }: CalendarMonthProps) {
   const l = { ...calendarMonthLabels, ...labels };
   const ic = { ...calendarMonthIcons, ...icons };
   const loc = locale ?? "en-GB";
@@ -107,7 +115,10 @@ export function CalendarMonth({ events, defaultDate, maxPerDay = 2, locale, labe
     [loc],
   );
   const [today] = useState(() => day0(new Date()));
-  const [selected, setSelected] = useState(() => day0(defaultDate ?? today));
+  const [selectedRaw, setSelected] = useControllable<Date>(value, defaultValue ?? defaultDate ?? today, onChange);
+  const selectedKey = key(selectedRaw);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const selected = useMemo(() => day0(selectedRaw), [selectedKey]);
   const [month, setMonth] = useState(() => new Date(selected.getFullYear(), selected.getMonth(), 1));
   const [mDir, setMDir] = useState(0);
   const [dDir, setDDir] = useState(0);
@@ -129,6 +140,11 @@ export function CalendarMonth({ events, defaultDate, maxPerDay = 2, locale, labe
     setMDir(n);
     setMonth((m) => new Date(m.getFullYear(), m.getMonth() + n, 1));
   };
+  // A day set from outside brings its month into view.
+  useEffect(() => {
+    setMonth((m) => (mKey(selected) === mKey(m) ? m : new Date(selected.getFullYear(), selected.getMonth(), 1)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedKey]);
   const pick = (d: Date, focus = false) => {
     setDDir(d > selected ? 1 : -1);
     setSelected(d);
