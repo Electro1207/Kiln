@@ -2,7 +2,7 @@ import { useId, useMemo, useState, type KeyboardEvent, type PointerEvent, type R
 import { useAnimate } from "motion/react";
 import { cn } from "../../cn";
 import { springBouncy } from "../../motion";
-import type { Size } from "../../controllable";
+import { useControllable, type Size } from "../../controllable";
 
 const STAR_PX: Record<Size, number> = { sm: 20, md: 28, lg: 36 };
 const LABEL_TEXT: Record<Size, string> = { sm: "text-[13px]", md: "text-sm", lg: "text-[15px]" };
@@ -37,9 +37,13 @@ export const ratingIcons: RatingIcons = { star: starSvg, starOff: starSvg };
  * the row, so the gaps between stars are never dead zones. A pick makes the chosen stars hop in a wave.
  */
 export function Rating({
-  value, onChange, max = 5, label = "Rating", size = "md", gap = 4, readOnly, className, labels, hideLabel, uiLabels, icons,
+  value: valueProp, defaultValue = 0, onChange, max = 5, label = "Rating", size = "md", gap = 4, readOnly, className, labels, hideLabel, uiLabels, icons,
 }: {
-  value: number;
+  /** Controlled rating, 0 for none. Leave out to let the rating keep its own. */
+  value?: number;
+  /** Where an uncontrolled rating starts. Default 0. */
+  defaultValue?: number;
+  /** Called with the new rating, controlled or not. */
   onChange?: (v: number) => void;
   max?: number;
   label?: string;
@@ -63,6 +67,7 @@ export function Rating({
   const px = typeof size === "number" ? size : STAR_PX[size];
   const textSize = typeof size === "number" ? (size < 24 ? LABEL_TEXT.sm : size > 32 ? LABEL_TEXT.lg : LABEL_TEXT.md) : LABEL_TEXT[size];
   const id = useId();
+  const [value, setValue] = useControllable(valueProp, defaultValue, onChange);
   const [hover, setHover] = useState<number | null>(null);
   const [scope, animate] = useAnimate<HTMLDivElement>();
   const shown = hover ?? value;
@@ -81,7 +86,7 @@ export function Rating({
   };
 
   const set = (n: number) => {
-    onChange?.(n);
+    setValue(n);
     if (n > 0) hop(n);
   };
 
@@ -89,8 +94,8 @@ export function Rating({
     if (readOnly) return;
     const k = e.key;
     if (k === "ArrowRight" || k === "ArrowUp") { e.preventDefault(); set(Math.min(max, value + 1)); }
-    else if (k === "ArrowLeft" || k === "ArrowDown") { e.preventDefault(); onChange?.(Math.max(0, value - 1)); }
-    else if (k === "Home") { e.preventDefault(); onChange?.(0); }
+    else if (k === "ArrowLeft" || k === "ArrowDown") { e.preventDefault(); setValue(Math.max(0, value - 1)); }
+    else if (k === "Home") { e.preventDefault(); setValue(0); }
     else if (k === "End") { e.preventDefault(); set(max); }
     else if (/^[0-9]$/.test(k) && +k <= max) { e.preventDefault(); set(+k); }
   };
