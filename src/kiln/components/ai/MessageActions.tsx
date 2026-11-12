@@ -1,7 +1,8 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { motion, useAnimate } from "motion/react";
 import { RefreshCw, ThumbsDown, ThumbsUp } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { fade, springSoft } from "../../motion";
 import { CopyButton, copyButtonIcons } from "../buttons/CopyButton";
 import { Tooltip } from "../overlays/Tooltip";
@@ -45,6 +46,11 @@ export type MessageActionsProps = {
   /** The answer's plain text, for Copy. */
   text: string;
   onRegenerate?: () => void;
+  /** Controlled rating, or `null` for none. Leave out to let the row keep its own. */
+  value?: "up" | "down" | null;
+  /** Where the uncontrolled rating starts. Default none. */
+  defaultValue?: "up" | "down" | null;
+  /** Called with the new rating, controlled or not. */
   onFeedback?: (v: "up" | "down" | null) => void;
   className?: string;
   /** Override any UI text. Merged over `messageActionsLabels`. */
@@ -59,15 +65,14 @@ const btn = "relative grid size-8 place-items-center rounded-full text-muted tra
  * The row under an answer: copy, rate it up or down, or ask again. A rating
  * fills its icon (a fade, not a jump) and the other one clears.
  */
-export function MessageActions({ text, onRegenerate, onFeedback, className, labels, icons }: MessageActionsProps) {
+export function MessageActions({ text, onRegenerate, value, defaultValue = null, onFeedback, className, labels, icons }: MessageActionsProps) {
   const l = { ...messageActionsLabels, ...labels };
   const ic = useMemo(() => ({ ...messageActionsIcons, ...icons }), [icons]);
-  const [vote, setVote] = useState<"up" | "down" | null>(null);
+  const [vote, setVote] = useControllable<"up" | "down" | null>(value, defaultValue, onFeedback);
   const [spin, animate] = useAnimate<HTMLSpanElement>();
   const set = (v: "up" | "down") => {
     const next = vote === v ? null : v;
     setVote(next);
-    onFeedback?.(next);
   };
   return (
     <div className={cn("flex items-center gap-0.5", className)}>
