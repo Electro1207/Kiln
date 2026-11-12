@@ -2,6 +2,7 @@ import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Reorder, useDragControls } from "motion/react";
 import { GripVertical } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { springFirm } from "../../motion";
 
 /** Icons used by SortableList. Pass a partial via `icons` to swap any of them. */
@@ -12,8 +13,12 @@ export interface SortableListIcons {
 export const sortableListIcons: SortableListIcons = { grip: <GripVertical /> };
 
 export type SortableListProps<T> = {
-  items: T[];
-  onReorder: (items: T[]) => void;
+  /** Controlled items in order. Leave out to let the list keep its own. */
+  items?: T[];
+  /** Where an uncontrolled list starts. Default empty. */
+  defaultItems?: T[];
+  /** Called with the new order, controlled or not. */
+  onReorder?: (items: T[]) => void;
   getKey: (item: T) => string;
   /** Text read out when an item moves, e.g. its title. */
   getLabel: (item: T) => string;
@@ -42,9 +47,10 @@ export const sortableListLabels: SortableListLabels = {
  * A list reordered by dragging its handles. Keyboard: focus a handle and use
  * the Up and Down arrows (Home and End jump to either end).
  */
-export function SortableList<T>({ items, onReorder, getKey, getLabel, renderItem, label, labels, icons, className }: SortableListProps<T>) {
+export function SortableList<T>({ items: itemsProp, defaultItems, onReorder: onReorderProp, getKey, getLabel, renderItem, label, labels, icons, className }: SortableListProps<T>) {
   const l = { ...sortableListLabels, ...labels };
   const ic = { ...sortableListIcons, ...icons };
+  const [items, onReorder] = useControllable<T[]>(itemsProp, defaultItems ?? [], onReorderProp);
   const [said, setSaid] = useState("");
   const listRef = useRef<HTMLUListElement>(null);
 
