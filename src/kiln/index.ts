@@ -216,7 +216,7 @@ export { type Status, type StatusDotLabels, statusDotLabels, type StatusDotProps
 export { type ComparisonPlan, type ComparisonRow, type ComparisonTableLabels, type ComparisonTableIcons, comparisonTableIcons, comparisonTableLabels, type ComparisonGroup, ComparisonTable } from "./components/tables/ComparisonTable";
 export { type GridColumn, type DataGridLabels, type DataGridIcons, dataGridIcons, dataGridLabels, type BulkAction, type DataGridProps, DataGrid } from "./components/tables/DataGrid";
 export { type InfiniteFeedLabels, infiniteFeedLabels, type InfiniteFeedProps, InfiniteFeed } from "./components/tables/InfiniteFeed";
-export { type TableLabels, tableLabels, type TableIcons, tableIcons, type Column, type TableProps, useRowFlip, Table, TickBox } from "./components/tables/Table";
+export { type TableLabels, tableLabels, type TableIcons, tableIcons, type Column, type TableProps, type TableSort, useRowFlip, Table, TickBox } from "./components/tables/Table";
 export { type VirtualGroup, type VirtualListProps, VirtualList } from "./components/tables/VirtualList";
 
 // text-effects

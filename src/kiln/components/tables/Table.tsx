@@ -1,7 +1,8 @@
-import { useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useLayoutEffect, useMemo, useRef, type ReactNode, type RefObject } from "react";
 import { motion } from "motion/react";
 import { ArrowDown, Check, Minus } from "lucide-react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { easeOut, springSnappy } from "../../motion";
 
 /** Text used by Table. Pass a partial via `labels` to translate or reword. */
@@ -42,8 +43,18 @@ export type TableProps<T> = {
   columns: Column<T>[];
   rowKey: (row: T) => string;
   selectable?: boolean;
+  /** Controlled selected row ids. Leave out to let the table keep its own. */
   selected?: Set<string>;
+  /** Where uncontrolled selection starts. Default none. */
+  defaultSelected?: Set<string>;
+  /** Called with the new selection, controlled or not. */
   onSelectedChange?: (next: Set<string>) => void;
+  /** Controlled sort, or `null` for the original order. Leave out to let the table keep its own. */
+  sort?: TableSort;
+  /** Where uncontrolled sorting starts. Default `null`. */
+  defaultSort?: TableSort;
+  /** Called with the new sort, controlled or not. */
+  onSortChange?: (next: TableSort) => void;
   caption?: string;
   /** Max height before the body scrolls under a sticky header. */
   maxHeight?: number;
@@ -54,7 +65,8 @@ export type TableProps<T> = {
   icons?: Partial<TableIcons>;
 };
 
-type Sort = { key: string; dir: "asc" | "desc" } | null;
+/** The column being sorted and its direction, or `null` for the original order. */
+export type TableSort = { key: string; dir: "asc" | "desc" } | null;
 
 /**
  * Rows that glide to a new order (FLIP). Call `capture()` just before changing
@@ -98,7 +110,11 @@ export function Table<T>({
   rowKey,
   selectable,
   selected: selectedProp,
+  defaultSelected,
   onSelectedChange,
+  sort: sortProp,
+  defaultSort = null,
+  onSortChange,
   caption,
   maxHeight = 420,
   className,
@@ -107,10 +123,8 @@ export function Table<T>({
 }: TableProps<T>) {
   const l = { ...tableLabels, ...labels };
   const ic = useMemo(() => ({ ...tableIcons, ...icons }), [icons]);
-  const [sort, setSort] = useState<Sort>(null);
-  const [inner, setInner] = useState<Set<string>>(new Set());
-  const selected = selectedProp ?? inner;
-  const setSelected = (s: Set<string>) => (onSelectedChange ? onSelectedChange(s) : setInner(s));
+  const [sort, setSort] = useControllable<TableSort>(sortProp, defaultSort, onSortChange);
+  const [selected, setSelected] = useControllable<Set<string>>(selectedProp, defaultSelected ?? new Set(), onSelectedChange);
 
   const sorted = useMemo(() => {
     if (!sort) return rows;
@@ -128,7 +142,7 @@ export function Table<T>({
   const capture = useRowFlip(body, sorted.map(rowKey).join("|"));
   const cycle = (key: string) => {
     capture();
-    setSort((s) => (s?.key !== key ? { key, dir: "asc" } : s.dir === "asc" ? { key, dir: "desc" } : null));
+    setSort(sort?.key !== key ? { key, dir: "asc" } : sort.dir === "asc" ? { key, dir: "desc" } : null);
   };
 
   const allIds = rows.map(rowKey);
