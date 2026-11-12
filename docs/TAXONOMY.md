@@ -383,7 +383,7 @@ Group id: `text-effects` · Folder: `text-effects/` · 5 entries
 | Scroll words | `scroll-words` | `ScrollWords.tsx`, `src/kiln/components/shared/useLoop.ts` |
 
 ### Effects
-Group id: `effects` · Folder: `effects/` · 10 entries
+Group id: `effects` · Folder: `effects/` · 11 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -397,6 +397,7 @@ Group id: `effects` · Folder: `effects/` · 10 entries
 | Scroll story | `scroll-story` | `ScrollStory.tsx`, `src/kiln/components/shared/useLoop.ts` |
 | Scroll timeline | `scroll-timeline` | `ScrollTimeline.tsx`, `src/kiln/components/shared/useLoop.ts` |
 | Parallax | `parallax` | `Parallax.tsx`, `src/kiln/components/shared/useLoop.ts` |
+| Parallax section | `parallax-section` | `ParallaxSection.tsx`, `src/kiln/components/shared/useLoop.ts` |
 
 ## Where files live now
 

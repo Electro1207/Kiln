@@ -25,6 +25,7 @@ import { ScrollTimeline } from "../../../kiln/components/effects/ScrollTimeline"
 import { ScrollWords } from "../../../kiln/components/text-effects/ScrollWords";
 import { cn } from "../../../kiln/cn";
 import { FloatingCard } from "../../../kiln/components/cards/FloatingCard";
+import { ParallaxSection } from "../../../kiln/components/effects/ParallaxSection";
 import { VideoPlayer } from "../../../kiln/components/media/VideoPlayer";
 import { Magnetic } from "../../../kiln/components/buttons/MagneticButton";
 import { MultiStepLoader } from "../../../kiln/components/status/MultiStepLoader";
@@ -540,3 +541,26 @@ export function FloatingCardDemo() {
   );
 }
 
+const ACTS = [
+  { title: "The Shire", line: "Second breakfast, then elevenses. Nobody is in a hurry.", tone: "bg-surface" },
+  { title: "Rivendell", line: "The council argues, and the smallest one at the table says he will go.", tone: "bg-raised" },
+  { title: "Mordor", line: "One does not simply walk in. They walk in anyway.", tone: "bg-active" },
+];
+
+export function ParallaxSectionDemo() {
+  const box = useBox();
+  return (
+    <Stage className="flex-col items-stretch">
+      <div ref={box} className={cn(BOX, "h-[420px] bg-ground")}>
+        {ACTS.map((a) => (
+          <ParallaxSection key={a.title} container={box}>
+            <div className={cn("flex h-[420px] flex-col justify-center gap-3 px-10", a.tone)}>
+              <p className="text-4xl font-semibold tracking-[-0.02em]">{a.title}</p>
+              <p className="max-w-md text-muted">{a.line}</p>
+            </div>
+          </ParallaxSection>
+        ))}
+      </div>
+    </Stage>
+  );
+}
