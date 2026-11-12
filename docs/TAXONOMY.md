@@ -382,7 +382,7 @@ Group id: `text-effects` · Folder: `text-effects/` · 5 entries
 | Scroll words | `scroll-words` | `ScrollWords.tsx`, `src/kiln/components/shared/useLoop.ts` |
 
 ### Effects
-Group id: `effects` · Folder: `effects/` · 9 entries
+Group id: `effects` · Folder: `effects/` · 10 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -393,6 +393,7 @@ Group id: `effects` · Folder: `effects/` · 9 entries
 | Animated list | `animated-list` | `AnimatedList.tsx`, `src/kiln/components/useLoop.ts` |
 | Border beam | `border-beam` | `BorderBeam.tsx`, `src/kiln/components/useLoop.ts` |
 | Sticky scroll reveal | `sticky-scroll-reveal` | `StickyScrollReveal.tsx` |
+| Scroll story | `scroll-story` | `ScrollStory.tsx`, `src/kiln/components/shared/useLoop.ts` |
 | Scroll timeline | `scroll-timeline` | `ScrollTimeline.tsx`, `src/kiln/components/shared/useLoop.ts` |
 | Parallax | `parallax` | `Parallax.tsx`, `src/kiln/components/shared/useLoop.ts` |
 

@@ -231,7 +231,7 @@ Defaults are exported too, so you can extend them: `{ ...paginationLabels, next:
 - Communication: ChatThread, CommentFeed, CommentThread, MessageComposer
 - Data display: Avatar, AvatarGroup, CodeBlock, DescriptionList, HeatStrip (+ `locale`), ListItem, Tag
 - Dev tools: DiffViewer, JSONViewer, LogStream (+ `locale`), Terminal
-- Effects: Dock, ScrollTimeline, StickyScrollReveal
+- Effects: Dock, ScrollStory, ScrollTimeline, StickyScrollReveal
 - Forms: AuthForms, AvatarUpload (`cropperLabels` for the cropper), ImageCropper, InlineEdit, KeyValueEditor, SaveBar
 - Guidance: KeyboardShortcutsSheet, OnboardingWizard, ProductTour
 - Marketing: Changelog, BlogList, ContactSection, NewsletterSignup, NotFound, FeatureTabs, StatsSection (only `locale`)
