@@ -1,0 +1,45 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local working files (never commit)
+
+shots/
+coverage/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Generated (npm run gen:registry, npm run build:lib)
+public/r/
+public/kiln-add.mjs
+packages/kiln/lib/
+packages/kiln/*.tgz
+packages/kiln/styles.css
+packages/kiln/tokens.css
+packages/kiln/CLAUDE.md
+packages/kiln/README.md
+packages/kiln/LICENSE
