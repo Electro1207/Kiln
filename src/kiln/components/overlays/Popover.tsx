@@ -1,6 +1,7 @@
-import { cloneElement, useEffect, useId, useState, type ReactElement, type ReactNode, type Ref } from "react";
+import { cloneElement, useEffect, useId, type ReactElement, type ReactNode, type Ref } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
+import { useControllable } from "../../controllable";
 import { popVariants } from "../../motion";
 import { originFor, Portal, useAnchored, useDismiss, type Align, type Side } from "../shared/useOverlay";
 
@@ -18,8 +19,11 @@ export type PopoverProps = {
   children: ReactNode | ((close: () => void) => ReactNode);
   side?: Side;
   align?: Align;
-  /** Controlled open state (optional). */
+  /** Controlled open state. Leave out to let the popover keep its own. */
   open?: boolean;
+  /** Whether the uncontrolled popover starts open. Default false. */
+  defaultOpen?: boolean;
+  /** Called when it opens or closes, controlled or not. */
   onOpenChange?: (open: boolean) => void;
   /** Accessible name for the panel. */
   label?: string;
@@ -29,13 +33,8 @@ export type PopoverProps = {
 };
 
 /** A small floating panel tied to a trigger. Closes on Esc, outside click, or `close()`. */
-export function Popover({ trigger, children, side = "bottom", align = "center", open: openProp, onOpenChange, label, bare, className }: PopoverProps) {
-  const [inner, setInner] = useState(false);
-  const open = openProp ?? inner;
-  const setOpen = (v: boolean) => {
-    if (openProp === undefined) setInner(v);
-    onOpenChange?.(v);
-  };
+export function Popover({ trigger, children, side = "bottom", align = "center", open: openProp, defaultOpen = false, onOpenChange, label, bare, className }: PopoverProps) {
+  const [open, setOpen] = useControllable(openProp, defaultOpen, onOpenChange);
   const id = useId();
   const { anchorRef, setAnchor, focusAnchor, floatingRef, placement, floatingStyle } = useAnchored(open, side, align, 8);
   useDismiss(open, () => setOpen(false), [anchorRef, floatingRef]);
