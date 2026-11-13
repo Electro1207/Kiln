@@ -4,7 +4,7 @@ Thanks for helping. Kiln's rules are in [`docs/CONVENTIONS.md`](docs/CONVENTIONS
 
 ## Branches
 
-- `main` is what's live. Every merge to `main` is built and deployed. It only changes through pull requests that pass CI.
+- `main` is the next release. It only changes through pull requests that pass CI. Nothing deploys on merge: publishing a GitHub release (tag `vX.Y.Z`, matching `packages/kiln/package.json`) publishes the npm package and deploys the site, with its copy-in registry and installer, from the same tag. So npm and the CLI always ship the same library, and CI checks it (`npm run check:parity`).
 - `dev` is the working branch. It's rebase-merged into `main`, so every commit lands as written, and then deleted. Start each round fresh:
 
 ```bash
