@@ -13,6 +13,10 @@ git switch -C dev origin/main
 git push -u origin dev
 ```
 
+## Changelog
+
+A change people would notice (a component, a prop, a fix, a behaviour) gets a line under `## [Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md), in the same pull request, under Added, Changed, Deprecated, Removed, Fixed or Security. The gallery's What's new page reads that file. To release, rename `[Unreleased]` to the new version and date, add an empty `[Unreleased]` above it, update the compare links at the foot, bump `packages/kiln/package.json`, then publish the GitHub release.
+
 ## Commits
 
 Keep every commit atomic: one logical change, with a message that says what it changes. A fix, a feature and a docs update are three commits, not one.
