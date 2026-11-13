@@ -4,6 +4,7 @@ export { type BackToTopLabels, backToTopLabels, type BackToTopIcons, backToTopIc
 export { type Crumb, type BreadcrumbsLabels, type BreadcrumbsIcons, breadcrumbsIcons, breadcrumbsLabels, type BreadcrumbsProps, Breadcrumbs } from "../components/wayfinding/Breadcrumbs";
 export { type PaginationLabels, type PaginationIcons, paginationIcons, paginationLabels, type PaginationProps, pageRange, Pagination } from "../components/wayfinding/Pagination";
 export { type Checkpoint, type ScrollCheckpointsLabels, scrollCheckpointsLabels, type ScrollCheckpointsProps, ScrollCheckpoints } from "../components/wayfinding/ScrollCheckpoints";
+export { type ScrollHintLabels, scrollHintLabels, type ScrollHintIcons, scrollHintIcons, type ScrollHintProps, ScrollHint } from "../components/wayfinding/ScrollHint";
 export { type ScrollProgressLabels, scrollProgressLabels, type ScrollProgressProps, ScrollProgress } from "../components/wayfinding/ScrollProgress";
 export { type Step, type StepperLabels, type StepperIcons, stepperIcons, stepperLabels, type StepperProps, Stepper } from "../components/wayfinding/Stepper";
 export { type TabItem, type TabsProps, Tabs } from "../components/wayfinding/Tabs";

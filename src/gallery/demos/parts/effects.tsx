@@ -29,6 +29,7 @@ import { FloatingCard } from "../../../kiln/components/cards/FloatingCard";
 import { ParallaxSection } from "../../../kiln/components/effects/ParallaxSection";
 import { CardJourney, useJourney, type JourneyStop } from "../../../kiln/components/effects/CardJourney";
 import { DriftField } from "../../../kiln/components/effects/DriftField";
+import { ScrollHint } from "../../../kiln/components/wayfinding/ScrollHint";
 import { Switch } from "../../../kiln/components/choice-controls/Switch";
 import { Slider } from "../../../kiln/components/choice-controls/Slider";
 import { Badge } from "../../../kiln/components/status/Badge";
@@ -682,6 +683,25 @@ export function DriftFieldDemo() {
         <DriftField items={items} progress={screens} inset={{ left: "1rem", right: "1rem" }} className="rounded-card" aria-label="Time machine controls" />
       </div>
       <p className="text-center text-sm text-muted">Scroll inside the box: the controls drift up at two speeds and loop back in. They all work.</p>
+    </Stage>
+  );
+}
+
+export function ScrollHintDemo() {
+  const box = useBox();
+  const [shown, setShown] = useState(true);
+  return (
+    <Stage className="flex-col items-stretch">
+      <div ref={box} className={cn(BOX, "h-[320px] bg-ground")}>
+        <section className="relative grid h-[320px] place-items-center">
+          <p className="text-3xl font-semibold tracking-[-0.02em]">Welcome to Jurassic Park</p>
+          <ScrollHint show={shown} className="absolute bottom-5 left-1/2 -translate-x-1/2" onClick={() => box.current?.scrollTo({ top: 320, behavior: "smooth" })} />
+        </section>
+        <section className="grid h-[320px] place-items-center bg-raised">
+          <p className="text-xl font-medium">Hold on to your butts.</p>
+        </section>
+      </div>
+      <Btn variant="secondary" size="sm" className="self-center" onClick={() => setShown((v) => !v)}>{shown ? "Hide the hint" : "Show the hint"}</Btn>
     </Stage>
   );
 }
