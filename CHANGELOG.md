@@ -39,6 +39,7 @@ Colorways, a card that carries a whole page, and the pieces a scroll-driven port
 - A video on a resting `CardJourney` card keeps playing in Safari, and sits straight and correctly clipped in Firefox: side stops rest upright unless you set the new `lean` prop, and a face showing a video stops bobbing, so the picture stays with its card.
 - `CardJourney`, `DriftField` and the `ScrollProgress` ring do less work per scroll frame.
 - The `DocsNav` chevron turns in place, and its footer is set apart from the contents.
+- `WordRotate` no longer clips the marks above and below letters in scripts such as Devanagari and Kannada.
 - A clickable `MediaCard` keeps its picture at the top of a stretched card.
 
 ## [0.3.1] - 2026-11-12
