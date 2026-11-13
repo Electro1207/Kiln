@@ -147,6 +147,7 @@ export { type FooterLink, type FooterProps, Footer } from "./components/marketin
 export { type HeroProps, Hero } from "./components/marketing/Hero";
 export { type NewsletterSignupLabels, type NewsletterSignupIcons, newsletterSignupIcons, newsletterSignupLabels, type NewsletterSignupProps, NewsletterSignup } from "./components/marketing/NewsletterSignup";
 export { type NotFoundLabels, type NotFoundIcons, notFoundIcons, notFoundLabels, type NotFoundProps, NotFound } from "./components/marketing/NotFound";
+export { type PoweredByKilnLabels, poweredByKilnLabels, type PoweredByKilnProps, KilnMark, PoweredByKiln } from "./components/marketing/PoweredByKiln";
 export { type StatItem, type StatsSectionProps, StatsSection } from "./components/marketing/StatsSection";
 export { type TeamLink, type TeamMember, type TeamGridProps, TeamGrid } from "./components/marketing/TeamGrid";
 export { type Testimonial, type TestimonialsProps, Testimonials } from "./components/marketing/Testimonials";

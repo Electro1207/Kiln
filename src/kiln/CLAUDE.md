@@ -203,6 +203,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `Hero` — A first screen: the title, one sentence, the action and a large picture
 - `NewsletterSignup` — Email field with inline validation, a loading state and a success message in place
 - `NotFound` — A plain way back and the places people usually meant
+- `PoweredByKiln` (PoweredByKiln, KilnMark) — A small "Powered by Kiln" credit with the Kiln mark, in the colour of the text around it
 - `StatsSection` — Large figures that count up once as they come into view
 - `TeamGrid` — People and their roles; links rise into view on hover and stay visible on touch
 - `Testimonials` — One quotation set large, then the rest in columns

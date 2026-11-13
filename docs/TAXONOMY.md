@@ -2,7 +2,7 @@
 
 Section, then group, then entry, then component files. Generated from `src/gallery/registry.ts` (`TAXONOMY`) and the `files` of each demo entry; the entry ids and file names match the gallery exactly.
 
-Every group is one gallery page (`#/<group id>`). The **Folder** is the home of the group's component files (the move is done): `src/kiln/components/<folder>/<File>.tsx`. Folders are kebab-case and unique. Only the first (primary) file of an entry moves with it; other files an entry lists are shared helpers (see the end).
+Every group is one gallery page (`/<group id>`). The **Folder** is the home of the group's component files (the move is done): `src/kiln/components/<folder>/<File>.tsx`. Folders are kebab-case and unique. Only the first (primary) file of an entry moves with it; other files an entry lists are shared helpers (see the end).
 
 ## Foundations
 
@@ -351,7 +351,7 @@ Group id: `commerce` · Folder: `commerce/` · 8 entries
 | Invoice | `invoice` | `Invoice.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 
 ### Marketing
-Group id: `marketing` · Folder: `marketing/` · 16 entries
+Group id: `marketing` · Folder: `marketing/` · 17 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -371,6 +371,7 @@ Group id: `marketing` · Folder: `marketing/` · 16 entries
 | Page and section headings | `headings` | `PageHeading.tsx` |
 | 404 page | `not-found` | `NotFound.tsx` |
 | Footer | `footer` | `Footer.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
+| Powered by Kiln | `powered-by-kiln` | `PoweredByKiln.tsx`, `src/kiln/cn.ts` |
 
 ## Motion
 
