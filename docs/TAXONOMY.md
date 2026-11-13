@@ -121,7 +121,7 @@ Group id: `menus` · Folder: `menus/` · 8 entries
 | Spotlight search | `spotlight-search` | `SpotlightSearch.tsx`, `src/kiln/components/useOverlay.ts`, `Combobox.tsx`, `src/kiln/controllable.ts` |
 
 ### Wayfinding
-Group id: `wayfinding` · Folder: `wayfinding/` · 7 entries
+Group id: `wayfinding` · Folder: `wayfinding/` · 8 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -323,15 +323,15 @@ Group id: `ai` · Folder: `ai/` · 8 entries
 | Message actions | `message-actions` | `MessageActions.tsx`, `CopyButton.tsx`, `Tooltip.tsx` |
 
 ### Developer tools
-Group id: `devtools` · Folder: `dev-tools/` · 4 entries
+Group id: `devtools` · Folder: `dev-tools/` · 5 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
 | Diff viewer | `diff-viewer` | `DiffViewer.tsx`, `SegmentedControl.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/controllable.ts` |
 | JSON viewer | `json-viewer` | `JSONViewer.tsx`, `CopyButton.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Terminal | `terminal` | `Terminal.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
-| Log stream | `log-stream` | `LogStream.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Terminal script | `terminal-script` | `TerminalScript.tsx`, `Terminal.tsx`, `src/kiln/components/shared/useLoop.ts`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
+| Log stream | `log-stream` | `LogStream.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 
 ### Commerce
 Group id: `commerce` · Folder: `commerce/` · 8 entries
@@ -385,7 +385,7 @@ Group id: `text-effects` · Folder: `text-effects/` · 5 entries
 | Scroll words | `scroll-words` | `ScrollWords.tsx`, `src/kiln/components/shared/useLoop.ts` |
 
 ### Effects
-Group id: `effects` · Folder: `effects/` · 11 entries
+Group id: `effects` · Folder: `effects/` · 12 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -400,8 +400,8 @@ Group id: `effects` · Folder: `effects/` · 11 entries
 | Scroll timeline | `scroll-timeline` | `ScrollTimeline.tsx`, `src/kiln/components/shared/useLoop.ts` |
 | Parallax | `parallax` | `Parallax.tsx`, `src/kiln/components/shared/useLoop.ts` |
 | Parallax section | `parallax-section` | `ParallaxSection.tsx`, `src/kiln/components/shared/useLoop.ts` |
-
 | Card journey | `card-journey` | `CardJourney.tsx`, `src/kiln/components/shared/useLoop.ts` |
+
 ## Where files live now
 
 - Each component file sits in its group's folder: `src/kiln/components/<folder>/<File>.tsx`. Entry file names in the tables above are relative to that folder, or to `src/kiln/components/` for the old flat names.
