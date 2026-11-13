@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Lightbulb, Menu, Palette, Search } from "lucide-react";
 import { categories } from "./registry";
 import { useRoute, type Route } from "./useRoute";
+import { usePageMeta } from "./seo";
 import { StudioProvider } from "./studio/store";
 import { ThemeStudio } from "./studio/ThemeStudio";
 import { About } from "./About";
@@ -60,6 +61,7 @@ export default function App() {
 
 function Shell() {
   const { route, go } = useRoute();
+  usePageMeta(route);
   const { toggle } = useThemeActions();
   const sheet = useRef<HTMLDivElement>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
