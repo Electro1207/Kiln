@@ -113,7 +113,7 @@ export function CardJourney({
   };
   const sideOf = (i: number) => (wide ? stops[i]?.side ?? "center" : "center");
   const xOf = (i: number) => ({ left: -offset * 100, center: 0, right: offset * 100 })[sideOf(i)];
-  const tiltOf = (i: number) => ({ left: -1.5, center: 0, right: 1.5 })[sideOf(i)];
+  const tiltOf = (i: number) => ({ left: -0.8, center: 0, right: 0.8 })[sideOf(i)];
   const turn = 180 * turns;
 
   const x = useTransform(f, (v) => { const s = at(v); return `${xOf(s.a) + (xOf(s.b) - xOf(s.a)) * s.t}%`; });
