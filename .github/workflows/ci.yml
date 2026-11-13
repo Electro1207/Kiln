@@ -30,3 +30,5 @@ jobs:
       - run: npm audit --audit-level=high --omit=dev
       - run: npm run lint
       - run: npm run build
+      - name: npm and the registry ship the same library
+        run: node scripts/check-parity.mjs

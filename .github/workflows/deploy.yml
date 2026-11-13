@@ -1,9 +1,11 @@
 name: Deploy
 
-# Every push to main is checked, built and deployed to Cloudflare Pages.
+# The site (and the copy-in registry and installer it serves) deploys with each GitHub release, from the
+# same tag that release.yml publishes to npm, so the CLI and the npm package always ship the same library.
+# Pushes to main no longer deploy; run it by hand (workflow_dispatch) for a site-only fix.
 on:
-  push:
-    branches: [main]
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -33,6 +35,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run lint
       - run: npm run build
+      - run: node scripts/check-parity.mjs
       - name: Create the Pages project on first run
         run: |
           if ! npx --no-install wrangler pages project list | grep -qw "$PROJECT"; then

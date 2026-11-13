@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "gen:index": "node scripts/gen-index.mjs",
     "gen:registry": "node scripts/gen-registry.mjs",
-    "build:lib": "node scripts/build-lib.mjs"
+    "build:lib": "node scripts/build-lib.mjs",
+    "check:parity": "node scripts/check-parity.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.72.0",
