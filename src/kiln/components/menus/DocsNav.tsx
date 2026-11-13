@@ -267,7 +267,7 @@ export function DocsNav({
           ))}
         </nav>
       </ScrollArea>
-      {footer && <div className="shrink-0 px-3 pb-3 pt-2">{footer}</div>}
+      {footer && <div className="mx-3 shrink-0 border-t border-line pb-3 pt-3">{footer}</div>}
     </div>
   );
 }
