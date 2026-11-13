@@ -201,6 +201,8 @@ export { type Time, formatTime, type TimeWheelsLabels, timeWheelsLabels, TimeWhe
 // primitives
 export { type AspectImageProps, AspectImage } from "./components/primitives/AspectImage";
 export { ScrollArea } from "./components/primitives/ScrollArea";
+export { type GlazeProps, Glaze } from "./components/primitives/Glaze";
+export { type GlazePickerLabels, glazePickerLabels, type GlazePickerProps, GlazePicker } from "./components/primitives/GlazePicker";
 export { type SeparatorProps, Separator } from "./components/primitives/Separator";
 export { type ThemeToggleLabels, themeToggleLabels, ThemeToggle, type ThemeSwitcherLabels, themeSwitcherLabels, ThemeSwitcher } from "./components/primitives/ThemeToggle";
 

@@ -18,11 +18,13 @@ Group id: `tokens` · Folder: `tokens/` · 3 entries
 | Motion presets | `motion-presets` | `src/kiln/motion.ts` |
 
 ### Primitives
-Group id: `primitives` · Folder: `primitives/` · 4 entries
+Group id: `primitives` · Folder: `primitives/` · 6 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
 | Theme toggle | `theme-toggle` | `ThemeToggle.tsx`, `src/kiln/theme.tsx` |
+| Glaze picker | `glaze-picker` | `GlazePicker.tsx`, `src/kiln/glaze.ts`, `src/kiln/theme.tsx`, `src/kiln/motion.ts`, `src/kiln/cn.ts` |
+| Glaze | `glaze` | `Glaze.tsx`, `src/kiln/glaze.ts`, `src/kiln/theme.tsx`, `src/kiln/cn.ts` |
 | Scroll area & scrollbar | `scroll-area` | `ScrollArea.tsx` |
 | Separator | `separator` | `Separator.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Image | `aspect-image` | `AspectImage.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |

@@ -259,6 +259,8 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `ScrollArea` — An overlay scrollbar that fades in while you scroll, plus thin token-coloured native scrollbars everywhere
 - `Separator` — A line between things, drawn in from the centre, with or without a label
 - `ThemeToggle` (ThemeToggle, ThemeSwitcher) — Switches light and dark; the new theme opens as a circle from the button
+- `Glaze` — One part of a page in its own colours: pass a ground, an ink and an accent (or a whole glaze), and every component inside follows
+- `GlazePicker` — Swatches that re-glaze the page (ThemeProvider's `glazes`) or anything you handle; the new colours open as a circle from the swatch
 
 ### `status/`
 - `Badge` — Short statuses and counts, and a presence dot that breathes when something is live
