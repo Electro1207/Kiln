@@ -163,6 +163,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `AnimatedBeam` — Curved connectors with a light travelling along them, drawn as a moving dash
 - `AnimatedList` — Items landing one at a time at the top of a stack, like notifications
 - `BorderBeam` — A short bright segment running round a card’s border, following its radius exactly
+- `CardJourney` (CardJourney, useJourney) — One pinned card carries a page: it rests at each stop, then lifts, spins and glides to its next place with a new face; asides rise past it; each stop has a real anchor
 - `Dock` — macOS magnification by transform only: icons swell, neighbours part, the bar widens
 - `OrbitingCircles` — Icons circling a centre on the compositor, upright the whole way round
 - `ParallaxSection` — Sections that hang back and fade as they leave, so the next one slides over them; works at any height
