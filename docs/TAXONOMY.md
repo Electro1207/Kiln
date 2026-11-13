@@ -330,6 +330,7 @@ Group id: `devtools` · Folder: `dev-tools/` · 4 entries
 | JSON viewer | `json-viewer` | `JSONViewer.tsx`, `CopyButton.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Terminal | `terminal` | `Terminal.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Log stream | `log-stream` | `LogStream.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
+| Terminal script | `terminal-script` | `TerminalScript.tsx`, `Terminal.tsx`, `src/kiln/components/shared/useLoop.ts`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 
 ### Commerce
 Group id: `commerce` · Folder: `commerce/` · 8 entries
