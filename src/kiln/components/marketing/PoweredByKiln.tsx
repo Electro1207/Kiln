@@ -24,13 +24,12 @@ export type PoweredByKilnProps = {
   labels?: Partial<PoweredByKilnLabels>;
 };
 
-/** The Kiln mark: an arched kiln door on the accent. */
+/** The Kiln mark: a rounded K on the accent, the same as the site's favicon. */
 export function KilnMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" aria-hidden className={cn("shrink-0", className)}>
       <rect width="32" height="32" rx="8" className="fill-accent" />
-      <path d="M9 25V12a7 7 0 0 1 14 0v13" fill="none" strokeWidth="3" className="stroke-on-accent" />
-      <path d="M13 25v-6h6v6" className="fill-on-accent" />
+      <path d="M11 8v16M21.5 8l-8.4 8.4 8.4 7.6" fill="none" strokeWidth="4.2" strokeLinecap="round" strokeLinejoin="round" className="stroke-on-accent" />
     </svg>
   );
 }
