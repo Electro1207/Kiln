@@ -94,6 +94,20 @@ The default font is IBM Plex Sans. If you don't load it, the text falls back to 
 
 The package is ESM with one file per component and `"sideEffects": ["*.css"]`, so your bundler leaves out anything you don't import. You can also import from one folder at a time, for example `import { Dialog } from "@electro1207/kiln/overlays"`. The folders are `ai`, `app-shells`, `buttons`, `cards`, `charts`, `choice-controls`, `commerce`, `communication`, `core` (cn, the motion presets, `useControllable` and the theme), `data-display`, `dev-tools`, `effects`, `forms`, `guidance`, `marketing`, `media`, `menus`, `notices`, `overlays`, `pickers`, `primitives`, `shared`, `status`, `tables`, `text-effects`, `text-input`, `wayfinding` and `workspace`.
 
+Your JavaScript only carries what you import, but `styles.css` makes Tailwind scan the whole package, so your CSS holds the classes of every component. For the smallest CSS, run `kiln-css` (it ships in the package) before each build. It reads which Kiln components your code imports and writes a file that points Tailwind at only those:
+
+```bash
+npx kiln-css          # scans ./src and writes ./src/kiln-sources.css
+```
+
+```css
+@import "tailwindcss";
+@import "@electro1207/kiln/styles.css";
+@import "./kiln-sources.css";
+```
+
+Add it to your scripts (`"prebuild": "kiln-css"`, and `kiln-css --watch` beside your dev server). A one-page site using about twenty components went from 119 KB of CSS to 60 KB.
+
 Three type names are exported under different names to avoid clashes: `ChatThreadMessage` (the message type in `ChatThread`), and `AnchoredPlacement` and `OverlayPlacement` (both called `Placement` in `shared/`).
 
 ## Copy components in
