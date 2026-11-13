@@ -10,6 +10,7 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ### Changed
 
+- `SidebarNav` in the lite tier folds with a clip and sets its width once, so the page beside it is laid out once instead of on every frame. Everywhere else the width still glides.
 - Loops (`Spinner`, `Skeleton`, `OrbitingCircles`, `BorderBeam`, `AnimatedBeam`, `Firefly` and every other `useLoop` user) share one IntersectionObserver and one reduced-motion listener per page instead of one each.
 
 ## [0.4.1] - 2026-11-13
