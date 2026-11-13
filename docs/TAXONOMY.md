@@ -123,7 +123,7 @@ Group id: `menus` · Folder: `menus/` · 8 entries
 | Spotlight search | `spotlight-search` | `SpotlightSearch.tsx`, `src/kiln/components/useOverlay.ts`, `Combobox.tsx`, `src/kiln/controllable.ts` |
 
 ### Wayfinding
-Group id: `wayfinding` · Folder: `wayfinding/` · 8 entries
+Group id: `wayfinding` · Folder: `wayfinding/` · 9 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -135,6 +135,7 @@ Group id: `wayfinding` · Folder: `wayfinding/` · 8 entries
 | Back to top | `back-to-top` | `BackToTop.tsx` |
 | Scroll progress | `scroll-progress` | `ScrollProgress.tsx` |
 | Scroll checkpoints | `scroll-checkpoints` | `ScrollCheckpoints.tsx`, `src/kiln/controllable.ts` |
+| Scroll hint | `scroll-hint` | `ScrollHint.tsx` |
 
 ## Overlays & feedback
 
@@ -403,8 +404,8 @@ Group id: `effects` · Folder: `effects/` · 13 entries
 | Parallax | `parallax` | `Parallax.tsx`, `src/kiln/components/shared/useLoop.ts` |
 | Parallax section | `parallax-section` | `ParallaxSection.tsx`, `src/kiln/components/shared/useLoop.ts` |
 | Card journey | `card-journey` | `CardJourney.tsx`, `src/kiln/components/shared/useLoop.ts` |
-
 | Drift field | `drift-field` | `DriftField.tsx`, `src/kiln/components/shared/useLoop.ts` |
+
 ## Where files live now
 
 - Each component file sits in its group's folder: `src/kiln/components/<folder>/<File>.tsx`. Entry file names in the tables above are relative to that folder, or to `src/kiln/components/` for the old flat names.

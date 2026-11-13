@@ -142,6 +142,16 @@
   .animate-caret { animation: none; }
 }
 
+/* ScrollHint's arrow: a small push down, then a rest. */
+@keyframes kiln-nudge {
+  0%, 55%, 100% { transform: translateY(0); }
+  25% { transform: translateY(4px); }
+}
+.animate-nudge { animation: kiln-nudge 1.8s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .animate-nudge { animation: none; }
+}
+
 /* Briefly set while a whole palette changes, so colours cross-fade instead of snapping. */
 .k-tinting,
 .k-tinting *,
