@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, type RefObject } from "react";
 import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
 import { Captions, Check, ChevronLeft, ChevronRight, Keyboard, Maximize, Minimize, PictureInPicture2, RectangleHorizontal, RotateCcw, Settings, Volume1, Volume2, VolumeX, X } from "lucide-react";
 import { cn } from "../../cn";
@@ -185,6 +185,12 @@ export type VideoPlayerProps = {
   loop?: boolean;
   /** Start with the sound off. Defaults to `autoPlay`. */
   defaultMuted?: boolean;
+  /**
+   * Hold the picture still while true: the current frame is shown as an image and the video keeps
+   * playing underneath, sound and all. Use it while the player moves in 3D (a card turning, a
+   * flip): browsers clip a playing video's layer unreliably inside 3D transforms.
+   */
+  freeze?: boolean;
   /** Theater mode is the page's to lay out; the player only asks for it. */
   theater?: boolean;
   onTheaterChange?: (v: boolean) => void;
@@ -339,7 +345,7 @@ function captionTrack(v: HTMLVideoElement) {
  * in full screen.
  */
 export function VideoPlayer({
-  title, subtitle, renditions, initialQuality, poster, captions, chapters = [], previews, autoPlay = false, loop = false, defaultMuted, theater = false, onTheaterChange, labels, icons, className,
+  title, subtitle, renditions, initialQuality, poster, captions, chapters = [], previews, autoPlay = false, loop = false, defaultMuted, freeze = false, theater = false, onTheaterChange, labels, icons, className,
 }: VideoPlayerProps) {
   const l = { ...videoPlayerLabels, ...labels };
   const ic = useMemo(() => ({ ...videoPlayerIcons, ...icons }), [icons]);
@@ -707,10 +713,12 @@ export function VideoPlayer({
           loop={loop}
           playsInline
           className="absolute inset-0 size-full object-contain"
+          style={freeze ? { visibility: "hidden" } : undefined}
           aria-label={title}
         >
           {captions && <track kind="captions" src={captions.src} srcLang={captions.lang} label={captions.label} default />}
         </video>
+        {freeze && <Still from={video} />}
 
         <div className="absolute inset-0" onPointerUp={onSurfaceUp} aria-hidden />
 
@@ -1651,4 +1659,18 @@ function Tick({ on }: { on: boolean }) {
       {ic.check}
     </motion.span>
   );
+}
+
+/** The video's current frame, drawn once into a canvas that stands in for it while the player is frozen. */
+function Still({ from }: { from: RefObject<HTMLVideoElement | null> }) {
+  const canvas = useRef<HTMLCanvasElement>(null);
+  useLayoutEffect(() => {
+    const v = from.current;
+    const c = canvas.current;
+    if (!v || !c || !v.videoWidth) return;
+    c.width = v.videoWidth;
+    c.height = v.videoHeight;
+    try { c.getContext("2d")?.drawImage(v, 0, 0); } catch { /* not decodable yet: the canvas stays clear */ }
+  }, [from]);
+  return <canvas ref={canvas} aria-hidden className="pointer-events-none absolute inset-0 size-full object-contain" />;
 }
