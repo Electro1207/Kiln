@@ -111,6 +111,7 @@ export { type AnimatedListProps, AnimatedList } from "./components/effects/Anima
 export { type BorderBeamProps, BorderBeam } from "./components/effects/BorderBeam";
 export { type JourneyStop, type CardJourneyProps, useJourney, CardJourney } from "./components/effects/CardJourney";
 export { type DockItem, type DockLabels, dockLabels, type DockProps, Dock } from "./components/effects/Dock";
+export { type DriftItem, type DriftFieldProps, DriftField } from "./components/effects/DriftField";
 export { type OrbitingCirclesProps, OrbitingCircles } from "./components/effects/OrbitingCircles";
 export { type ParallaxProps, Parallax } from "./components/effects/Parallax";
 export { type ParallaxSectionProps, ParallaxSection } from "./components/effects/ParallaxSection";
