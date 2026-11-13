@@ -29,6 +29,7 @@ import { FloatingCard } from "../../../kiln/components/cards/FloatingCard";
 import { ParallaxSection } from "../../../kiln/components/effects/ParallaxSection";
 import { CardJourney, useJourney, type JourneyStop } from "../../../kiln/components/effects/CardJourney";
 import { DriftField } from "../../../kiln/components/effects/DriftField";
+import { SecretHunt, Secret, useSecretHunt } from "../../../kiln/components/effects/SecretHunt";
 import { ScrollHint } from "../../../kiln/components/wayfinding/ScrollHint";
 import { Switch } from "../../../kiln/components/choice-controls/Switch";
 import { Slider } from "../../../kiln/components/choice-controls/Slider";
@@ -683,6 +684,40 @@ export function DriftFieldDemo() {
         <DriftField items={items} progress={screens} inset={{ left: "1rem", right: "1rem" }} className="rounded-card" aria-label="Time machine controls" />
       </div>
       <p className="text-center text-sm text-muted">Scroll inside the box: the controls drift up at two speeds and loop back in, and the reading pinned bottom right stays put. They all work.</p>
+    </Stage>
+  );
+}
+
+function HuntCount() {
+  const { found, total, reset } = useSecretHunt();
+  return (
+    <div className="flex items-center gap-3 text-sm">
+      <span className="tabular text-muted">{found.size} of {total} stones</span>
+      {found.size > 0 && <Btn size="sm" variant="ghost" onClick={reset}>Put them back</Btn>}
+    </div>
+  );
+}
+
+export function SecretHuntDemo() {
+  return (
+    <Stage className="flex-col items-stretch">
+      <SecretHunt total={3} labels={{ found: (n, t) => `Sankara stone ${n} of ${t}`, complete: () => "Fortune and glory, kid. All three stones." }}>
+        <div className="relative mx-auto grid w-full max-w-2xl gap-4 sm:grid-cols-3">
+          {[
+            { title: "Pankot Palace", body: "Dinner is served: snake surprise, chilled monkey brains.", id: "palace" },
+            { title: "The mine", body: "Mind the cart on the downhill stretch. And the water.", id: "mine" },
+            { title: "The rope bridge", body: "Hold on to the rope. Prices of crocodiles are rising.", id: "bridge" },
+          ].map((c) => (
+            <div key={c.id} className="relative rounded-card bg-surface p-5 pb-10">
+              <p className="font-semibold">{c.title}</p>
+              <p className="mt-1 text-sm text-ink">{c.body}</p>
+              <Secret id={c.id} label="A Sankara stone" className="absolute bottom-2 right-2" />
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 flex justify-center"><HuntCount /></div>
+      </SecretHunt>
+      <p className="text-center text-sm text-muted">Three stones are hidden in the cards. Each one lifts away when you take it, and the count stays until you put them back.</p>
     </Stage>
   );
 }
