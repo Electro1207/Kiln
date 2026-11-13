@@ -4,6 +4,10 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+### Changed
+
+- Loops (`Spinner`, `Skeleton`, `OrbitingCircles`, `BorderBeam`, `AnimatedBeam`, `Firefly` and every other `useLoop` user) share one IntersectionObserver and one reduced-motion listener per page instead of one each.
+
 ## [0.4.1] - 2026-11-13
 
 ### Changed
