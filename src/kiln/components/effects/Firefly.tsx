@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut, springSoft } from "../../motion";
@@ -12,6 +13,11 @@ export type FireflyProps = {
    * Leave out and the fireflies are only to look at.
    */
   message?: ReactNode;
+  /**
+   * Where the message shows: beside the firefly, opening towards the middle of the parent (default),
+   * or in a pill at the bottom of the screen, for fireflies that drift behind other content.
+   */
+  messageAt?: "beside" | "bottom";
   /** Called when one is caught. */
   onCatch?: () => void;
   /** Seconds per wander, roughly; each firefly gets its own. Default 14. */
@@ -37,21 +43,23 @@ const rand = (seed: number) => {
  * `message`, catching one makes it flare and shows the message beside it. Transform and opacity
  * only, on the compositor; with reduced motion they glow in place without wandering.
  */
-export function Firefly({ count = 1, message, onCatch, pace = 14, label = "A firefly", fireflyClassName, className }: FireflyProps) {
+export function Firefly({ count = 1, message, messageAt = "beside", onCatch, pace = 14, label = "A firefly", fireflyClassName, className }: FireflyProps) {
   return (
-    <div aria-hidden={message ? undefined : true} className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}>
+    <div data-firefly-field aria-hidden={message ? undefined : true} className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}>
       {Array.from({ length: count }, (_, i) => (
-        <Fly key={i} seed={i * 7919 + 17} message={message} onCatch={onCatch} pace={pace} label={label} className={fireflyClassName} />
+        <Fly key={i} seed={i * 7919 + 17} message={message} messageAt={messageAt} onCatch={onCatch} pace={pace} label={label} className={fireflyClassName} />
       ))}
     </div>
   );
 }
 
-function Fly({ seed, message, onCatch, pace, label, className }: { seed: number; message?: ReactNode; onCatch?: () => void; pace: number; label: string; className?: string }) {
+function Fly({ seed, message, messageAt, onCatch, pace, label, className }: { seed: number; message?: ReactNode; messageAt: "beside" | "bottom"; onCatch?: () => void; pace: number; label: string; className?: string }) {
   const travel = useRef<HTMLDivElement>(null);
   const light = useRef<HTMLSpanElement>(null);
   const reduce = usePrefersReducedMotion();
   const [caught, setCaught] = useState(false);
+  // The message opens towards the middle of the parent, where there is room for it.
+  const [toLeft, setToLeft] = useState(false);
   const r = rand(seed);
   const start = { x: 10 + r() * 80, y: 15 + r() * 70 };
 
@@ -100,7 +108,13 @@ function Fly({ seed, message, onCatch, pace, label, className }: { seed: number;
           <motion.button
             type="button"
             aria-label={label}
-            onClick={() => { setCaught(true); onCatch?.(); }}
+            onClick={(e) => {
+              const box = e.currentTarget.closest("[data-firefly-field]")?.getBoundingClientRect();
+              const me = e.currentTarget.getBoundingClientRect();
+              setToLeft(!!box && me.left - box.left > box.width / 2);
+              setCaught(true);
+              onCatch?.();
+            }}
             animate={{ scale: caught ? 1.8 : 1 }}
             transition={springSoft}
             className="pointer-events-auto -m-3 grid size-8 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-accent"
@@ -110,15 +124,34 @@ function Fly({ seed, message, onCatch, pace, label, className }: { seed: number;
         ) : (
           dot
         )}
+        {messageAt === "bottom" && typeof document !== "undefined" && createPortal(
+          <div role="status" className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center">
+            <AnimatePresence>
+              {caught && message && (
+                <motion.p
+                  initial={{ opacity: 0, y: 12, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, transition: { duration: 0.3, ease: easeOut } }}
+                  transition={springSoft}
+                  className="flex items-center gap-2.5 rounded-full border border-line bg-surface px-4 py-2 text-sm font-medium text-ink shadow-float"
+                >
+                  <span aria-hidden className={cn("size-2 rounded-full bg-current text-accent shadow-[0_0_8px_2px_currentColor]", className)} />
+                  {message}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </div>,
+          document.body,
+        )}
         <AnimatePresence>
-          {caught && message && (
+          {caught && message && messageAt === "beside" && (
             <motion.p
               role="status"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, transition: { duration: 0.4, ease: easeOut } }}
               transition={springSoft}
-              className="absolute left-6 top-1/2 -translate-y-1/2 whitespace-nowrap text-sm font-medium text-ink"
+              className={cn("absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-sm font-medium text-ink", toLeft ? "right-6" : "left-6")}
             >
               {message}
             </motion.p>
