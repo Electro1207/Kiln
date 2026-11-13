@@ -4,7 +4,7 @@
      2. vite build       packages/kiln/lib/ (js; see vite.lib.config.ts)
      3. tsc              packages/kiln/lib/ (d.ts; see tsconfig.lib.json)
      4. styles.css       tokens.css + kiln.css + an @source for lib/, so Tailwind scans the class names
-     5. copies           tokens.css, CLAUDE.md, README.md, LICENSE
+     5. copies           tokens.css, CLAUDE.md, README.md, CHANGELOG.md, LICENSE
    Then, from packages/kiln:  npm pack   (or npm publish --provenance in CI). */
 import { execFileSync } from "node:child_process";
 import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
@@ -39,5 +39,6 @@ writeFileSync(join(PKG, "styles.css"), styles);
 copyFileSync(join(ROOT, "src/kiln/tokens.css"), join(PKG, "tokens.css"));
 copyFileSync(join(ROOT, "src/kiln/CLAUDE.md"), join(PKG, "CLAUDE.md"));
 copyFileSync(join(ROOT, "README.md"), join(PKG, "README.md"));
+copyFileSync(join(ROOT, "CHANGELOG.md"), join(PKG, "CHANGELOG.md"));
 copyFileSync(join(ROOT, "LICENSE"), join(PKG, "LICENSE"));
 console.log("build-lib: packages/kiln is ready (run `npm pack` there)");
