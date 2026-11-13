@@ -19,6 +19,7 @@ Glazes, a card that carries a whole page, and the pieces a scroll-driven portfol
 - `CommandPalette` has a `shortcut` prop that opens it with ⌘ or Ctrl and a key.
 - `VideoPlayer` has `freeze`, which holds the picture still while playback continues.
 - `Button` has a `shape` prop for pill and square corners.
+- `PoweredByKiln`, a small credit with the Kiln mark, and a `credit` slot on `Footer` to hold it.
 - `Footer` takes external links and plain lines, sets the name to fill the width, and has a `reveal` mode that uncovers it from under the page.
 - A privacy policy and terms of use, shown in the gallery.
 - This changelog, and a What's new page in the gallery.

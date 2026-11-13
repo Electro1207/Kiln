@@ -12,6 +12,7 @@ import { Masonry } from "../../../kiln/components/media/Masonry";
 import { Hero } from "../../../kiln/components/marketing/Hero";
 import { FeatureSplit } from "../../../kiln/components/marketing/FeatureSplit";
 import { Footer } from "../../../kiln/components/marketing/Footer";
+import { PoweredByKiln } from "../../../kiln/components/marketing/PoweredByKiln";
 import { Stat } from "../../../kiln/components/data-display/Stat";
 import { BarChart } from "../../../kiln/components/charts/BarChart";
 import { Button } from "../../../kiln/components/buttons/Button";
@@ -379,7 +380,24 @@ export function FooterDemo() {
           { title: "Elsewhere", links: [{ label: "Newsletter", href: "#/_/interactive-card" }, { label: "Green Dragon noticeboard", href: "#/_/expandable-card" }, { label: "Email", href: "#/_/separator" }, { label: "Bag End, on Wikipedia", href: "https://en.wikipedia.org/wiki/Bag_End", external: true }] },
         ]}
         legal="© 2026 Bag End Press. No admittance except on party business."
+        credit={<PoweredByKiln />}
       />
+    </Stage>
+  );
+}
+
+export function PoweredByKilnDemo() {
+  return (
+    <Stage className="flex-col gap-6">
+      <Variant label="In a footer line">
+        <div className="flex w-full max-w-xl flex-wrap items-center justify-between gap-4 rounded-card bg-ink px-5 py-4 text-surface">
+          <span className="text-xs opacity-60">© 2026 Ecto Containment Unit</span>
+          <PoweredByKiln version="0.4.0" />
+        </div>
+      </Variant>
+      <Variant label="On its own">
+        <PoweredByKiln size="md" />
+      </Variant>
     </Stage>
   );
 }

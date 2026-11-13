@@ -1,5 +1,5 @@
 import type { Category } from "../types";
-import { CardDemo, CarouselDemo, ExpandableDemo, FeatureDemo, FooterDemo, HeroDemo, ImageDemo, InteractiveCardDemo, MarqueeDemo, MasonryDemo, MediaCardDemo, PricingDemo, SeparatorDemo, StatCardDemo } from "./parts/surfaces";
+import { CardDemo, CarouselDemo, ExpandableDemo, FeatureDemo, FooterDemo, HeroDemo, ImageDemo, InteractiveCardDemo, MarqueeDemo, MasonryDemo, MediaCardDemo, PoweredByKilnDemo, PricingDemo, SeparatorDemo, StatCardDemo } from "./parts/surfaces";
 
 export const category: Category = {
   id: "surfaces",
@@ -20,5 +20,6 @@ export const category: Category = {
     { id: "hero", name: "Hero", summary: "A first screen: the title, one sentence, the action and a large picture.", files: ["src/kiln/components/marketing/Hero.tsx", "src/kiln/cn.ts", "src/kiln/motion.ts"], Demo: HeroDemo },
     { id: "feature-split", name: "Feature section", summary: "Text and its picture side by side, either way round.", files: ["src/kiln/components/marketing/FeatureSplit.tsx", "src/kiln/cn.ts", "src/kiln/motion.ts"], Demo: FeatureDemo },
     { id: "footer", name: "Footer", summary: "A designed close: link columns, then the name sized to fill the width; `reveal` makes it a curtain the page lifts off.", files: ["src/kiln/components/marketing/Footer.tsx", "src/kiln/cn.ts", "src/kiln/motion.ts"], Demo: FooterDemo },
+    { id: "powered-by-kiln", name: "Powered by Kiln", summary: "A small credit that a site was built with Kiln, for a footer line or an about page. It takes the colour of the text around it.", files: ["src/kiln/components/marketing/PoweredByKiln.tsx", "src/kiln/cn.ts"], Demo: PoweredByKilnDemo },
   ],
 };

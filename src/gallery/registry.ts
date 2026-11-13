@@ -77,7 +77,7 @@ export const TAXONOMY: SectionSpec[] = [
       { id: "ai", name: "AI interfaces", summary: "Conversations with a model: prompts, streaming, reasoning, sources, tool calls and suggestions.", entries: ["conversation", "prompt-input", "streaming-message", "reasoning", "sources", "tool-call", "suggestions", "message-actions"] },
       { id: "devtools", name: "Developer tools", summary: "For people who read code: diffs, JSON, a terminal and a live log.", entries: ["diff-viewer", "json-viewer", "terminal", "terminal-script", "log-stream"] },
       { id: "commerce", name: "Commerce", summary: "Selling things: galleries, quick view, the cart, checkout, reviews, filters, orders and invoices.", entries: ["product-gallery", "product-quick-view", "cart-drawer", "checkout-form", "reviews-summary", "category-filters", "order-history", "invoice"] },
-      { id: "marketing", name: "Marketing", summary: "Sections for a public site: heroes, features, stats, pricing calls, FAQs, testimonials, blogs and footers.", entries: ["hero", "feature-split", "bento-grid", "feature-tabs", "stats-section", "cta-section", "newsletter", "contact-section", "team-grid", "faq-section", "testimonials", "blog-list", "changelog", "headings", "not-found", "footer"] },
+      { id: "marketing", name: "Marketing", summary: "Sections for a public site: heroes, features, stats, pricing calls, FAQs, testimonials, blogs and footers.", entries: ["hero", "feature-split", "bento-grid", "feature-tabs", "stats-section", "cta-section", "newsletter", "contact-section", "team-grid", "faq-section", "testimonials", "blog-list", "changelog", "headings", "not-found", "footer", "powered-by-kiln"] },
     ],
   },
   {
