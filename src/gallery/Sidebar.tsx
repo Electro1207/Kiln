@@ -22,7 +22,7 @@ const total = categories.reduce((n, c) => n + c.entries.length, 0);
 export const Sidebar = memo(function Sidebar({ route, activeEntry, onNavigate, brand = true }: Props) {
   const nav = useMemo<DocsNavSection[]>(
     () => [
-      { id: "start", groups: [{ id: "overview", label: "Overview", href: "#/", icon: <LayoutGrid /> }] },
+      { id: "start", groups: [{ id: "overview", label: "Overview", href: "/", icon: <LayoutGrid /> }] },
       ...sections.map((s) => ({
         id: s.id,
         label: s.name,
@@ -55,7 +55,7 @@ export const Sidebar = memo(function Sidebar({ route, activeEntry, onNavigate, b
       }}
       header={
         brand ? (
-          <a href="#/" onClick={(e) => { e.preventDefault(); onNavigate({ page: "overview" }); }} className="flex h-12 shrink-0 items-center gap-2.5 px-5">
+          <a href="/" onClick={(e) => { e.preventDefault(); onNavigate({ page: "overview" }); }} className="flex h-12 shrink-0 items-center gap-2.5 px-5">
             <Mark />
             <span className="text-[15px] font-semibold tracking-[-0.01em]">Kiln</span>
             <span className="text-[13px] text-muted tabular">{total} components</span>
@@ -65,9 +65,9 @@ export const Sidebar = memo(function Sidebar({ route, activeEntry, onNavigate, b
       footer={
         <div className="space-y-2">
           <div>
-            <FooterLink on={route.page === "about"} href="#/about" icon={<Info />} onClick={() => onNavigate({ page: "about" })}>About Kiln</FooterLink>
-            <FooterLink on={route.page === "whats-new"} href="#/whats-new" icon={<History />} onClick={() => onNavigate({ page: "whats-new" })}>What's new</FooterLink>
-            <FooterLink on={route.page === "studio"} href="#/studio" icon={<Palette />} onClick={() => onNavigate({ page: "studio" })}>Theme studio</FooterLink>
+            <FooterLink on={route.page === "about"} href="/about" icon={<Info />} onClick={() => onNavigate({ page: "about" })}>About Kiln</FooterLink>
+            <FooterLink on={route.page === "whats-new"} href="/whats-new" icon={<History />} onClick={() => onNavigate({ page: "whats-new" })}>What's new</FooterLink>
+            <FooterLink on={route.page === "studio"} href="/studio" icon={<Palette />} onClick={() => onNavigate({ page: "studio" })}>Theme studio</FooterLink>
           </div>
           <ThemeSwitcher className="w-full [&>button]:flex-1 [&>button]:px-0" />
         </div>

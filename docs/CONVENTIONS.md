@@ -7,7 +7,7 @@ The bar is **production grade**: no visible quirk, overlap, flicker, jump or 1px
 1. **Designed, not defaulted.** No ornamental labels, stray hairlines, icon-in-tinted-square cards, gradient glows or grey-on-grey low-contrast text. Running text is full ink at 16px or more; muted is for secondary notes. Every screen should look decided in both themes.
 2. **Media must be free to use.** Every picture, video and audio file is CC0, public domain, Unsplash Licence (picsum) or CC BY. CC BY media carries a full credit line (title, creator, licence, source link, and "modified: resized / greyscale / trimmed" when changed) in three places: next to the media, in the gallery footer, and in `CREDITS.md` at the project root.
 3. **60fps in real use**, not only in the walkthrough. Record frame times in a real browser (Playwright plus Chrome DevTools CPU throttling) while wheel-scrolling each page and sweeping and dragging the pointer across every demo: zero long frames at 1x, and no runs of long frames during pointer-driven motion at 4x. Pointer-follow effects write motion values; never React state on every `pointermove`.
-4. **Every link and button does something real; no placeholder targets.** Open a Dialog or Sheet, show a toast, change state, navigate within the gallery (`#/<category>/<entry>`), or link to a real external page with `target="_blank" rel="noreferrer"`.
+4. **Every link and button does something real; no placeholder targets.** Open a Dialog or Sheet, show a toast, change state, navigate within the gallery (`/<category>/<entry>`; old `#/<category>/<entry>` links still resolve), or link to a real external page with `target="_blank" rel="noreferrer"`.
 
 ## Motion
 

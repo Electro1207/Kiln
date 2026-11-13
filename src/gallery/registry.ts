@@ -2,7 +2,7 @@ import type { Category, Entry } from "./types";
 
 /* Every file in ./demos exports a `category` of entries. The demo files are only where entries live;
    this file decides where they are shown: sections → groups → entries, in the order a person would
-   look for them. Each group is one gallery page (#/<group>/<entry>).
+   look for them. Each group is one gallery page (/<group>/<entry>).
 
    An entry that is not listed below still appears, at the end of its file's fallback group, so a
    new demo never goes missing; list it here to give it its proper place. */
@@ -143,8 +143,8 @@ export const groupOf = new Map<string, string>(categories.flatMap((c) => c.entri
 export const sectionOf = new Map<string, Section>(sections.flatMap((s) => s.groups.map((g) => [g.id, s] as const)));
 
 /** Old and partial addresses still land somewhere sensible: an entry wins over the group named
-    before it (#/inputs/otp-input → #/text-input/otp-input), and an old group name goes to where most
-    of its entries now live (#/advanced-inputs → #/text-input). */
+    before it (/inputs/otp-input → /text-input/otp-input), and an old group name goes to where most
+    of its entries now live (/advanced-inputs → /text-input). */
 export function resolve(category: string, entry?: string): { category: string; entry?: string } | null {
   if (entry && groupOf.has(entry)) return { category: groupOf.get(entry)!, entry };
   if (categories.some((c) => c.id === category)) return { category };

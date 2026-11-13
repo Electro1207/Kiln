@@ -149,7 +149,7 @@ function Shell() {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 shrink-0 items-center gap-2 px-3 lg:h-12 lg:px-2 lg:pr-3">
           <IconButton aria-label="Open navigation" icon={<Menu />} size="sm" onClick={() => setDrawer(true)} className="size-9 text-ink lg:hidden" />
-          <a href="#/" className="flex items-center gap-2 font-semibold lg:hidden">
+          <a href="/" className="flex items-center gap-2 font-semibold lg:hidden">
             <Mark /> Kiln
           </a>
           <div className="flex flex-1 justify-center">
@@ -216,7 +216,7 @@ function Shell() {
                 ) : (
                   <div className="py-24 text-center">
                     <h1 className="text-[22px] font-semibold">No such page</h1>
-                    <p className="mt-2 text-muted">That group doesn’t exist. <a className="text-accent underline-offset-4 hover:underline" href="#/">Back to the overview</a></p>
+                    <p className="mt-2 text-muted">That group doesn’t exist. <a className="text-accent underline-offset-4 hover:underline" href="/">Back to the overview</a></p>
                   </div>
                 ))}
             </motion.main>
@@ -227,9 +227,9 @@ function Shell() {
             <a href={KILN_LINKS.feature} target="_blank" rel="noreferrer" className="hover:text-accent">Request a feature</a>
             <a href={KILN_LINKS.bug} target="_blank" rel="noreferrer" className="hover:text-accent">Report a bug</a>
             <a href={KILN_LINKS.discussions} target="_blank" rel="noreferrer" className="hover:text-accent">Questions and ideas</a>
-            <a href="#/about" onClick={(e) => { e.preventDefault(); go({ page: "about" }); }} className="hover:text-accent">About Kiln</a>
-            <a href="#/privacy" onClick={(e) => { e.preventDefault(); go({ page: "privacy" }); }} className="hover:text-accent">Privacy</a>
-            <a href="#/terms" onClick={(e) => { e.preventDefault(); go({ page: "terms" }); }} className="hover:text-accent">Terms</a>
+            <a href="/about" onClick={(e) => { e.preventDefault(); go({ page: "about" }); }} className="hover:text-accent">About Kiln</a>
+            <a href="/privacy" onClick={(e) => { e.preventDefault(); go({ page: "privacy" }); }} className="hover:text-accent">Privacy</a>
+            <a href="/terms" onClick={(e) => { e.preventDefault(); go({ page: "terms" }); }} className="hover:text-accent">Terms</a>
           </nav>
           <p className="max-w-[75ch]">
             Kiln, an open-source component library. Photographs and video from Wikimedia Commons:{" "}
