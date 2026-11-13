@@ -232,7 +232,7 @@ function Shell() {
                 {i < CREDITS.length - 1 ? "; " : "."}
               </span>
             ))}{" "}
-            Some are shown in greyscale or resized. Other photographs are from picsum.photos under the Unsplash Licence; product art is drawn in code. Full list in CREDITS.md.
+            Some are shown in greyscale or resized. Sample photographs in the demos are CC0. Product art is drawn in code. Full list in CREDITS.md.
           </p>
           </footer>
         </div>

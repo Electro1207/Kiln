@@ -432,7 +432,7 @@ Placeholder and demo copy is fun and cult-classic: Star Wars, The Lord of the Ri
 
 ## 8. Media
 
-Any image, video or audio must be free to use: CC0, public domain, Unsplash licence (e.g. `picsum.photos`) or CC BY. CC BY needs a full credit line (title, creator, licence, source link, and "modified: resized / trimmed" when changed) next to the media and in the project's credits file. Never hotlink or use unlicensed pictures.
+Any image, video or audio must be free to use: CC0, public domain, Unsplash licence or CC BY. CC BY needs a full credit line (title, creator, licence, source link, and "modified: resized / trimmed" when changed) next to the media and in the project's credits file. Never hotlink or use unlicensed pictures.
 
 ## 9. Add a new component
 
