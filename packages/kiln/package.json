@@ -1,11 +1,11 @@
 {
   "name": "@electro1207/kiln",
   "version": "0.3.1",
-  "description": "About 200 animated React components for Tailwind v4 and Motion, in light and dark.",
-  "keywords": ["react", "react-19", "components", "ui", "tailwindcss", "tailwind-v4", "motion", "animation", "design-system", "dark-mode", "shadcn"],
+  "description": "200+ animated React components for Tailwind CSS v4 and Motion, in light and dark. Use the npm package or copy any one in with the shadcn CLI.",
+  "keywords": ["react", "react-19", "react-components", "component-library", "ui", "ui-components", "animated-components", "animation", "motion", "framer-motion", "tailwindcss", "tailwind-v4", "shadcn", "shadcn-ui", "shadcn-registry", "design-system", "dark-mode", "typescript", "accessible"],
   "license": "MIT",
   "type": "module",
-  "homepage": "https://github.com/Electro1207/Kiln#readme",
+  "homepage": "https://usekiln.pages.dev",
   "bugs": "https://github.com/Electro1207/Kiln/issues",
   "repository": {
     "type": "git",
