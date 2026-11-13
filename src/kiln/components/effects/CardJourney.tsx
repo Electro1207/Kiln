@@ -11,8 +11,12 @@ export type JourneyStop = {
   label: string;
   /** One line on what this stop covers, for previews such as ScrollCheckpoints. */
   summary?: ReactNode;
-  /** The card's face at this stop. A function gets `active`, true while the card rests here, e.g. to play a video only then. */
-  content: ReactNode | ((state: { active: boolean }) => ReactNode);
+  /**
+   * The card's face at this stop. A function gets `active` (this is the stop nearest the card) and
+   * `moving` (the card is between stops, turning). Video is best swapped for a still while `moving`:
+   * browsers clip video layers unreliably inside a 3D turn. Keep the player mounted so playback carries on.
+   */
+  content: ReactNode | ((state: { active: boolean; moving: boolean }) => ReactNode);
   /** Shown beside the card on wide screens (behind it on narrow ones); it rises in and leaves faster than the card moves. */
   aside?: ReactNode;
   /** Where the card rests on wide screens. Its aside takes the other side. Default "center". */
@@ -145,6 +149,7 @@ export function CardJourney({
   // Which stops sit on the two faces, and which one is being shown.
   const [pair, setPair] = useState(0);
   const [near, setNear] = useState(0);
+  const [moving, setMoving] = useState(false);
   const changed = useRef(onStopChange);
   useLayoutEffect(() => { changed.current = onStopChange; });
   useLayoutEffect(() => lay(f.get()));
@@ -153,6 +158,7 @@ export function CardJourney({
     const c = Math.min(last, Math.max(0, v));
     setPair(Math.min(Math.max(0, last - 1), Math.floor(c)));
     setNear(Math.round(c));
+    setMoving(at(v).t !== 0);
   });
   useEffect(() => { changed.current?.(near); }, [near]);
 
@@ -175,7 +181,7 @@ export function CardJourney({
   const render = (i: number) => {
     const s = stops[i];
     if (!s) return null;
-    return typeof s.content === "function" ? s.content({ active: i === near }) : s.content;
+    return typeof s.content === "function" ? s.content({ active: i === near, moving: !flat && moving }) : s.content;
   };
   const ctx = useMemo(() => ({ progress: f, count: n }), [f, n]);
   const card = cn("absolute inset-0 overflow-hidden rounded-sheet border border-line bg-surface shadow-float", cardClassName);
