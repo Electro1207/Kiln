@@ -26,7 +26,7 @@ export { type StackedLink, type StackedLayoutLabels, stackedLayoutLabels, type S
 export { type StackedListIcons, stackedListIcons, type StackedListLabels, stackedListLabels, type StackedRow, StackedList } from "./components/app-shells/StackedList";
 
 // buttons
-export { type ButtonVariant, type ButtonSize, type ButtonIcons, buttonIcons, type ButtonProps, type ButtonLinkProps, Button } from "./components/buttons/Button";
+export { type ButtonVariant, type ButtonSize, type ButtonShape, type ButtonIcons, buttonIcons, type ButtonProps, type ButtonLinkProps, Button } from "./components/buttons/Button";
 export { ButtonGroup } from "./components/buttons/ButtonGroup";
 export { type CopyButtonLabels, copyButtonLabels, type CopyButtonIcons, copyButtonIcons, CopyButton } from "./components/buttons/CopyButton";
 export { type HoldButtonLabels, holdButtonLabels, HoldButton } from "./components/buttons/HoldButton";

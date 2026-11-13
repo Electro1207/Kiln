@@ -122,6 +122,7 @@ Things measured in pixels take a number:
 
 ```tsx
 <Button variant="secondary" size="sm" leading={<Plus />} loading={saving}>Add crew</Button>
+<Button shape="pill" trailing={<ArrowRight />}>Open the gallery</Button>  {/* shape: theme (default, --k-radius-control) | pill | square */}
 <IconButton icon={<Trash />} aria-label="Delete" variant="ghost" />
 <ToggleButton icon={<Heart />} pressedIcon={<Heart fill="currentColor" />} aria-label="Like" />
 <SegmentedControl options={[{ value: "grid", label: "Grid" }, { value: "list", label: "List" }]} />
