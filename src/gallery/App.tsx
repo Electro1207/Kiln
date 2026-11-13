@@ -243,6 +243,9 @@ function Shell() {
             ))}{" "}
             Some are shown in greyscale or resized. Sample photographs in the demos are CC0. Product art is drawn in code. Full list in CREDITS.md.
           </p>
+          <p className="mt-2 max-w-[75ch]">
+            Code under the MIT licence. Film, show, game and book names in the demos, and the names of the tools Kiln works with, belong to their owners; Kiln is an independent project and is not affiliated with or endorsed by them.
+          </p>
           </footer>
         </div>
       </div>

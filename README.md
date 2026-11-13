@@ -310,7 +310,7 @@ Start with [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md). Its rules are binding, 
 
 ## Licence
 
-The code is MIT licensed; see [`LICENSE`](LICENSE). The pictures, video and audio in the demos keep their own licences, and [`CREDITS.md`](CREDITS.md) credits each one.
+The code is MIT licensed; see [`LICENSE`](LICENSE). The pictures, video and audio in the demos keep their own licences, and [`CREDITS.md`](CREDITS.md) credits each one. Film, show, game and book names in the demo text, and the names of the tools Kiln works with, belong to their owners; Kiln isn't affiliated with or endorsed by them.
 
 ## Security
 
@@ -318,4 +318,4 @@ Please report vulnerabilities privately, as described in [`SECURITY.md`](SECURIT
 
 ## Privacy and terms
 
-Kiln collects no personal information: no accounts, cookies, analytics or tracking. The [privacy policy](PRIVACY.md) lists what the website keeps in your browser and which services see a visit. Use of the website, registry and package is covered by the [terms of use](TERMS.md); the code itself stays under the MIT licence. Both are also on the site, at `#/privacy` and `#/terms`.
+Kiln collects no personal information: no accounts, cookies, analytics or tracking. The [privacy policy](PRIVACY.md) lists what the website keeps in your browser and which services see a visit. Use of the website, registry and package is covered by the [terms of use](TERMS.md); the code itself stays under the MIT licence. Both are also on the site, at [/privacy](https://usekiln.pages.dev/privacy) and [/terms](https://usekiln.pages.dev/terms).
