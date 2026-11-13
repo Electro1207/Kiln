@@ -1,10 +1,17 @@
 # Kiln
 
-Kiln is a set of about 200 animated React components that work in light and dark mode. It's built on React 19, Tailwind v4, Motion and lucide-react.
+Kiln is a free, MIT-licensed set of 200+ animated React components that work in light and dark mode. It's built on React 19, Tailwind CSS v4, Motion (formerly Framer Motion) and lucide-react, and every component is tested to hold 60fps and to work from the keyboard.
 
-You can see every component working in the gallery at https://usekiln.pages.dev, where each one also has a Code tab with its install commands. (The address is set once, as `KILN_SITE` in `src/gallery/site.ts`.)
+**[Gallery](https://usekiln.pages.dev)** · [What's new](https://usekiln.pages.dev/whats-new) · [npm](https://www.npmjs.com/package/@electro1207/kiln) · [shadcn registry](https://usekiln.pages.dev/r/registry.json) · [Guide for AI agents](https://github.com/Electro1207/Kiln/blob/main/src/kiln/CLAUDE.md)
 
-There are two ways to use it. Install the npm package `@electro1207/kiln`, or copy just the components you want into your own project. Either way, the words on screen are yours: titles, labels and messages all come from props and children, so you never need to edit Kiln's source to change text.
+```bash
+npm i @electro1207/kiln motion lucide-react                        # the whole library
+npx shadcn@latest add https://usekiln.pages.dev/r/card-journey.json # or one component, copied in
+```
+
+You can see every component working in the gallery at https://usekiln.pages.dev, where each one has its own page with a live demo, a Code tab and its install commands. (The address is set once, as `KILN_SITE` in `src/gallery/site.ts`.)
+
+There are two ways to use it. Install the npm package `@electro1207/kiln`, or copy just the components you want into your own project. Both ship the same code from the same release. Either way, the words on screen are yours: titles, labels and messages all come from props and children, so you never need to edit Kiln's source to change text.
 
 ## Why Kiln
 
