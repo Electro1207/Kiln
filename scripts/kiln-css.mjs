@@ -57,7 +57,7 @@ function sourceFiles(dir) {
 
 function generate() {
   const used = new Set();
-  const esc = NAME.replace(/[/@]/g, "\\$&");
+  const esc = NAME.replace(/[.*+?^${}()|[\]\\/@-]/g, "\\$&");
   for (const f of sourceFiles(srcDir)) {
     const s = readFileSync(f, "utf8");
     for (const m of s.matchAll(new RegExp(`import\\s*(\\{[^}]*\\}|\\*\\s*as\\s+\\w+|\\w+)?\\s*(?:,\\s*\\{[^}]*\\})?\\s*from\\s*["']${esc}(/[\\w-]+)?["']`, "g"))) {
@@ -81,7 +81,8 @@ function generate() {
 @source not "${rel(lib)}";
 ${files.map((p) => `@source "${rel(p)}";`).join("\n")}
 `;
-  const before = existsSync(out) ? readFileSync(out, "utf8") : "";
+  let before = "";
+  try { before = readFileSync(out, "utf8"); } catch { /* first run: nothing written yet */ }
   if (css !== before) {
     writeFileSync(out, css);
     console.log(`kiln-css: ${files.length} Kiln files -> ${relative(process.cwd(), out)}`);
