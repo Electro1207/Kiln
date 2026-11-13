@@ -1,6 +1,6 @@
 import { memo, useMemo, type ReactNode } from "react";
 import { motion } from "motion/react";
-import { Info, LayoutGrid, Palette } from "lucide-react";
+import { History, Info, LayoutGrid, Palette } from "lucide-react";
 import { categories, sections } from "./registry";
 import { href, type Route } from "./useRoute";
 import { Mark } from "./Mark";
@@ -66,6 +66,7 @@ export const Sidebar = memo(function Sidebar({ route, activeEntry, onNavigate, b
         <div className="space-y-2">
           <div>
             <FooterLink on={route.page === "about"} href="#/about" icon={<Info />} onClick={() => onNavigate({ page: "about" })}>About Kiln</FooterLink>
+            <FooterLink on={route.page === "whats-new"} href="#/whats-new" icon={<History />} onClick={() => onNavigate({ page: "whats-new" })}>What's new</FooterLink>
             <FooterLink on={route.page === "studio"} href="#/studio" icon={<Palette />} onClick={() => onNavigate({ page: "studio" })}>Theme studio</FooterLink>
           </div>
           <ThemeSwitcher className="w-full [&>button]:flex-1 [&>button]:px-0" />
