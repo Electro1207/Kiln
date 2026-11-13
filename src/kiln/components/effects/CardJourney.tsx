@@ -44,6 +44,8 @@ export type CardJourneyProps = {
   container?: RefObject<HTMLElement | null>;
   /** Behind everything in the pinned stage. Read the journey's progress inside it with `useJourney()`. */
   backdrop?: ReactNode;
+  /** Above the asides and below the card: for things people use, such as floating controls, so no aside covers them. `useJourney()` works here too. */
+  foreground?: ReactNode;
   /** Called with the index of the stop nearest the card as it changes. */
   onStopChange?: (index: number) => void;
   /** Classes for the tall outer section. */
@@ -92,7 +94,7 @@ function useWide(query = "(min-width: 1024px)") {
  */
 export function CardJourney({
   stops, container, length = 1.2, hold = 0.45, spin = "y", turns = 1, offset = 0.22, float = 8,
-  backdrop, onStopChange, className, cardClassName, sizeClassName = "w-[min(90vw,720px)] h-[min(76vh,540px)]", "aria-label": ariaLabel,
+  backdrop, foreground, onStopChange, className, cardClassName, sizeClassName = "w-[min(90vw,720px)] h-[min(76vh,540px)]", "aria-label": ariaLabel,
 }: CardJourneyProps) {
   const root = useRef<HTMLElement>(null);
   const bob = useRef<HTMLDivElement>(null);
@@ -202,6 +204,7 @@ export function CardJourney({
           {stops.map((s, i) => s.aside && (
             <Aside key={s.id} f={f} i={i} hold={h} side={sideOf(i)} reduce={reduce}>{s.aside}</Aside>
           ))}
+          {foreground && <div className="pointer-events-none absolute inset-0">{foreground}</div>}
           <motion.div style={flat ? undefined : { x, y, scale, rotate: rotateZ }} className="pointer-events-none absolute inset-0 grid place-items-center [perspective:1600px]">
             <div ref={bob} className="grid size-full place-items-center will-change-transform">
               <motion.div
