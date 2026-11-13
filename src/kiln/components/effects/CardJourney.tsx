@@ -133,6 +133,7 @@ export function CardJourney({
   // the switch between flat and 3D never shows.
   const rotate = useMotionValue(0);
   const spinner = useRef<HTMLDivElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
   const faces = useRef<(HTMLDivElement | null)[]>([]);
   const axis = spin === "x" ? "rotateX" : "rotateY";
   const lay = (v: number) => {
@@ -140,11 +141,14 @@ export function CardJourney({
     const rest = s.t === 0;
     rotate.set(rest ? 0 : (s.a + (s.b - s.a) * s.t) * turn);
     if (spinner.current) spinner.current.style.transformStyle = rest ? "flat" : "preserve-3d";
+    // Safari stops drawing a video under perspective or a hidden backface, so both go at rest.
+    if (stage.current) stage.current.style.perspective = rest ? "none" : "1600px";
     const r = Math.round(Math.min(last, Math.max(0, v)));
     faces.current.forEach((el, k) => {
       if (!el) return;
       el.style.transform = rest || !k ? "none" : `${axis}(180deg)`;
       el.style.visibility = rest && k !== r % 2 ? "hidden" : "visible";
+      el.style.backfaceVisibility = el.style.webkitBackfaceVisibility = rest ? "visible" : "hidden";
     });
   };
 
@@ -205,7 +209,7 @@ export function CardJourney({
             <Aside key={s.id} f={f} i={i} hold={h} side={sideOf(i)} reduce={reduce}>{s.aside}</Aside>
           ))}
           {foreground && <div className="pointer-events-none absolute inset-0">{foreground}</div>}
-          <motion.div style={flat ? undefined : { x, y, scale, rotate: rotateZ }} className="pointer-events-none absolute inset-0 grid place-items-center [perspective:1600px]">
+          <motion.div ref={stage} style={flat ? undefined : { x, y, scale, rotate: rotateZ }} className="pointer-events-none absolute inset-0 grid place-items-center">
             <div ref={bob} className="grid size-full place-items-center will-change-transform">
               <motion.div
                 style={flat ? undefined : spin === "x" ? { rotateX: rotate } : { rotateY: rotate }}
@@ -226,7 +230,6 @@ export function CardJourney({
                       inert={i !== near}
                       aria-hidden={i !== near}
                       className={cn(card, i === near ? "pointer-events-auto" : "pointer-events-none")}
-                      style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
                     >
                       {render(i)}
                     </div>

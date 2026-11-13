@@ -402,6 +402,15 @@ export function VideoPlayer({
     return () => io.disconnect();
   }, [autoPlay, rendition.src]);
 
+  // Coming out of a freeze, an autoplaying player picks up again: a visibility check made while it was
+  // moving in 3D can be wrong in some browsers, so it is not left to the observer alone.
+  useEffect(() => {
+    const v = video.current, el = root.current;
+    if (freeze || !autoPlay || !v || !el || heldByViewer.current || !v.paused) return;
+    const r = el.getBoundingClientRect();
+    if (r.bottom > 0 && r.top < window.innerHeight && r.right > 0 && r.left < window.innerWidth) void v.play().catch(() => {});
+  }, [freeze, autoPlay]);
+
   useEffect(() => {
     const v = video.current;
     if (!v || (!playing && !scrubbing)) return;
@@ -713,7 +722,7 @@ export function VideoPlayer({
           loop={loop}
           playsInline
           className="absolute inset-0 size-full object-contain"
-          style={freeze ? { visibility: "hidden" } : undefined}
+          style={freeze ? { opacity: 0 } : undefined}
           aria-label={title}
         >
           {captions && <track kind="captions" src={captions.src} srcLang={captions.lang} label={captions.label} default />}
