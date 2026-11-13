@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { CornerDownLeft, Search } from "lucide-react";
@@ -40,6 +40,8 @@ type CommandPaletteProps = {
   items: CommandItem[];
   placeholder?: string;
   emptyText?: string;
+  /** A key that opens and closes the palette with ⌘ (Mac) or Ctrl held, anywhere on the page, e.g. "k". Off when left out. */
+  shortcut?: string;
   /** Override any UI text. Merged over `commandPaletteLabels`. */
   labels?: Partial<CommandPaletteLabels>;
   /** Replace any built-in icon. Merged over `commandPaletteIcons`. */
@@ -55,11 +57,12 @@ export interface CommandPaletteIcons {
 }
 export const commandPaletteIcons: CommandPaletteIcons = { search: <Search />, enter: <CornerDownLeft /> };
 
-/** Open with ⌘K / Ctrl+K anywhere on the page. */
+/** Open with ⌘K / Ctrl+K anywhere on the page. Pass `key = ""` to turn it off. */
 export function useCommandShortcut(onOpen: () => void, key = "k") {
   useEffect(() => {
+    if (!key) return;
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === key) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === key.toLowerCase()) {
         e.preventDefault();
         onOpen();
       }
@@ -90,8 +93,13 @@ function Highlight({ text, q }: { text: string; q: string }) {
   );
 }
 
-/** A searchable command menu in a dialog. Always controlled: you decide when it is `open`. */
-export function CommandPalette({ open, onOpenChange, items, placeholder, emptyText, labels, icons }: CommandPaletteProps) {
+/** A searchable command menu in a dialog. Always controlled: you decide when it is `open`; set `shortcut` to open it from the keyboard. */
+export function CommandPalette({ open, onOpenChange, items, placeholder, emptyText, shortcut, labels, icons }: CommandPaletteProps) {
+  const openRef = useRef(open);
+  const changeRef = useRef(onOpenChange);
+  useLayoutEffect(() => { openRef.current = open; changeRef.current = onOpenChange; });
+  const toggleOpen = useCallback(() => changeRef.current(!openRef.current), []);
+  useCommandShortcut(toggleOpen, shortcut ?? "");
   const l = { ...commandPaletteLabels, ...labels };
   const ic = useMemo(() => ({ ...commandPaletteIcons, ...icons }), [icons]);
   const [query, setQuery] = useState("");

@@ -216,7 +216,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `VideoPlayer` — Chapters and frame previews on the scrubber, speed and quality that keep your place, captions, picture-in-picture, theater and full screen; `autoPlay` plays it muted while it is on screen, `loop` repeats it, `freeze` holds the picture still (for a player inside a 3D turn) while playback continues
 
 ### `menus/`
-- `CommandPalette` — A keyboard-first launcher with grouped results; the highlight fades between rows
+- `CommandPalette` — A keyboard-first launcher with grouped results; the highlight fades between rows; `shortcut="k"` opens it with ⌘K / Ctrl+K
 - `ContextMenu` — The same menu, opened at the pointer with a right-click
 - `DocsNav` — The sidebar this gallery uses: labelled sections of collapsible groups, a filter field (with an optional shortcut key), counts, and an active row whose fill fades in place
 - `DropdownMenu` (MenuContent, DropdownMenu) — Actions with icons, shortcuts, ticks and a submenu
