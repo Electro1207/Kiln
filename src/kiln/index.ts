@@ -118,6 +118,7 @@ export { type ParallaxSectionProps, ParallaxSection } from "./components/effects
 export { type RevealProps, Reveal } from "./components/effects/Reveal";
 export { type ScrollStoryStep, type ScrollStoryLabels, scrollStoryLabels, type ScrollStoryProps, ScrollStory } from "./components/effects/ScrollStory";
 export { type ScrollTimelineItem, type ScrollTimelineLabels, scrollTimelineLabels, type ScrollTimelineProps, ScrollTimeline } from "./components/effects/ScrollTimeline";
+export { type SecretHuntLabels, secretHuntLabels, type SecretHuntIcons, secretHuntIcons, type SecretHuntProps, SecretHunt, useSecretHunt, type SecretProps, Secret } from "./components/effects/SecretHunt";
 export { type RevealStep, type StickyScrollRevealLabels, stickyScrollRevealLabels, type StickyScrollRevealProps, StickyScrollReveal } from "./components/effects/StickyScrollReveal";
 
 // forms
