@@ -3,6 +3,7 @@ import { Stage } from "../../ui";
 import { DiffViewer } from "../../../kiln/components/dev-tools/DiffViewer";
 import { JSONViewer } from "../../../kiln/components/dev-tools/JSONViewer";
 import { Terminal, type TermLine } from "../../../kiln/components/dev-tools/Terminal";
+import { TerminalScript, type TerminalStep } from "../../../kiln/components/dev-tools/TerminalScript";
 import { LogStream, type LogEntry, type LogLevel } from "../../../kiln/components/dev-tools/LogStream";
 import { Button } from "../../../kiln/components/buttons/Button";
 
@@ -253,3 +254,42 @@ function seed(n: number) {
 }
 const hms = (s: number) => [Math.floor(s / 3600) % 24, Math.floor(s / 60) % 60, s % 60].map((x) => String(x).padStart(2, "0")).join(":");
 const toSec = (t: string) => t.split(":").reduce((a, x) => a * 60 + Number(x), 0);
+
+const HILL_VALLEY: TerminalStep[] = [
+  { command: "cd hill-valley", pause: 500 },
+  { command: "npm run flux-capacitor", prompt: "~/hill-valley $" },
+  { output: [{ text: "> ", tone: "muted" }, { text: "flux-capacitor@1.21.0 start" }] },
+  { output: "Charging to 1.21 gigawatts…", tone: "muted", pause: 420 },
+  { output: [{ text: "✓ ", tone: "green" }, { text: "Ready at 88 mph in 412 ms" }], pause: 520 },
+  { output: [{ text: "Type ", tone: "muted" }, { text: "help", tone: "bold" }, { text: " for more.", tone: "muted" }] },
+];
+
+export function TerminalScriptDemo() {
+  const [run, setRun] = useState(0);
+  const [done, setDone] = useState(false);
+  return (
+    <Stage className="flex-col">
+      <TerminalScript
+        key={run}
+        steps={HILL_VALLEY}
+        prompt="~ $"
+        title="doc@delorean: ~/hill-valley"
+        height={240}
+        className="w-full max-w-xl"
+        onDone={() => setDone(true)}
+        onCommand={(cmd) => {
+          const c = cmd.trim();
+          if (c === "help") return "Try: whereto, when, or 88";
+          if (c === "whereto") return "Roads? Where we’re going, we don’t need roads.";
+          if (c === "when") return [{ output: [{ text: "Destination: ", tone: "muted" }, { text: "October 21, 2015, 4:29 PM", tone: "yellow" }] }];
+          if (c === "88") return [{ output: [{ text: "⚡ ", tone: "yellow" }, { text: "Great Scott!", tone: "bold" }] }];
+          return c ? [{ output: `${c}: command not found. This is heavy.`, tone: "red" }] : undefined;
+        }}
+      />
+      <div className="flex items-center gap-3">
+        <Button size="sm" variant="secondary" onClick={() => { setDone(false); setRun((n) => n + 1); }}>Play it again</Button>
+        <span className="text-sm text-muted">{done ? "Your turn: type a command." : "Click or press a key to skip."}</span>
+      </div>
+    </Stage>
+  );
+}

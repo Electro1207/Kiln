@@ -3,3 +3,4 @@ export { type DiffViewerLabels, diffViewerLabels, type DiffViewerIcons, diffView
 export { type JSONViewerIcons, jsonViewerIcons, type JSONViewerLabels, jsonViewerLabels, JSONViewer } from "../components/dev-tools/JSONViewer";
 export { type LogLevel, type LogEntry, type LogStreamLabels, logStreamLabels, type LogStreamIcons, logStreamIcons, type LogStreamProps, LogStream } from "../components/dev-tools/LogStream";
 export { type TermTone, type TermLine, type TerminalLabels, terminalLabels, type TerminalProps, type TerminalIcons, terminalIcons, Terminal } from "../components/dev-tools/Terminal";
+export { type TerminalStep, type TerminalScriptProps, TerminalScript } from "../components/dev-tools/TerminalScript";
