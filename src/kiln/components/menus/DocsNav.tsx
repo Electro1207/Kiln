@@ -313,7 +313,7 @@ const GroupBlock = memo(function GroupBlock({ g, on, holds, activeItem, isOpen, 
               toggleMode && (on || holds ? "font-medium text-ink" : "text-muted group-hover/row:text-ink"),
             )}
           >
-            <motion.span initial={false} animate={{ rotate: isOpen ? 90 : 0 }} transition={springSnappy} className={cn("inline-flex text-faint [&>svg]:size-3.5", toggleMode && "grid w-7 shrink-0 place-items-center")}>
+            <motion.span initial={false} animate={{ rotate: isOpen ? 90 : 0 }} transition={springSnappy} className={cn("inline-flex items-center justify-center text-faint [&>svg]:size-3.5", toggleMode && "w-7 shrink-0")}>
               {ic.expand}
             </motion.span>
             {toggleMode && (
