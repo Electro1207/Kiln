@@ -15,6 +15,8 @@ export type WordRotateProps = {
 /**
  * One word that swaps for the next in place. Every word is laid out in the
  * same cell, so the cell is as wide as the longest and the line never reflows.
+ * The cell has room above and below the line, so marks over and under letters
+ * (Devanagari, Kannada, Thai, Vietnamese) are never clipped.
  */
 export function WordRotate({ words, interval = 2200, className, align = "start" }: WordRotateProps) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -32,7 +34,7 @@ export function WordRotate({ words, interval = 2200, className, align = "start" 
     <span
       ref={ref}
       className={cn(
-        "inline-grid overflow-hidden pb-[0.1em] -mb-[0.1em] align-bottom [&>*]:[grid-area:1/1]",
+        "inline-grid overflow-hidden py-[0.3em] -my-[0.3em] align-bottom [&>*]:[grid-area:1/1]",
         align === "center" ? "justify-items-center" : align === "end" ? "justify-items-end" : "justify-items-start",
         className,
       )}
