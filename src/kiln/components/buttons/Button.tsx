@@ -5,6 +5,8 @@ import { press, spring, springSnappy } from "../../motion";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
+/** Corner shape. `theme` follows `--k-radius-control`; the others override it for this button only. */
+export type ButtonShape = "theme" | "pill" | "square";
 
 /** Icons used by Button. Pass a partial via `icons` to replace any. */
 export interface ButtonIcons {
@@ -23,6 +25,8 @@ export const buttonIcons: ButtonIcons = {
 type ButtonOwnProps = {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  /** Corners: `theme` (default) uses `--k-radius-control`, `pill` is fully round, `square` has none. */
+  shape?: ButtonShape;
   loading?: boolean;
   /** Icon before the label. */
   leading?: ReactNode;
@@ -51,6 +55,8 @@ const variants: Record<ButtonVariant, string> = {
   danger: "bg-btn-danger text-btn-danger-ink hover:bg-btn-danger-hover",
 };
 
+const shapes: Record<ButtonShape, string> = { theme: "rounded-control", pill: "rounded-full", square: "rounded-none" };
+
 const sizes: Record<ButtonSize, string> = {
   sm: "k-ctl-sm px-3 gap-1.5",
   md: "k-ctl-md px-4 gap-2",
@@ -64,7 +70,7 @@ type ButtonComponent = {
 
 /** The main action. Five variants, three sizes, optional icons and a loading state that keeps its width. Extra props and `ref` go to the `<button>`; with `href` it is an `<a>` that looks the same. */
 export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps | ButtonLinkProps>(function Button(
-  { variant = "primary", size = "md", loading = false, leading, trailing, children, className, icons, ...rest },
+  { variant = "primary", size = "md", shape = "theme", loading = false, leading, trailing, children, className, icons, ...rest },
   ref,
 ) {
   const ic = useMemo(() => ({ ...buttonIcons, ...icons }), [icons]);
@@ -72,7 +78,8 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
   const { disabled, ...buttonRest } = rest as Omit<ButtonProps, keyof ButtonOwnProps>;
   const inert = (!link && Boolean(disabled)) || loading;
   const classes = cn(
-    "relative inline-flex select-none items-center justify-center whitespace-nowrap rounded-control font-medium",
+    "relative inline-flex select-none items-center justify-center whitespace-nowrap font-medium",
+    shapes[shape],
     "transition-[background-color,color,opacity,border-color] duration-200 ease-out-soft",
     !link && disabled && "opacity-50",
     loading && link && "pointer-events-none",

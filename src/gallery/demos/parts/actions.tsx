@@ -28,6 +28,11 @@ export function ButtonDemo() {
         <Btn size="md" trailing={<ArrowRight />}>Follow the white rabbit</Btn>
         <Btn size="lg" leading={<Download />}>Download the Death Star plans</Btn>
       </Variant>
+      <Variant label="Shapes: theme, pill or square, per button">
+        <Btn trailing={<ArrowRight />}>Punch it, Chewie</Btn>
+        <Btn shape="pill" variant="secondary">Beam me up</Btn>
+        <Btn shape="square" variant="outline">Open the pod bay doors</Btn>
+      </Variant>
       <Variant label="As a link: pass href and it renders an anchor that looks the same">
         <Button href="https://en.wikipedia.org/wiki/Star_Wars_opening_crawl" external trailing={<ArrowRight />}>Read the opening crawl</Button>
         <Button href="https://en.wikipedia.org/wiki/Back_to_the_Future" external variant="outline">Check the flux capacitor</Button>
