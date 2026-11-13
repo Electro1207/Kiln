@@ -202,7 +202,7 @@ add({
   title: "What's New in Kiln — Changelog",
   description: "Every Kiln release, newest first: new components, new props, changes and fixes, for the npm package and the copy-in registry alike.",
   ld: [{ "@type": "WebPage", name: "What's new in Kiln", url: `${SITE}/whats-new`, about: { "@id": `${SITE}/#kiln` } }],
-  body: `<h1>What's new in Kiln</h1>${paras(changelog.replace(/^# .*\n/, "").replace(/^\[[^\]]+\]:.*$/gm, "").replace(/^## \[([^\]]+)\](?: - (\S+))?/gm, (_, v, d) => `## ${v === "Unreleased" ? "Next release" : v}${d ? ` (${d})` : ""}`).replace(/^### /gm, "## "))}`,
+  body: `<h1>What's new in Kiln</h1>${paras(changelog.replace(/^# .*\n/, "").replace(/^## \[Unreleased\]\s*(?=^## )/m, "").replace(/^\[[^\]]+\]:.*$/gm, "").replace(/^## \[([^\]]+)\](?: - (\S+))?/gm, (_, v, d) => `## ${v === "Unreleased" ? "Next release" : v}${d ? ` (${d})` : ""}`).replace(/^### /gm, "## "))}`,
 });
 add({
   path: "/studio",
