@@ -194,7 +194,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `BentoGrid` (BentoGrid, BentoTile) — Tiles of different sizes, each with a small live picture; reflows to two columns and then one
 - `BlogList` — Articles with cover, category, reading time and author
 - `CTASection` — The closing ask: a field of colour, or a split with a picture
-- `Changelog` — Releases with what is new, improved and fixed
+- `Changelog` (Changelog, parseChangelog) — Releases with what is new, improved and fixed; `filter` narrows to one kind, `initialCount` holds older ones back, `parseChangelog` reads a Keep a Changelog CHANGELOG.md
 - `ContactSection` — Offices beside a short form that checks itself and confirms when sent
 - `FAQSection` — Two columns: the heading and a way to ask, then the questions
 - `FeatureSplit` — Text and its picture side by side, either way round

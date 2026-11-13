@@ -138,7 +138,7 @@ export { type TourStep, type ProductTourLabels, productTourLabels, type ProductT
 export { type BentoGridProps, BentoGrid, type BentoTileProps, BentoTile } from "./components/marketing/BentoGrid";
 export { type BlogPost, type BlogListLabels, blogListLabels, type BlogListProps, BlogList } from "./components/marketing/BlogList";
 export { type CTASectionProps, CTASection } from "./components/marketing/CTASection";
-export { type ChangelogLabels, changelogLabels, type ChangeKind, type Release, type ChangelogProps, Changelog } from "./components/marketing/Changelog";
+export { changeKinds, type ChangeKind, type Release, type ChangelogLabels, changelogLabels, type ChangelogProps, parseChangelog, Changelog } from "./components/marketing/Changelog";
 export { type ContactSectionLabels, type ContactSectionIcons, contactSectionIcons, contactSectionLabels, type Office, type ContactValues, type ContactSectionProps, ContactSection } from "./components/marketing/ContactSection";
 export { type FAQSectionProps, FAQSection } from "./components/marketing/FAQSection";
 export { type FeatureSplitProps, FeatureSplit } from "./components/marketing/FeatureSplit";
