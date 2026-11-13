@@ -7,6 +7,7 @@ import { StudioProvider } from "./studio/store";
 import { ThemeStudio } from "./studio/ThemeStudio";
 import { About } from "./About";
 import { Legal } from "./Legal";
+import { WhatsNew } from "./WhatsNew";
 import { Overview } from "./Overview";
 import { CategoryPage } from "./CategoryPage";
 import { Sidebar } from "./Sidebar";
@@ -208,6 +209,7 @@ function Shell() {
               {route.page === "about" && <About />}
               {route.page === "privacy" && <Legal doc="privacy" />}
               {route.page === "terms" && <Legal doc="terms" />}
+              {route.page === "whats-new" && <WhatsNew />}
               {route.page === "category" &&
                 (category ? (
                   <CategoryPage category={category} root={sheet} onActive={onSpy} />
