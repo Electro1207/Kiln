@@ -5,6 +5,8 @@ export type Route =
   | { page: "overview" }
   | { page: "studio" }
   | { page: "about" }
+  | { page: "privacy" }
+  | { page: "terms" }
   | { page: "category"; category: string; entry?: string };
 
 function parse(hash: string): Route {
@@ -12,6 +14,8 @@ function parse(hash: string): Route {
   if (parts.length === 0) return { page: "overview" };
   if (parts[0] === "studio") return { page: "studio" };
   if (parts[0] === "about") return { page: "about" };
+  if (parts[0] === "privacy") return { page: "privacy" };
+  if (parts[0] === "terms") return { page: "terms" };
   const r = resolve(parts[0], parts[1]);
   return r ? { page: "category", ...r } : { page: "category", category: parts[0], entry: parts[1] };
 }
@@ -28,6 +32,8 @@ export function href(r: Route) {
   if (r.page === "overview") return "#/";
   if (r.page === "studio") return "#/studio";
   if (r.page === "about") return "#/about";
+  if (r.page === "privacy") return "#/privacy";
+  if (r.page === "terms") return "#/terms";
   return `#/${r.category}${r.entry ? `/${r.entry}` : ""}`;
 }
 
