@@ -32,7 +32,7 @@ export type CardFanProps = {
 };
 
 /**
- * A hand of cards fanned out on an arc. It deals itself out of a single stack as it comes into view,
+* A hand of cards fanned out on an arc, each overlapping the one before like a hand held to read. It deals itself out of a single stack as it comes into view,
  * and a card lifts out of the hand while it is hovered or focused, so its face can play something.
  * On narrow screens the hand lays out as a row you can scroll sideways. Transform only.
  */
@@ -99,7 +99,7 @@ function Card({ i, mid, n, spread, overlap, lift, dealt, active, onActive, class
 
   return (
     <motion.li
-      style={{ x, y, rotate, zIndex: active ? 20 : n - Math.abs(Math.round(off)) }}
+      style={{ x, y, rotate, zIndex: active ? n + 1 : i + 1 }}
       onPointerEnter={(e) => e.pointerType === "mouse" && onActive(true)}
       onPointerLeave={(e) => e.pointerType === "mouse" && onActive(false)}
       onFocus={() => onActive(true)}
