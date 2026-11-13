@@ -294,3 +294,7 @@ The code is MIT licensed; see [`LICENSE`](LICENSE). The pictures, video and audi
 ## Security
 
 Please report vulnerabilities privately, as described in [`SECURITY.md`](SECURITY.md), rather than opening a public issue.
+
+## Privacy and terms
+
+Kiln collects no personal information: no accounts, cookies, analytics or tracking. The [privacy policy](PRIVACY.md) lists what the website keeps in your browser and which services see a visit. Use of the website, registry and package is covered by the [terms of use](TERMS.md); the code itself stays under the MIT licence. Both are also on the site, at `#/privacy` and `#/terms`.
