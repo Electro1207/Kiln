@@ -31,6 +31,7 @@ import { CardJourney, useJourney, type JourneyStop } from "../../../kiln/compone
 import { DriftField } from "../../../kiln/components/effects/DriftField";
 import { SecretHunt, Secret, useSecretHunt } from "../../../kiln/components/effects/SecretHunt";
 import { Firefly } from "../../../kiln/components/effects/Firefly";
+import { CardFan } from "../../../kiln/components/effects/CardFan";
 import { ScrollHint } from "../../../kiln/components/wayfinding/ScrollHint";
 import { Switch } from "../../../kiln/components/choice-controls/Switch";
 import { Slider } from "../../../kiln/components/choice-controls/Slider";
@@ -731,6 +732,39 @@ export function FireflyDemo() {
         <p className="pointer-events-none absolute bottom-5 left-6 text-sm text-muted">Serenity Valley, after dark</p>
       </div>
       <p className="text-center text-sm text-muted">Catch one: it flares and says something. Without a message they are only to look at.</p>
+    </Stage>
+  );
+}
+
+const SABACC = [
+  { id: "idiot", name: "The Idiot", value: "0", suit: "Staves" },
+  { id: "commander", name: "Commander", value: "−13", suit: "Coins" },
+  { id: "balance", name: "Balance", value: "−11", suit: "Flasks" },
+  { id: "endurance", name: "Endurance", value: "−8", suit: "Sabres" },
+  { id: "star", name: "The Star", value: "−17", suit: "Staves" },
+];
+
+export function CardFanDemo() {
+  const [up, setUp] = useState<string | null>(null);
+  return (
+    <Stage className="flex-col items-stretch">
+      <CardFan
+        aria-label="A hand of Sabacc"
+        deal="view"
+        onActiveChange={setUp}
+        cardClassName="w-36 aspect-[5/7]"
+        cards={SABACC.map((c) => ({
+          id: c.id,
+          content: ({ active }) => (
+            <button type="button" className="flex size-full flex-col justify-between p-3.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent">
+              <span className="text-xs text-muted">{c.suit}</span>
+              <span className="text-4xl font-semibold tracking-[-0.03em] tabular">{c.value}</span>
+              <span className="text-sm font-medium">{active ? "Sabacc!" : c.name}</span>
+            </button>
+          ),
+        }))}
+      />
+      <p className="text-center text-sm text-muted">{up ? `${SABACC.find((c) => c.id === up)?.name} is up. Never tell me the odds.` : "Hover or tab to a card: it lifts out of the hand."}</p>
     </Stage>
   );
 }

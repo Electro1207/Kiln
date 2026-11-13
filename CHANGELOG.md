@@ -15,6 +15,7 @@ Glazes, a card that carries a whole page, and the pieces a scroll-driven portfol
 - `ScrollCheckpoints`: a tick for each part of a page, with a preview on hover.
 - `TerminalScript`: a scripted terminal session that types itself, then takes commands.
 - `SecretHunt`: collectibles hidden around a page, with a quiet count of what has been found.
+- `CardFan`: a hand of cards dealt onto an arc as it scrolls into view; a card lifts out of the hand while hovered.
 - `Firefly`: small lights drifting across a dark area; catch one and it says something.
 - `TerminalScript` puts the cursor in its prompt when the script ends (`focusWhenDone`), so people can type at once.
 - `ScrollHint`: the nudging invitation to scroll on from a first screen.
