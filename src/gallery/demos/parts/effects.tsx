@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { motion, useMotionValue, useTransform } from "motion/react";
 import {
   Bot, Gamepad2, Map, Music, Radio, Rocket, RotateCcw, Satellite, Settings, Star, Moon, Zap, Ticket,
   Coins, Snowflake, Mail, Plane,
@@ -26,6 +27,7 @@ import { ScrollWords } from "../../../kiln/components/text-effects/ScrollWords";
 import { cn } from "../../../kiln/cn";
 import { FloatingCard } from "../../../kiln/components/cards/FloatingCard";
 import { ParallaxSection } from "../../../kiln/components/effects/ParallaxSection";
+import { CardJourney, useJourney, type JourneyStop } from "../../../kiln/components/effects/CardJourney";
 import { VideoPlayer } from "../../../kiln/components/media/VideoPlayer";
 import { Magnetic } from "../../../kiln/components/buttons/MagneticButton";
 import { MultiStepLoader } from "../../../kiln/components/status/MultiStepLoader";
@@ -561,6 +563,81 @@ export function ParallaxSectionDemo() {
           </ParallaxSection>
         ))}
       </div>
+    </Stage>
+  );
+}
+
+const PARK: JourneyStop[] = [
+  { id: "jp-gate", label: "The gate", summary: "Where the tour begins.", side: "center", aside: <JourneyWord>Welcome</JourneyWord>,
+    content: <JourneyFace no="01" title="Welcome to Jurassic Park" line="Two great doors, a torch on each side, and a jeep on a rail." /> },
+  { id: "jp-centre", label: "Visitor centre", summary: "Mr DNA explains it all.", side: "left", aside: <JourneyNote title="Visitor centre" line="“We spared no expense.”" />,
+    content: <JourneyFace no="02" title="The visitor centre" line="Dinosaur DNA, amber and a mosquito, in a three-minute film." /> },
+  { id: "jp-paddock", label: "T. rex paddock", summary: "Watch the water glass.", side: "right", aside: <JourneyNote title="Paddock 9" line="“Must go faster.”" />,
+    content: <JourneyFace no="03" title="The T. rex paddock" line="A goat, a fence with 10,000 volts, and a ripple in a cup." /> },
+  { id: "jp-control", label: "Control room", summary: "Hold on to your butts.", side: "center", aside: <JourneyWord>Restart</JourneyWord>,
+    content: <JourneyFace no="04" title="The control room" line="“It’s a Unix system. I know this.”" /> },
+];
+
+function JourneyFace({ no, title, line }: { no: string; title: string; line: string }) {
+  return (
+    <div className="flex size-full flex-col justify-between p-6">
+      <span className="text-sm text-faint tabular">{no} / 04</span>
+      <div>
+        <p className="text-2xl font-semibold tracking-[-0.02em] text-ink">{title}</p>
+        <p className="mt-2 max-w-xs text-sm text-muted">{line}</p>
+      </div>
+    </div>
+  );
+}
+function JourneyWord({ children }: { children: string }) {
+  return <p className="select-none text-[clamp(56px,11vw,128px)] font-semibold leading-none tracking-[-0.04em] text-active">{children}</p>;
+}
+function JourneyNote({ title, line }: { title: string; line: string }) {
+  return (
+    <div className="max-w-[16rem]">
+      <p className="text-xl font-semibold text-ink">{title}</p>
+      <p className="mt-1 text-sm text-muted">{line}</p>
+    </div>
+  );
+}
+function JourneyDust() {
+  const j = useJourney();
+  const fallback = useMotionValue(0);
+  const p = j?.progress ?? fallback;
+  const near = useTransform(p, (v) => `${v * -60}%`);
+  const far = useTransform(p, (v) => `${v * -25}%`);
+  return (
+    <>
+      <motion.div style={{ y: far }} className="absolute inset-0">
+        {[[12, 20], [78, 34], [30, 70], [88, 82], [55, 120], [18, 150]].map(([x, y], i) => (
+          <span key={i} className="absolute size-2 rounded-full bg-line-strong" style={{ left: `${x}%`, top: `${y}%` }} />
+        ))}
+      </motion.div>
+      <motion.div style={{ y: near }} className="absolute inset-0">
+        {[[8, 60], [66, 18], [92, 110], [40, 140], [72, 190]].map(([x, y], i) => (
+          <span key={i} className="absolute size-3 rounded-full bg-accent-soft" style={{ left: `${x}%`, top: `${y}%` }} />
+        ))}
+      </motion.div>
+    </>
+  );
+}
+
+export function CardJourneyDemo() {
+  const box = useBox();
+  const [at, setAt] = useState(0);
+  return (
+    <Stage className="flex-col items-stretch">
+      <div ref={box} className={cn(BOX, "h-[480px] bg-ground")} style={{ ["--journey-vh" as string]: "4.8px" }}>
+        <CardJourney
+          stops={PARK}
+          container={box}
+          backdrop={<JourneyDust />}
+          onStopChange={setAt}
+          sizeClassName="w-[min(78%,360px)] h-[260px]"
+          aria-label="A tour of the park"
+        />
+      </div>
+      <p className="text-center text-sm text-muted">Scroll inside the box. Now at: <span className="text-ink">{PARK[at]?.label}</span></p>
     </Stage>
   );
 }

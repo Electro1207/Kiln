@@ -400,6 +400,7 @@ Group id: `effects` · Folder: `effects/` · 11 entries
 | Parallax | `parallax` | `Parallax.tsx`, `src/kiln/components/shared/useLoop.ts` |
 | Parallax section | `parallax-section` | `ParallaxSection.tsx`, `src/kiln/components/shared/useLoop.ts` |
 
+| Card journey | `card-journey` | `CardJourney.tsx`, `src/kiln/components/shared/useLoop.ts` |
 ## Where files live now
 
 - Each component file sits in its group's folder: `src/kiln/components/<folder>/<File>.tsx`. Entry file names in the tables above are relative to that folder, or to `src/kiln/components/` for the old flat names.

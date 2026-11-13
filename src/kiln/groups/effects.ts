@@ -2,6 +2,7 @@
 export { type AnimatedBeamProps, AnimatedBeam } from "../components/effects/AnimatedBeam";
 export { type AnimatedListProps, AnimatedList } from "../components/effects/AnimatedList";
 export { type BorderBeamProps, BorderBeam } from "../components/effects/BorderBeam";
+export { type JourneyStop, type CardJourneyProps, useJourney, CardJourney } from "../components/effects/CardJourney";
 export { type DockItem, type DockLabels, dockLabels, type DockProps, Dock } from "../components/effects/Dock";
 export { type OrbitingCirclesProps, OrbitingCircles } from "../components/effects/OrbitingCircles";
 export { type ParallaxProps, Parallax } from "../components/effects/Parallax";
