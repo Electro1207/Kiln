@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { motion, useMotionValue, useScroll, useTransform, type MotionValue } from "motion/react";
 import { cn } from "../../cn";
 import { usePrefersReducedMotion } from "../shared/useLoop";
@@ -10,6 +10,12 @@ export type DriftItem = {
   side?: "left" | "right";
   /** Its tilt at rest, in degrees. Default 0. */
   tilt?: number;
+  /**
+   * Stay put at the foot of its column instead of drifting: for what should always be at hand (a
+   * progress ring, a theme switch). The drifting pieces fade out above the pinned ones, so the two
+   * never overlap.
+   */
+  pin?: boolean;
 };
 
 export type DriftFieldProps = {
@@ -64,11 +70,27 @@ function Piece({ item, at, speed, loop, inset, progress, className, still }: { i
   );
 }
 
+/** Height of a column's pinned pieces, kept current as they change size. */
+function useDock() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [h, setH] = useState(0);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setH(el.offsetHeight));
+    ro.observe(el);
+    setH(el.offsetHeight);
+    return () => ro.disconnect();
+  }, []);
+  return [ref, h] as const;
+}
+
 /**
  * Small live controls floating in two columns at the edges of a stage, carried upwards as the page
  * scrolls and looping back in from below, each column at its own speed. Pieces in a column are spaced
- * evenly and share a speed, so they never collide. The field fills its positioned parent and only the
- * pieces take the pointer. Transforms only; with reduced motion the pieces stay where they start.
+ * evenly and share a speed, so they never collide; pinned pieces stay at the foot of their column.
+ * The field fills its positioned parent and only the pieces take the pointer. Transforms only; with
+ * reduced motion the pieces stay where they start.
  */
 export function DriftField({ items, progress, speed, loop = 1.5, inset, itemClassName, className, "aria-label": ariaLabel }: DriftFieldProps) {
   const still = usePrefersReducedMotion();
@@ -77,14 +99,42 @@ export function DriftField({ items, progress, speed, loop = 1.5, inset, itemClas
   const p = progress ?? screens ?? zero;
   const sp = { left: speed?.left ?? 0.6, right: speed?.right ?? 0.45 };
   const ins = { left: inset?.left ?? "1.5rem", right: inset?.right ?? "4.5rem" };
-  const left = items.filter((it) => it.side !== "right");
-  const right = items.filter((it) => it.side === "right");
-  const place = (list: DriftItem[], offset: number) => list.map((it) => ({ it, at: offset + (list.indexOf(it) * loop) / Math.max(1, list.length) }));
+  const [leftDock, leftH] = useDock();
+  const [rightDock, rightH] = useDock();
+  const sides = (["left", "right"] as const).map((side) => {
+    const own = items.filter((it) => (it.side ?? "left") === side);
+    const drift = own.filter((it) => !it.pin);
+    const offset = side === "left" ? 0.1 : 0.1 + loop / Math.max(2, drift.length * 2);
+    return { side, drift: drift.map((it, i) => ({ it, at: offset + (i * loop) / Math.max(1, drift.length) })), pinned: own.filter((it) => it.pin) };
+  });
   return (
     <div role="group" aria-label={ariaLabel} className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}>
-      {[...place(left, 0.1), ...place(right, 0.1 + loop / Math.max(2, right.length * 2))].map(({ it, at }, i) => (
-        <Piece key={i} item={it} at={at} speed={it.side === "right" ? sp.right : sp.left} loop={loop} inset={it.side === "right" ? ins.right : ins.left} progress={p} className={itemClassName} still={still} />
-      ))}
+      {sides.map(({ side, drift, pinned }) => {
+        const dock = side === "left" ? leftH : rightH;
+        // Each column drifts in its own layer, which ends above that column's pinned pieces and fades out there.
+        const fade = dock ? `linear-gradient(to bottom, #000 calc(100% - 4rem), transparent)` : undefined;
+        return (
+          <div key={side}>
+            <div
+              className="absolute inset-x-0 top-0"
+              style={{ bottom: dock ? `calc(${dock}px + 2.5rem)` : 0, maskImage: fade, WebkitMaskImage: fade }}
+            >
+              {drift.map(({ it, at }, i) => (
+                <Piece key={i} item={it} at={at} speed={sp[side]} loop={loop} inset={ins[side]} progress={p} className={itemClassName} still={still} />
+              ))}
+            </div>
+            <div
+              ref={side === "left" ? leftDock : rightDock}
+              className={cn("absolute bottom-6 flex flex-col gap-3", side === "left" ? "items-start" : "items-end")}
+              style={{ [side]: ins[side] }}
+            >
+              {pinned.map((it, i) => (
+                <div key={i} className={cn("pointer-events-auto rounded-card border border-line bg-surface px-4 py-3", itemClassName)} style={it.tilt ? { rotate: `${it.tilt}deg` } : undefined}>{it.content}</div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

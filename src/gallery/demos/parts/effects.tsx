@@ -660,7 +660,7 @@ function useDriftControls() {
     { side: "left" as const, tilt: -4, content: <Switch label="Flux capacitor" checked={on} onCheckedChange={setOn} /> },
     { side: "left" as const, tilt: 3, content: <div className="w-40"><Slider label="Gigawatts" min={0} max={221} value={watts} onChange={setWatts} format={(n) => (n / 100).toFixed(2)} /></div> },
     { side: "right" as const, tilt: 4, content: <Badge tone={on ? "positive" : "neutral"} dot>{on ? "Fluxing" : "Idle"}</Badge> },
-    { side: "right" as const, tilt: -3, content: <span className="text-sm font-medium tabular">{(watts[0] / 100).toFixed(2)} GW</span> },
+    { side: "right" as const, pin: true, content: <span className="text-sm font-medium tabular">{(watts[0] / 100).toFixed(2)} GW</span> },
   ];
 }
 
@@ -682,7 +682,7 @@ export function DriftFieldDemo() {
         </div>
         <DriftField items={items} progress={screens} inset={{ left: "1rem", right: "1rem" }} className="rounded-card" aria-label="Time machine controls" />
       </div>
-      <p className="text-center text-sm text-muted">Scroll inside the box: the controls drift up at two speeds and loop back in. They all work.</p>
+      <p className="text-center text-sm text-muted">Scroll inside the box: the controls drift up at two speeds and loop back in, and the reading pinned bottom right stays put. They all work.</p>
     </Stage>
   );
 }
