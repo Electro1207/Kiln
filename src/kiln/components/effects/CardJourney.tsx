@@ -40,7 +40,7 @@ export type CardJourneyProps = {
    * sharp and correctly clipped in every browser (Firefox misplaces video inside a rotated, rounded box).
    */
   lean?: number;
-  /** How far it bobs at rest, in px. 0 keeps it still. Default 8. */
+  /** How far it bobs at rest, in px. 0 keeps it still. A face showing a video always holds still. Default 8. */
   float?: number;
   /**
    * The scrolling element, when it isn't the page. Set `--journey-vh` on it to 1% of
@@ -173,17 +173,33 @@ export function CardJourney({
   });
   useEffect(() => { changed.current?.(near); }, [near]);
 
+  // A face showing a video holds still: Firefox can leave a video's picture behind while its card bobs.
+  const [hasVideo, setHasVideo] = useState(false);
+  useEffect(() => {
+    const sp = spinner.current;
+    if (!sp) return;
+    let last = false;
+    const check = () => {
+      const now = [...sp.children].some((face) => face.getAttribute("aria-hidden") !== "true" && !!face.querySelector("video"));
+      if (now !== last) setHasVideo((last = now));
+    };
+    check();
+    const mo = new MutationObserver(check);
+    mo.observe(sp, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-hidden"] });
+    return () => mo.disconnect();
+  }, []);
+
   useLoop(
     root,
     () => {
       const el = bob.current;
-      if (!el || !float || reduce) return [];
+      if (!el || !float || reduce || hasVideo) return [];
       return [el.animate(
         [{ transform: "translate3d(0,0,0)" }, { transform: `translate3d(0,${-float}px,0)` }, { transform: "translate3d(0,0,0)" }],
         { duration: 6000, iterations: Infinity, easing: "ease-in-out" },
       )];
     },
-    [float, reduce],
+    [float, reduce, hasVideo],
   );
 
   const front = pair % 2 === 0 ? pair : pair + 1;
