@@ -18,7 +18,7 @@ export const TAXONOMY: SectionSpec[] = [
     name: "Foundations",
     groups: [
       { id: "tokens", name: "Tokens", summary: "The colours, type and springs every component is made from. Change them once and the whole library follows.", entries: ["colour-tokens", "type-scale", "motion-presets"] },
-      { id: "primitives", name: "Primitives", summary: "The small pieces underneath everything else: the theme switch, glazes, scrolling, rules and images.", entries: ["theme-toggle", "glaze-picker", "glaze", "scroll-area", "separator", "aspect-image"] },
+      { id: "primitives", name: "Primitives", summary: "The small pieces underneath everything else: the theme switch, colorways, scrolling, rules and images.", entries: ["theme-toggle", "colorway-picker", "colorway", "scroll-area", "separator", "aspect-image"] },
     ],
   },
   {

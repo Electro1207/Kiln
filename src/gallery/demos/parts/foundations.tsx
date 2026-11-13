@@ -8,9 +8,9 @@ import { ScrollArea } from "../../../kiln/components/primitives/ScrollArea";
 import { CommandPalette, type CommandItem } from "../../../kiln/components/menus/CommandPalette";
 import { springBouncy, springFirm, springSnappy, springSoft, easeOut } from "../../../kiln/motion";
 import { useTheme } from "../../../kiln/theme";
-import { GlazePicker } from "../../../kiln/components/primitives/GlazePicker";
-import { Glaze } from "../../../kiln/components/primitives/Glaze";
-import type { GlazeTheme } from "../../../kiln/glaze";
+import { ColorwayPicker } from "../../../kiln/components/primitives/ColorwayPicker";
+import { Colorway } from "../../../kiln/components/primitives/Colorway";
+import type { ColorwayTheme } from "../../../kiln/colorway";
 import { Badge } from "../../../kiln/components/status/Badge";
 import { Slider } from "../../../kiln/components/choice-controls/Slider";
 
@@ -232,8 +232,8 @@ export function PaletteDemo() {
   );
 }
 
-/* Glazes from films: each is a ground, an ink and an accent per mode; Kiln works out the rest. */
-const FILM_GLAZES: GlazeTheme[] = [
+/* Colorways from films: each is a ground, an ink and an accent per mode; Kiln works out the rest. */
+const FILM_COLORWAYS: ColorwayTheme[] = [
   { id: "tatooine", name: "Tatooine", radius: 10,
     light: { ground: "#efe3cf", ink: "#2b1d10", accent: "#b5541b" },
     dark: { ground: "#1a130c", ink: "#f1e4cf", accent: "#f0a35a" } },
@@ -248,7 +248,7 @@ const FILM_GLAZES: GlazeTheme[] = [
     dark: { ground: "#0c0e12", ink: "#e9ecf2", accent: "#ff8a3d" } },
 ];
 
-function GlazedCard() {
+function ColorwayCard() {
   return (
     <div className="w-full max-w-sm space-y-4 rounded-card border border-line bg-surface p-5">
       <div className="flex items-center justify-between">
@@ -264,31 +264,31 @@ function GlazedCard() {
   );
 }
 
-export function GlazePickerDemo() {
-  const [glaze, setGlaze] = useState(FILM_GLAZES[0].id);
-  const chosen = FILM_GLAZES.find((g) => g.id === glaze)!;
+export function ColorwayPickerDemo() {
+  const [colorway, setColorway] = useState(FILM_COLORWAYS[0].id);
+  const chosen = FILM_COLORWAYS.find((g) => g.id === colorway)!;
   return (
     <Stage className="flex-col items-stretch">
-      <GlazePicker glazes={FILM_GLAZES} value={glaze} onChange={setGlaze} labels={{ label: "Glaze this card" }} />
-      <Glaze glaze={chosen} className="grid place-items-center rounded-card p-6 transition-colors duration-300 sm:p-10">
-        <GlazedCard />
-      </Glaze>
-      <p className="text-sm text-muted">Given to ThemeProvider as <code className="font-mono text-ink">glazes</code>, the same picker re-glazes the whole page, opening the new colours from the swatch you press.</p>
+      <ColorwayPicker colorways={FILM_COLORWAYS} value={colorway} onChange={setColorway} labels={{ label: "Recolour this card" }} />
+      <Colorway colorway={chosen} className="grid place-items-center rounded-card p-6 transition-colors duration-300 sm:p-10">
+        <ColorwayCard />
+      </Colorway>
+      <p className="text-sm text-muted">Given to ThemeProvider as <code className="font-mono text-ink">colorways</code>, the same picker recolours the whole page, opening the new colours from the swatch you press.</p>
     </Stage>
   );
 }
 
-export function GlazeDemo() {
+export function ColorwayDemo() {
   return (
     <Stage align="start" className="grid gap-4 sm:grid-cols-2">
-      <Glaze colors={{ ground: "#14532d", ink: "#ecfdf5", accent: "#86efac" }} className="rounded-card p-5">
+      <Colorway colors={{ ground: "#14532d", ink: "#ecfdf5", accent: "#86efac" }} className="rounded-card p-5">
         <p className="mb-3 text-sm text-muted">colors: ground, ink and accent</p>
-        <GlazedCard />
-      </Glaze>
-      <Glaze glaze={FILM_GLAZES[3]} mode="dark" className="rounded-card p-5">
-        <p className="mb-3 text-sm text-muted">glaze=&#123;DeLorean&#125; mode="dark"</p>
-        <GlazedCard />
-      </Glaze>
+        <ColorwayCard />
+      </Colorway>
+      <Colorway colorway={FILM_COLORWAYS[3]} mode="dark" className="rounded-card p-5">
+        <p className="mb-3 text-sm text-muted">colorway=&#123;DeLorean&#125; mode="dark"</p>
+        <ColorwayCard />
+      </Colorway>
     </Stage>
   );
 }

@@ -4,12 +4,12 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
-Glazes, a card that carries a whole page, and the pieces a scroll-driven portfolio needs.
+Colorways, a card that carries a whole page, and the pieces a scroll-driven portfolio needs.
 
 ### Added
 
-- Glazes: whole colour themes made from a ground, an ink and an accent. Kiln works out every other colour and keeps button text readable. Pass them to `ThemeProvider` with `glazes` and `defaultGlaze`, switch with `useTheme().setGlaze`.
-- `GlazePicker`, swatches that re-glaze the page, and `Glaze`, which colours one section with colours passed as props.
+- Colorways: whole colour themes made from a ground, an ink and an accent. Kiln works out every other colour and keeps button text readable. Pass them to `ThemeProvider` with `colorways` and `defaultColorway`, switch with `useTheme().setColorway`.
+- `ColorwayPicker`, swatches that recolour the page, and `Colorway`, which colours one section with colours passed as props.
 - `CardJourney`: one pinned card that rests at each stop of a page, then spins and glides to the next with a new face.
 - `DriftField`: small live controls floating up the edges of a page at two speeds. `pin` keeps one at the foot of its column.
 - `ScrollCheckpoints`: a tick for each part of a page, with a preview on hover.

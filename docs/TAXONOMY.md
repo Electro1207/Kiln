@@ -23,8 +23,8 @@ Group id: `primitives` · Folder: `primitives/` · 6 entries
 | Entry | Id | Files |
 | --- | --- | --- |
 | Theme toggle | `theme-toggle` | `ThemeToggle.tsx`, `src/kiln/theme.tsx` |
-| Glaze picker | `glaze-picker` | `GlazePicker.tsx`, `src/kiln/glaze.ts`, `src/kiln/theme.tsx`, `src/kiln/motion.ts`, `src/kiln/cn.ts` |
-| Glaze | `glaze` | `Glaze.tsx`, `src/kiln/glaze.ts`, `src/kiln/theme.tsx`, `src/kiln/cn.ts` |
+| Colorway picker | `colorway-picker` | `ColorwayPicker.tsx`, `src/kiln/colorway.ts`, `src/kiln/theme.tsx`, `src/kiln/motion.ts`, `src/kiln/cn.ts` |
+| Colorway | `colorway` | `Colorway.tsx`, `src/kiln/colorway.ts`, `src/kiln/theme.tsx`, `src/kiln/cn.ts` |
 | Scroll area & scrollbar | `scroll-area` | `ScrollArea.tsx` |
 | Separator | `separator` | `Separator.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Image | `aspect-image` | `AspectImage.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |

@@ -6,7 +6,7 @@ export { cn } from "./cn";
 export { springSoft, spring, springFirm, springSnappy, springLand, springBouncy, easeOut, easeInOut, fade, press, popVariants, staggerParent, staggerChild } from "./motion";
 export { type Size, useControllable } from "./controllable";
 export { type ThemeMode, type ThemeProviderProps, ThemeProvider, useThemeActions, useTheme } from "./theme";
-export { type GlazeMode, type GlazeColors, type GlazeTheme, hexToRgb, mix, contrast, completeColors, glazeTokens, radiusTokens, glazeColors, glazeOwnMode, glazeSwatch, glazeCss, glazeTokensFile, kilnGlazes } from "./glaze";
+export { type ColorwayMode, type ColorwayColors, type ColorwayTheme, hexToRgb, mix, contrast, completeColors, colorwayTokens, radiusTokens, colorwayColors, colorwayOwnMode, colorwaySwatch, colorwayCss, colorwayTokensFile, kilnColorways } from "./colorway";
 
 // ai
 export { type ChatMessageLabels, chatMessageLabels, type ChatMessageProps, ChatMessage, AssistantMark } from "./components/ai/ChatMessage";
@@ -205,8 +205,8 @@ export { type Time, formatTime, type TimeWheelsLabels, timeWheelsLabels, TimeWhe
 
 // primitives
 export { type AspectImageProps, AspectImage } from "./components/primitives/AspectImage";
-export { type GlazeProps, Glaze } from "./components/primitives/Glaze";
-export { type GlazePickerLabels, glazePickerLabels, type GlazePickerProps, GlazePicker } from "./components/primitives/GlazePicker";
+export { type ColorwayProps, Colorway } from "./components/primitives/Colorway";
+export { type ColorwayPickerLabels, colorwayPickerLabels, type ColorwayPickerProps, ColorwayPicker } from "./components/primitives/ColorwayPicker";
 export { ScrollArea } from "./components/primitives/ScrollArea";
 export { type SeparatorProps, Separator } from "./components/primitives/Separator";
 export { type ThemeToggleLabels, themeToggleLabels, ThemeToggle, type ThemeSwitcherLabels, themeSwitcherLabels, ThemeSwitcher } from "./components/primitives/ThemeToggle";
