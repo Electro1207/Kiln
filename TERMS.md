@@ -11,8 +11,12 @@ Kiln's source code, the components in the registry and the npm package are relea
 ## Media and demo content
 
 - Photographs, film clips, captions and other media in the gallery come from third parties under their own licences, listed in [CREDITS.md](CREDITS.md). They are not covered by the MIT licence. If you reuse one, follow its licence and give the credit it asks for.
-- Demo text quotes or refers to films and books (Star Wars, The Lord of the Rings, Back to the Future and others) to show components with lively sample data. Those names and marks belong to their owners. Kiln is not affiliated with or endorsed by any of them.
-- The Kiln name and logo identify this project. Please don't use them in a way that suggests your work is Kiln itself or is endorsed by it.
+- Demo text quotes or refers to films, shows, games and books (Star Wars, The Lord of the Rings, Back to the Future, Indiana Jones, Firefly and others) to show components with lively sample data. Quotes are short and used for illustration only. Those titles, names, characters and marks belong to their owners. Kiln is not affiliated with, sponsored by or endorsed by any of them.
+- React, Tailwind CSS, Motion, lucide, shadcn, npm, GitHub, Cloudflare and the other tools and services named on the site are trademarks of their owners, mentioned only to say what Kiln works with. Kiln is an independent project and is not affiliated with or endorsed by them.
+
+## The Kiln name and logo
+
+The Kiln name and logo identify this project; the MIT licence covers the code, not the name or logo. You may use them to say truthfully that your work uses Kiln, for example with the `PoweredByKiln` credit or a "built with Kiln" link. Please don't use them in a way that suggests your work is Kiln itself, is made or endorsed by Kiln's contributors, or in a product's name or logo.
 
 ## Using the website and registry
 

@@ -13,6 +13,7 @@ Kiln has no accounts, no cookies, no analytics, no advertising and no tracking. 
 The website keeps these settings in your browser's local storage. They never leave your device, and you can clear them at any time by clearing the site's data in your browser.
 
 - `kiln-theme`: light, dark or follow the system.
+- `kiln-glaze`: the colour theme (glaze) you picked.
 - `kiln-nav-open`: which groups of the sidebar you left open.
 - `kiln-studio`: the theme you are building in the theme studio.
 - `kiln-spotlight-recent`: recent searches typed into the Spotlight search demo.
@@ -30,7 +31,11 @@ Every demo runs entirely in your browser. Text you type into a demo form (sign-i
 
 ## The library and installer
 
-The npm package and the components copied from the registry contain no telemetry and make no network requests of their own. A few components let your app load media you point them at, such as a video or image URL; those requests go only where you send them. The installer downloads component files from the Kiln website and nothing else.
+The npm package and the components copied from the registry contain no telemetry and make no network requests of their own. A few components let your app load media you point them at, such as a video or image URL; those requests go only where you send them. The installer downloads component files from the Kiln website and nothing else. The `kiln-css` command in the npm package runs on your own machine: it reads your project's source files to see which components you import, writes one CSS file, and sends nothing anywhere.
+
+Some components remember a visitor's choices in that visitor's own browser, the same way the website does: `ThemeProvider` keeps the mode and glaze (`kiln-theme`, `kiln-glaze`), and `DocsNav` and `SecretHunt` keep their state only when you give them a `storageKey`. These are preferences the visitor sets; nothing is sent to Kiln. If you build an app with Kiln, describing that storage to your own visitors is up to you.
+
+Other sites may load the registry's public files, such as `/r/stats.json`, to show Kiln's version or component count. Those requests reach Cloudflare like any visit to the website.
 
 ## Children
 
