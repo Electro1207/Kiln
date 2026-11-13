@@ -22,6 +22,7 @@ Glazes, a card that carries a whole page, and the pieces a scroll-driven portfol
 - `Footer` takes external links and plain lines, sets the name to fill the width, and has a `reveal` mode that uncovers it from under the page.
 - A privacy policy and terms of use, shown in the gallery.
 - This changelog, and a What's new page in the gallery.
+- `kiln-css`, a command in the npm package that points Tailwind at only the Kiln files your app imports, roughly halving the CSS of a small site.
 
 ### Changed
 
