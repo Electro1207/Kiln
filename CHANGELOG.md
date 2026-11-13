@@ -4,6 +4,10 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-13
+
+Lighter on low-end devices, with the same motion everywhere else.
+
 ### Added
 
 - Motion tiers for low-end devices. `useMotionTier()` is `"full"` or `"lite"`, detected from device memory, CPU cores, Save-Data and one short frame-rate probe; force it with `<MotionTierProvider tier="full" | "lite">`. In `"lite"`, only the effects that can't be made cheap change, and each keeps its curve and timing.
@@ -112,7 +116,8 @@ The first release on npm, published with provenance.
 
 - `Switch` and `HeatStrip` fixes, and zero lint warnings.
 
-[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/Electro1207/Kiln/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/Electro1207/Kiln/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/Electro1207/Kiln/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/Electro1207/Kiln/compare/v0.3.0...v0.3.1
