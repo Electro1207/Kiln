@@ -50,7 +50,9 @@ import { ThemeProvider } from "./kiln/theme";
 </script>
 ```
 
-Theme: `useTheme()` gives `{ mode, resolved, setMode, toggle }`; `ThemeToggle` (primitives) is the ready-made switch. Dark mode is the `.dark` class on `<html>`.
+Theme: `useTheme()` gives `{ mode, resolved, setMode, toggle, glazes, glaze, setGlaze }`; `ThemeToggle` (primitives) is the ready-made switch. Dark mode is the `.dark` class on `<html>`.
+
+Glazes (whole colour themes from a few colours, switchable at runtime): pass `glazes` to `ThemeProvider` (each `{ id, name, light?: { ground, ink, accent, surface?, … }, dark?: {…}, radius? }`; `kilnGlazes` in `glaze.ts` are examples) and `defaultGlaze`; `GlazePicker` (primitives) shows them as swatches. A glaze with only `light` or only `dark` switches the page to that mode. `<Glaze colors={…}>` glazes one part of a page. Every other token is derived, with button text kept at 4.5:1. `tokens.css` still holds the defaults.
 
 Toasts need `<ToastProvider>` (from `components/notices/Toast`) above any `useToast()` call. Overlays (Dialog, Drawer, AlertDialog, CommandPalette, SpotlightSearch, KeyboardShortcutsSheet, ProductTour, CartDrawer, ProductQuickView, Banner) are always controlled (`open` + `onOpenChange`).
 
@@ -323,7 +325,7 @@ Shared helpers (imported by many, not components): `components/shared/` has `Anc
 
 ## 3. Copy a single component into a project
 
-Take the component file plus every local file it imports, transitively, keeping the folder layout (relative imports like `../../cn` depend on it). Always also have `cn.ts`, `motion.ts`, `controllable.ts`, `theme.tsx`, `tokens.css`, `kiln.css` once. Run from the project root; replace the path with the component's:
+Take the component file plus every local file it imports, transitively, keeping the folder layout (relative imports like `../../cn` depend on it). Always also have `cn.ts`, `motion.ts`, `controllable.ts`, `theme.tsx`, `glaze.ts`, `tokens.css`, `kiln.css` once. Run from the project root; replace the path with the component's:
 
 ```bash
 deps(){ for r in $(grep -ohE 'from "\.[^"]+"' "$1" | cut -d'"' -f2); do p=$(realpath -m "$(dirname "$1")/$r"); for e in .tsx .ts ""; do [ -f "$p$e" ] && { grep -qx "$p$e" "$K" || { echo "$p$e" | tee -a "$K"; deps "$p$e"; }; break; }; done; done; }
@@ -352,7 +354,7 @@ It prints every local dependency (not the file itself). Copy those into the same
    | Helpers | `tabular` (tabular numbers), `k-fill` (width 100%), `k-ctl-sm|md|lg` (control height and text size) |
 
    Surface nesting: card `bg-surface` on page `bg-ground`; things on a `bg-raised` well use `bg-surface`; never raised-on-raised.
-6. **Change colours only in `tokens.css`** (`:root` for light, `.dark` for dark). Never override them in a component, in `index.css`, or with inline styles. To restyle every button, edit the `--k-btn-*` tokens.
+6. **Change colours only in `tokens.css`** (`:root` for light, `.dark` for dark), **or through glazes** (`ThemeProvider` `glazes`, `<Glaze>`), which derive every token from a few colours. Never override tokens in a component, in `index.css`, or with inline styles. To restyle every button, edit the `--k-btn-*` tokens.
 7. **State: controlled or uncontrolled.** Leave out the value prop to let the component keep state (`defaultChecked`, `defaultValue`, `defaultOpen`, `defaultPage`, ...). Pass the value prop plus handler to own it. Every input works both ways; overlays are always controlled, and whole flows (AuthForms, CheckoutForm, OnboardingWizard, BookingSlots, FileManager and similar) keep their own state and report through a callback. The full lists are in `docs/API.md`. Names: `value`/`onChange(value)`; `checked`/`onCheckedChange`; `pressed`/`onPressedChange`; `open`/`onOpenChange`; `page`/`onChange`. Text inputs also keep native `onChange(event)` and add `onValueChange(text)`. Do not mix (a `value` without a handler freezes the component). Use `useControllable(value, default, onChange)` from `controllable.ts` in your own stateful components.
 8. **Accessibility.** Give every control a visible `label`, or an `aria-label` (required on `IconButton` and icon-only `ToggleButton`). Pair `error` with the field (it sets `aria-invalid`). Everything must work from the keyboard (Tab, Enter/Space, arrows, Esc); keep the focus ring (never `outline-none` without a replacement). Dialogs need a `title`. Use real `<button>` and `<a>`, not clickable `<div>`s. Images need `alt`.
 9. **Every link and button does something real.** Open a Dialog or Sheet, show a toast, change state, navigate to a real route, or link to a real URL with `target="_blank" rel="noreferrer"`. No `href="#"`, no empty `onClick`, no dead buttons.

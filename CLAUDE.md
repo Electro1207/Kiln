@@ -13,7 +13,7 @@ If a rule in `src/kiln/CLAUDE.md` and `docs/CONVENTIONS.md` ever differ, CONVENT
 
 | Path | What |
 | --- | --- |
-| `src/kiln/` | The library: `tokens.css` (the only place colours, radius, shadows change), `kiln.css` (tokens to Tailwind utilities), `motion.ts`, `theme.tsx`, `cn.ts`, `controllable.ts`, `components/<folder>/<Name>.tsx`, `components/shared/` |
+| `src/kiln/` | The library: `tokens.css` (default colours, radius, shadows), `glaze.ts` (colour themes derived from a few colours, used by ThemeProvider, GlazePicker, Glaze and the theme studio), `kiln.css` (tokens to Tailwind utilities), `motion.ts`, `theme.tsx`, `cn.ts`, `controllable.ts`, `components/<folder>/<Name>.tsx`, `components/shared/` |
 | `src/gallery/` | The showcase app. Never imported by `src/kiln/`, never copied to other projects |
 | `src/gallery/demos/*.tsx` | Demo files. Each exports `category: Category` with `entries` |
 | `src/gallery/registry.ts` | `TAXONOMY` (sections, groups, entry order) and the glob that loads demos |
