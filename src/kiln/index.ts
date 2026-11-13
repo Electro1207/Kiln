@@ -253,6 +253,7 @@ export { type AccordionIcons, accordionIcons, type AccordionItem, type Accordion
 export { type BackToTopLabels, backToTopLabels, type BackToTopIcons, backToTopIcons, type BackToTopProps, BackToTop } from "./components/wayfinding/BackToTop";
 export { type Crumb, type BreadcrumbsLabels, type BreadcrumbsIcons, breadcrumbsIcons, breadcrumbsLabels, type BreadcrumbsProps, Breadcrumbs } from "./components/wayfinding/Breadcrumbs";
 export { type PaginationLabels, type PaginationIcons, paginationIcons, paginationLabels, type PaginationProps, pageRange, Pagination } from "./components/wayfinding/Pagination";
+export { type Checkpoint, type ScrollCheckpointsLabels, scrollCheckpointsLabels, type ScrollCheckpointsProps, ScrollCheckpoints } from "./components/wayfinding/ScrollCheckpoints";
 export { type ScrollProgressLabels, scrollProgressLabels, type ScrollProgressProps, ScrollProgress } from "./components/wayfinding/ScrollProgress";
 export { type Step, type StepperLabels, type StepperIcons, stepperIcons, stepperLabels, type StepperProps, Stepper } from "./components/wayfinding/Stepper";
 export { type TabItem, type TabsProps, Tabs } from "./components/wayfinding/Tabs";

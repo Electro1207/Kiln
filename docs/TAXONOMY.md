@@ -132,6 +132,7 @@ Group id: `wayfinding` · Folder: `wayfinding/` · 7 entries
 | Stepper | `stepper` | `Stepper.tsx` |
 | Back to top | `back-to-top` | `BackToTop.tsx` |
 | Scroll progress | `scroll-progress` | `ScrollProgress.tsx` |
+| Scroll checkpoints | `scroll-checkpoints` | `ScrollCheckpoints.tsx`, `src/kiln/controllable.ts` |
 
 ## Overlays & feedback
 

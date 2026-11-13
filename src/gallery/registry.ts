@@ -37,7 +37,7 @@ export const TAXONOMY: SectionSpec[] = [
     name: "Navigation",
     groups: [
       { id: "menus", name: "Menus & bars", summary: "Getting around an app: bars, sidebars, menus, mega menus and the command palette.", entries: ["navbar", "flyout-nav", "sidebar-nav", "docs-nav", "dropdown-menu", "context-menu", "command-palette", "spotlight-search"] },
-      { id: "wayfinding", name: "Wayfinding", summary: "Finding your place inside a page or a flow: tabs, accordions, breadcrumbs, pages and steps.", entries: ["tabs", "accordion", "breadcrumbs", "pagination", "stepper", "back-to-top", "scroll-progress"] },
+      { id: "wayfinding", name: "Wayfinding", summary: "Finding your place inside a page or a flow: tabs, accordions, breadcrumbs, pages and steps.", entries: ["tabs", "accordion", "breadcrumbs", "pagination", "stepper", "back-to-top", "scroll-progress", "scroll-checkpoints"] },
     ],
   },
   {
