@@ -73,7 +73,7 @@ export function MediaCard({ image, alt, title, meta, children, href, onClick, cl
   } as const;
   if (onClick) {
     return (
-      <motion.button type="button" onClick={onClick} {...shared} className={cn(shared.className, "w-full cursor-pointer text-left outline-offset-2")}>
+      <motion.button type="button" onClick={onClick} {...shared} className={cn(shared.className, "flex w-full cursor-pointer flex-col text-left outline-offset-2")}>
         {body}
       </motion.button>
     );
