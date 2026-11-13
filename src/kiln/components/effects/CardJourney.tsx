@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
-import { motion, useMotionValueEvent, useScroll, useSpring, useTransform, type MotionValue } from "motion/react";
+import { motion, useMotionValue, useMotionValueEvent, useScroll, useSpring, useTransform, type MotionValue } from "motion/react";
 import { cn } from "../../cn";
 import { useLoop, usePrefersReducedMotion } from "../shared/useLoop";
 
@@ -83,7 +83,8 @@ function useWide(query = "(min-width: 1024px)") {
  * than the card moves, for depth. Every stop has a real anchor, so links and
  * `scrollIntoView` travel the same path. Scroll-linked transforms only, smoothed
  * by a spring; with reduced motion the card stays put and changes face in place.
- * Only the face being shown is interactive.
+ * Only the face being shown is interactive. At rest the card lies flat, so a video on it plays as
+ * smoothly as anywhere else.
  */
 export function CardJourney({
   stops, container, length = 1.2, hold = 0.45, spin = "y", turns = 1, offset = 0.22, float = 8,
@@ -120,14 +121,35 @@ export function CardJourney({
   const y = useTransform(f, (v) => `${-7 * at(v).arc}%`);
   const scale = useTransform(f, (v) => 1 - 0.16 * at(v).arc);
   const rotateZ = useTransform(f, (v) => { const s = at(v); return tiltOf(s.a) + (tiltOf(s.b) - tiltOf(s.a)) * s.t + (s.b > s.a ? 5 * s.arc : 0); });
-  const rotate = useTransform(f, (v) => { const s = at(v); return (s.a + (s.b - s.a) * s.t) * turn; });
+
+  // The spin. At rest the card is laid flat (no 3D transform, only the face being shown), so a video or
+  // fine text on it composites like any flat layer. Faces and spin are written in the same frame, so
+  // the switch between flat and 3D never shows.
+  const rotate = useMotionValue(0);
+  const spinner = useRef<HTMLDivElement>(null);
+  const faces = useRef<(HTMLDivElement | null)[]>([]);
+  const axis = spin === "x" ? "rotateX" : "rotateY";
+  const lay = (v: number) => {
+    const s = at(v);
+    const rest = s.t === 0;
+    rotate.set(rest ? 0 : (s.a + (s.b - s.a) * s.t) * turn);
+    if (spinner.current) spinner.current.style.transformStyle = rest ? "flat" : "preserve-3d";
+    const r = Math.round(Math.min(last, Math.max(0, v)));
+    faces.current.forEach((el, k) => {
+      if (!el) return;
+      el.style.transform = rest || !k ? "none" : `${axis}(180deg)`;
+      el.style.visibility = rest && k !== r % 2 ? "hidden" : "visible";
+    });
+  };
 
   // Which stops sit on the two faces, and which one is being shown.
   const [pair, setPair] = useState(0);
   const [near, setNear] = useState(0);
   const changed = useRef(onStopChange);
   useLayoutEffect(() => { changed.current = onStopChange; });
+  useLayoutEffect(() => lay(f.get()));
   useMotionValueEvent(f, "change", (v) => {
+    lay(v);
     const c = Math.min(last, Math.max(0, v));
     setPair(Math.min(Math.max(0, last - 1), Math.floor(c)));
     setNear(Math.round(c));
@@ -178,6 +200,7 @@ export function CardJourney({
             <div ref={bob} className="grid size-full place-items-center will-change-transform">
               <motion.div
                 style={flat ? undefined : spin === "x" ? { rotateX: rotate } : { rotateY: rotate }}
+                ref={spinner}
                 className={cn("relative [transform-style:preserve-3d]", sizeClassName)}
               >
                 {flat ? (
@@ -190,10 +213,11 @@ export function CardJourney({
                   [front, back].map((i, k) => (
                     <div
                       key={k}
+                      ref={(el) => { faces.current[k] = el; }}
                       inert={i !== near}
                       aria-hidden={i !== near}
                       className={cn(card, i === near ? "pointer-events-auto" : "pointer-events-none")}
-                      style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", transform: k ? (spin === "x" ? "rotateX(180deg)" : "rotateY(180deg)") : undefined }}
+                      style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
                     >
                       {render(i)}
                     </div>
