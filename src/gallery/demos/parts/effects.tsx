@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useTransform } from "motion/react";
+import { motion, useMotionValue, useScroll, useTransform } from "motion/react";
 import {
   Bot, Gamepad2, Map, Music, Radio, Rocket, RotateCcw, Satellite, Settings, Star, Moon, Zap, Ticket,
   Coins, Snowflake, Mail, Plane,
@@ -28,6 +28,10 @@ import { cn } from "../../../kiln/cn";
 import { FloatingCard } from "../../../kiln/components/cards/FloatingCard";
 import { ParallaxSection } from "../../../kiln/components/effects/ParallaxSection";
 import { CardJourney, useJourney, type JourneyStop } from "../../../kiln/components/effects/CardJourney";
+import { DriftField } from "../../../kiln/components/effects/DriftField";
+import { Switch } from "../../../kiln/components/choice-controls/Switch";
+import { Slider } from "../../../kiln/components/choice-controls/Slider";
+import { Badge } from "../../../kiln/components/status/Badge";
 import { VideoPlayer } from "../../../kiln/components/media/VideoPlayer";
 import { Magnetic } from "../../../kiln/components/buttons/MagneticButton";
 import { MultiStepLoader } from "../../../kiln/components/status/MultiStepLoader";
@@ -641,6 +645,43 @@ export function CardJourneyDemo() {
         />
       </div>
       <p className="text-center text-sm text-muted">Scroll inside the box. Now at: <span className="text-ink">{PARK[at]?.label}</span></p>
+    </Stage>
+  );
+}
+
+
+const DRIFT_PAGES = ["Hill Valley, 1955", "The clock tower", "Lone Pine Mall", "Hill Valley, 2015", "Biff's Pleasure Paradise"];
+
+function useDriftControls() {
+  const [on, setOn] = useState(true);
+  const [watts, setWatts] = useState([121]);
+  return [
+    { side: "left" as const, tilt: -4, content: <Switch label="Flux capacitor" checked={on} onCheckedChange={setOn} /> },
+    { side: "left" as const, tilt: 3, content: <div className="w-40"><Slider label="Gigawatts" min={0} max={221} value={watts} onChange={setWatts} format={(n) => (n / 100).toFixed(2)} /></div> },
+    { side: "right" as const, tilt: 4, content: <Badge tone={on ? "positive" : "neutral"} dot>{on ? "Fluxing" : "Idle"}</Badge> },
+    { side: "right" as const, tilt: -3, content: <span className="text-sm font-medium tabular">{(watts[0] / 100).toFixed(2)} GW</span> },
+  ];
+}
+
+export function DriftFieldDemo() {
+  const box = useBox();
+  const { scrollY } = useScroll({ container: box });
+  const screens = useTransform(scrollY, (y) => y / 420);
+  const items = useDriftControls();
+  return (
+    <Stage className="flex-col items-stretch">
+      <div className="relative mx-auto w-full max-w-4xl">
+        <div ref={box} className={cn(BOX, "h-[420px] bg-ground")}>
+          {DRIFT_PAGES.map((t, i) => (
+            <section key={t} className="mx-auto flex h-[420px] max-w-sm flex-col justify-center gap-2 px-6">
+              <span className="text-sm text-faint tabular">{String(i + 1).padStart(2, "0")}</span>
+              <p className="text-3xl font-semibold tracking-[-0.02em]">{t}</p>
+            </section>
+          ))}
+        </div>
+        <DriftField items={items} progress={screens} inset={{ left: "1rem", right: "1rem" }} className="rounded-card" aria-label="Time machine controls" />
+      </div>
+      <p className="text-center text-sm text-muted">Scroll inside the box: the controls drift up at two speeds and loop back in. They all work.</p>
     </Stage>
   );
 }

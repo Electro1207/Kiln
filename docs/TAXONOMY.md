@@ -387,7 +387,7 @@ Group id: `text-effects` · Folder: `text-effects/` · 5 entries
 | Scroll words | `scroll-words` | `ScrollWords.tsx`, `src/kiln/components/shared/useLoop.ts` |
 
 ### Effects
-Group id: `effects` · Folder: `effects/` · 12 entries
+Group id: `effects` · Folder: `effects/` · 13 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -404,6 +404,7 @@ Group id: `effects` · Folder: `effects/` · 12 entries
 | Parallax section | `parallax-section` | `ParallaxSection.tsx`, `src/kiln/components/shared/useLoop.ts` |
 | Card journey | `card-journey` | `CardJourney.tsx`, `src/kiln/components/shared/useLoop.ts` |
 
+| Drift field | `drift-field` | `DriftField.tsx`, `src/kiln/components/shared/useLoop.ts` |
 ## Where files live now
 
 - Each component file sits in its group's folder: `src/kiln/components/<folder>/<File>.tsx`. Entry file names in the tables above are relative to that folder, or to `src/kiln/components/` for the old flat names.
