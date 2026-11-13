@@ -18,6 +18,8 @@ export type FooterProps = {
   /** Address, hours, a contact line. */
   details?: ReactNode;
   legal?: ReactNode;
+  /** At the end of the legal line: a credit such as `<PoweredByKiln />`. */
+  credit?: ReactNode;
   /**
    * Make it a curtain: the footer fills the screen and stays put at the bottom while the page above
    * scrolls off it, so it is uncovered rather than scrolled to. Give the content above it a background
@@ -79,7 +81,7 @@ function Wordmark({ name }: { name: string }) {
 }
 
 /** A designed close: link columns, then the name returns at full width. Can sit under the page as a curtain. */
-export function Footer({ name, columns, details, legal, reveal = false, className }: FooterProps) {
+export function Footer({ name, columns, details, legal, credit, reveal = false, className }: FooterProps) {
   return (
     <footer
       className={cn(
@@ -102,7 +104,12 @@ export function Footer({ name, columns, details, legal, reveal = false, classNam
       </div>
       {reveal && <div />}
       <div>
-        {legal && <div className="mt-12 text-xs opacity-60">{legal}</div>}
+        {(legal || credit) && (
+          <div className="mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+            {legal && <div className="text-xs opacity-60">{legal}</div>}
+            {credit}
+          </div>
+        )}
         <Wordmark name={name} />
       </div>
     </footer>
