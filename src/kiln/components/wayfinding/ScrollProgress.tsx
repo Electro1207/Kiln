@@ -37,8 +37,19 @@ export function ScrollProgress({ container, variant = "bar", size = 56, stroke =
   const { scrollYProgress } = useScroll(container ? { container } : undefined);
   const p = useSpring(scrollYProgress, springFirm);
   const ref = useRef<HTMLDivElement>(null);
-  const text = useTransform(p, (v) => `${Math.round(Math.min(1, Math.max(0, v)) * 100)}`);
-  useMotionValueEvent(scrollYProgress, "change", (v) => ref.current?.setAttribute("aria-valuenow", String(Math.round(v * 100))));
+  const num = useRef<HTMLSpanElement>(null);
+  // Written only when the whole number changes, so scrolling costs no layout on most frames.
+  const shown = useRef({ value: -1, text: -1 });
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    const n = Math.round(Math.min(1, Math.max(0, v)) * 100);
+    if (n !== shown.current.value) ref.current?.setAttribute("aria-valuenow", String((shown.current.value = n)));
+  });
+  useMotionValueEvent(p, "change", (v) => {
+    const n = Math.round(Math.min(1, Math.max(0, v)) * 100);
+    if (n !== shown.current.text && num.current) num.current.textContent = String((shown.current.text = n));
+  });
+  // The ring is drawn with a dash offset set as a style, which repaints without a layout.
+  const offset = useTransform(p, (v) => 1 - Math.min(1, Math.max(0, v)));
 
   const a11y = { ref, role: "progressbar", "aria-label": l.progress, "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": 0 } as const;
 
@@ -51,11 +62,11 @@ export function ScrollProgress({ container, variant = "bar", size = 56, stroke =
     <div {...a11y} className={cn("relative inline-grid shrink-0 place-items-center", className)} style={{ width: size, height: size }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="absolute inset-0 -rotate-90" aria-hidden>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className="stroke-active" />
-        <motion.circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} strokeLinecap="round" className="stroke-accent" style={{ pathLength: p }} />
+        <motion.circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} strokeLinecap="round" pathLength={1} strokeDasharray="1 1" className="stroke-accent" style={{ strokeDashoffset: offset }} />
       </svg>
       {showValue && (
         <span aria-hidden className="relative text-xs font-medium text-ink tabular">
-          <motion.span>{text}</motion.span>
+          <span ref={num}>0</span>
           <span className="text-[0.75em] text-muted">%</span>
         </span>
       )}
