@@ -3,7 +3,8 @@ import pkg from "../../packages/kiln/package.json";
 import { Changelog, parseChangelog } from "../kiln/components/marketing/Changelog";
 import { KILN_PACKAGE, KILN_REPO } from "./site";
 
-const releases = parseChangelog(changelog);
+// An empty Unreleased section (right after a release) is left out.
+const releases = parseChangelog(changelog).filter((r) => r.changes.length || r.body);
 const date = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 
 /** CHANGELOG.md, as the gallery's What's new page. */
