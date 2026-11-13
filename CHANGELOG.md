@@ -14,6 +14,7 @@ Glazes, a card that carries a whole page, and the pieces a scroll-driven portfol
 - `DriftField`: small live controls floating up the edges of a page at two speeds. `pin` keeps one at the foot of its column.
 - `ScrollCheckpoints`: a tick for each part of a page, with a preview on hover.
 - `TerminalScript`: a scripted terminal session that types itself, then takes commands.
+- `TerminalScript` puts the cursor in its prompt when the script ends (`focusWhenDone`), so people can type at once.
 - `ScrollHint`: the nudging invitation to scroll on from a first screen.
 - `ScrollProgress` has a `ring` variant with the percentage in the middle.
 - `CommandPalette` has a `shortcut` prop that opens it with ⌘ or Ctrl and a key.

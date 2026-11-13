@@ -37,6 +37,12 @@ export type TerminalScriptProps = Omit<TerminalProps, "lines" | "typing" | "onCo
    * Without it the prompt stays read-only.
    */
   onCommand?: (cmd: string) => string | TerminalStep[] | void;
+  /**
+   * With `onCommand`, put the cursor in the prompt when the script ends, so people can type at once.
+   * It never takes focus from another field, from a terminal that is off screen, or on touch screens
+   * (where it would open the keyboard). Default true.
+   */
+  focusWhenDone?: boolean;
 };
 
 const lineOf = (parts: TermLine["parts"], n: number): TermLine => ({ id: `s${n}`, parts });
@@ -48,7 +54,7 @@ const lineOf = (parts: TermLine["parts"], n: number): TermLine => ({ id: `s${n}`
  * take real commands through `onCommand`. With reduced motion the whole session
  * is shown at once.
  */
-export function TerminalScript({ steps, prompt: firstPrompt = "$", speed = 55, start = "view", onDone, onCommand, className, ...rest }: TerminalScriptProps) {
+export function TerminalScript({ steps, prompt: firstPrompt = "$", speed = 55, start = "view", onDone, onCommand, focusWhenDone = true, className, ...rest }: TerminalScriptProps) {
   const reduce = usePrefersReducedMotion();
   const root = useRef<HTMLDivElement>(null);
   const [lines, setLines] = useState<TermLine[]>([]);
@@ -59,6 +65,8 @@ export function TerminalScript({ steps, prompt: firstPrompt = "$", speed = 55, s
   const timer = useRef<number | undefined>(undefined);
   const finished = useRef(false);
   const doneRef = useRef(onDone);
+  const focusRef = useRef(focusWhenDone && !!onCommand);
+  useLayoutEffect(() => { focusRef.current = focusWhenDone && !!onCommand; });
   useLayoutEffect(() => { doneRef.current = onDone; });
 
   const print = useCallback((step: TerminalStep, p: string) => {
@@ -83,6 +91,14 @@ export function TerminalScript({ steps, prompt: firstPrompt = "$", speed = 55, s
     if (!finished.current) {
       finished.current = true;
       doneRef.current?.();
+      if (focusRef.current) requestAnimationFrame(() => {
+        const el = root.current;
+        const field = el?.querySelector("input");
+        const r = el?.getBoundingClientRect();
+        const free = !document.activeElement || document.activeElement === document.body || el?.contains(document.activeElement);
+        const touch = window.matchMedia("(pointer: coarse)").matches;
+        if (field && r && free && !touch && r.bottom > 0 && r.top < window.innerHeight) field.focus({ preventScroll: true });
+      });
     }
   }, [steps, print]);
 
