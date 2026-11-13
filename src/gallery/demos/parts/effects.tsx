@@ -320,6 +320,9 @@ export function ScrollProgressDemo() {
     <Stage className="flex-col items-stretch">
       <div ref={box} className="relative mx-auto h-80 w-full max-w-xl overflow-y-auto overscroll-contain rounded-card border border-line bg-surface">
         <ScrollProgress container={box} className="sticky top-0 z-10" />
+        <div className="sticky top-3 z-10 float-right mr-3 rounded-full bg-surface p-1">
+          <ScrollProgress container={box} variant="ring" size={48} labels={{ progress: "Reading progress, as a ring" }} />
+        </div>
         <article className="px-6 pb-8 pt-5">
           <h3 className="text-lg font-semibold">The road from the Shire</h3>
           {ROUTE.map(([h, p]) => (

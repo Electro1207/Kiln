@@ -308,7 +308,8 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `Breadcrumbs` — Where you are
 - `Pagination` — Pages with gaps; the current page’s fill fades in place, and on a phone it becomes “6 of 24”
 - `ScrollCheckpoints` — A tick for each part of a long page, the current one longer; hover or focus to preview a part, click to travel there through the page's own scroll
-- `ScrollProgress` — A reading bar that fills as you scroll, smoothed so it never jumps
+- `ScrollHint` — The invitation at the foot of a first screen: a line and a nudging arrow that scrolls on when pressed
+- `ScrollProgress` — How far down you have read: a thin bar, or `variant="ring"` with the percentage; smoothed so it never jumps
 - `Stepper` — Progress through a flow; the line fills as each step is finished
 - `Tabs` — A line or a fill fades onto the chosen tab; panels slide in from the side you moved towards
 
