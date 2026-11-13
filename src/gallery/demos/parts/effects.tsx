@@ -30,6 +30,7 @@ import { ParallaxSection } from "../../../kiln/components/effects/ParallaxSectio
 import { CardJourney, useJourney, type JourneyStop } from "../../../kiln/components/effects/CardJourney";
 import { DriftField } from "../../../kiln/components/effects/DriftField";
 import { SecretHunt, Secret, useSecretHunt } from "../../../kiln/components/effects/SecretHunt";
+import { Firefly } from "../../../kiln/components/effects/Firefly";
 import { ScrollHint } from "../../../kiln/components/wayfinding/ScrollHint";
 import { Switch } from "../../../kiln/components/choice-controls/Switch";
 import { Slider } from "../../../kiln/components/choice-controls/Slider";
@@ -718,6 +719,18 @@ export function SecretHuntDemo() {
         <div className="mt-4 flex justify-center"><HuntCount /></div>
       </SecretHunt>
       <p className="text-center text-sm text-muted">Three stones are hidden in the cards. Each one lifts away when you take it, and the count stays until you put them back.</p>
+    </Stage>
+  );
+}
+
+export function FireflyDemo() {
+  return (
+    <Stage className="flex-col items-stretch">
+      <div className="dark relative mx-auto h-[300px] w-full max-w-3xl overflow-hidden rounded-card bg-ground text-ink">
+        <Firefly count={5} message="Shiny. Let's be bad guys." />
+        <p className="pointer-events-none absolute bottom-5 left-6 text-sm text-muted">Serenity Valley, after dark</p>
+      </div>
+      <p className="text-center text-sm text-muted">Catch one: it flares and says something. Without a message they are only to look at.</p>
     </Stage>
   );
 }

@@ -168,6 +168,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `CardJourney` (CardJourney, useJourney) — One pinned card carries a page: it rests at each stop, then lifts, spins and glides to its next place with a new face; asides rise past it; each stop has a real anchor; a stop's `content({ active, moving })` can swap video for a still while it turns
 - `DriftField` — Small live controls floating up the edges of a page in two columns at their own speeds, looping back in from below; `pin` keeps one at the foot of its column
 - `SecretHunt` (SecretHunt, Secret, useSecretHunt) — Collectibles hidden around a page: each `Secret` lifts away when found, a quiet notice keeps count, finds can be remembered (`storageKey`)
+- `Firefly` — Small lights drifting and blinking across a positioned parent; with `message`, catching one makes it flare and speak
 - `Dock` — macOS magnification by transform only: icons swell, neighbours part, the bar widens
 - `OrbitingCircles` — Icons circling a centre on the compositor, upright the whole way round
 - `ParallaxSection` — Sections that hang back and fade as they leave, so the next one slides over them; works at any height
