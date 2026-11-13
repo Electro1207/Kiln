@@ -4,6 +4,10 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+### Changed
+
+- The Kiln mark (`KilnMark`, used by `PoweredByKiln`) is a rounded K, matching the favicon.
+
 ## [0.4.0] - 2026-11-13
 
 Colorways, a card that carries a whole page, and the pieces a scroll-driven portfolio needs.
