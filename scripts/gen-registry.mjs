@@ -88,7 +88,7 @@ function importsOf(p) {
   return { rels, pkgs };
 }
 
-const BASE = ["cn.ts", "motion.ts", "controllable.ts", "theme.tsx", "glaze.ts", "tokens.css", "kiln.css"].map((n) => join(KILN, n));
+const BASE = ["cn.ts", "motion.ts", "controllable.ts", "theme.tsx", "colorway.ts", "tokens.css", "kiln.css"].map((n) => join(KILN, n));
 for (const b of BASE) if (!known.has(b)) throw new Error(`missing base file ${rel(b)}`);
 const isHelper = (p) => p.includes("/components/shared/") || (p.endsWith(".ts") && p.includes("/components/"));
 const owner = new Map();
@@ -120,7 +120,7 @@ const item = (name) => items.get(name) ?? items.set(name, { name, files: [] }).g
 for (const [p, name] of owner) item(name).files.push(p);
 for (const e of entries) Object.assign(item(e.id), { title: e.name, description: e.summary, entry: e });
 const base = item("kiln-base");
-Object.assign(base, { title: "Kiln base", description: "Kiln's shared code and styles: cn, motion presets, useControllable, ThemeProvider and glazes, tokens.css and kiln.css. Every other Kiln item depends on it." });
+Object.assign(base, { title: "Kiln base", description: "Kiln's shared code and styles: cn, motion presets, useControllable, ThemeProvider and colorways, tokens.css and kiln.css. Every other Kiln item depends on it." });
 const guide = join(KILN, "CLAUDE.md");
 if (existsSync(guide)) base.extraFiles = [guide];
 for (const it of items.values()) if (!it.title) { it.title = it.name.replace(/^kiln-/, "Kiln ").replace(/-/g, " "); it.description ??= `Shared Kiln helper (${it.files.map((f) => posix.basename(rel(f))).join(", ")}).`; }

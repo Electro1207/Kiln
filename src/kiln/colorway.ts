@@ -1,12 +1,12 @@
-/* Glazes: a whole theme from a handful of colours. Pick a ground, an ink and an accent (and, if you
+/* Colorways: a whole theme from a handful of colours. Pick a ground, an ink and an accent (and, if you
    like, a surface and the four signal colours) for light, dark or both; every Kiln token is worked
    out from them, with button fills darkened until their text reads at 4.5:1. ThemeProvider takes a
-   list of glazes and switches between them; <Glaze> applies one to part of a page. */
+   list of colorways and switches between them; <Colorway> applies one to part of a page. */
 
-export type GlazeMode = "light" | "dark";
+export type ColorwayMode = "light" | "dark";
 
 /** The colours you choose for one mode. Everything else is derived. */
-export type GlazeColors = {
+export type ColorwayColors = {
   /** The page behind everything. */
   ground: string;
   /** Text. */
@@ -25,16 +25,16 @@ export type GlazeColors = {
   dangerButton?: string;
 };
 
-export type GlazeTheme = {
+export type ColorwayTheme = {
   id: string;
   /** Shown in pickers and read to screen readers. */
   name: string;
-  /** Colours for light mode. A glaze with only `light` or only `dark` uses it in both, and choosing it switches to that mode. */
-  light?: GlazeColors;
-  dark?: GlazeColors;
+  /** Colours for light mode. A colorway with only `light` or only `dark` uses it in both, and choosing it switches to that mode. */
+  light?: ColorwayColors;
+  dark?: ColorwayColors;
   /** Corner radius of controls in px (cards and sheets scale from it; 999 makes pills). Left out, the radius stays as it is. */
   radius?: number;
-  /** Colour of the glaze's swatch. Left out, its accent (or ground, when the accent is near the ground). */
+  /** Colour of the colorway's swatch. Left out, its accent (or ground, when the accent is near the ground). */
   swatch?: string;
 };
 
@@ -111,13 +111,13 @@ function exactFill(c: string) {
   return { bg: c, hover: mix(c, ink === "#ffffff" ? "#000000" : "#ffffff", 0.1), ink };
 }
 
-const SIGNALS: Record<GlazeMode, Required<Pick<GlazeColors, "positive" | "negative" | "warning" | "info">>> = {
+const SIGNALS: Record<ColorwayMode, Required<Pick<ColorwayColors, "positive" | "negative" | "warning" | "info">>> = {
   light: { positive: "#1e7b4f", negative: "#c4242a", warning: "#8a4b0b", info: "#2f63b0" },
   dark: { positive: "#4cc488", negative: "#f0706f", warning: "#e8b04f", info: "#7fa9ec" },
 };
 
-/** Fill in the colours a glaze left out. */
-export function completeColors(c: GlazeColors, mode: GlazeMode): Required<Omit<GlazeColors, "button" | "dangerButton">> & Pick<GlazeColors, "button" | "dangerButton"> {
+/** Fill in the colours a colorway left out. */
+export function completeColors(c: ColorwayColors, mode: ColorwayMode): Required<Omit<ColorwayColors, "button" | "dangerButton">> & Pick<ColorwayColors, "button" | "dangerButton"> {
   const dark = mode === "dark";
   return {
     ...SIGNALS[mode],
@@ -127,7 +127,7 @@ export function completeColors(c: GlazeColors, mode: GlazeMode): Required<Omit<G
 }
 
 /** Every colour token of one mode, from the colours chosen for it. */
-export function glazeTokens(colors: GlazeColors, mode: GlazeMode): Record<string, string> {
+export function colorwayTokens(colors: ColorwayColors, mode: ColorwayMode): Record<string, string> {
   const p = completeColors(colors, mode);
   const dark = mode === "dark";
   const deep = mix(p.accent, "#000000", 0.85);
@@ -181,55 +181,55 @@ export function radiusTokens(r: number): Record<string, string> {
   };
 }
 
-/** The colours a glaze uses in a mode: its own for that mode, else the one it has. */
-export function glazeColors(g: GlazeTheme, mode: GlazeMode): GlazeColors {
+/** The colours a colorway uses in a mode: its own for that mode, else the one it has. */
+export function colorwayColors(g: ColorwayTheme, mode: ColorwayMode): ColorwayColors {
   const c = g[mode] ?? g.light ?? g.dark;
-  if (!c) throw new Error(`Glaze "${g.id}" has neither light nor dark colours`);
+  if (!c) throw new Error(`Colorway "${g.id}" has neither light nor dark colours`);
   return c;
 }
 
-/** The mode a one-mode glaze belongs to; undefined when it has both. */
-export function glazeOwnMode(g: GlazeTheme): GlazeMode | undefined {
+/** The mode a one-mode colorway belongs to; undefined when it has both. */
+export function colorwayOwnMode(g: ColorwayTheme): ColorwayMode | undefined {
   if (g.light && !g.dark) return "light";
   if (g.dark && !g.light) return "dark";
   return undefined;
 }
 
-/** The swatch colour for a glaze in a mode. */
-export function glazeSwatch(g: GlazeTheme, mode: GlazeMode) {
+/** The swatch colour for a colorway in a mode. */
+export function colorwaySwatch(g: ColorwayTheme, mode: ColorwayMode) {
   if (g.swatch) return g.swatch;
-  const c = glazeColors(g, mode);
+  const c = colorwayColors(g, mode);
   return contrast(c.accent, c.ground) < 1.4 ? c.ground : c.accent;
 }
 
 const block = (sel: string, vars: Record<string, string>, extra = "") =>
   `${sel} {\n${Object.entries(vars).map(([k, v]) => `  ${k}: ${v};`).join("\n")}\n${extra}}\n`;
 
-/** CSS that applies a glaze to the whole page, over tokens.css. */
-export function glazeCss(g: GlazeTheme) {
+/** CSS that applies a colorway to the whole page, over tokens.css. */
+export function colorwayCss(g: ColorwayTheme) {
   const r = g.radius != null ? radiusTokens(g.radius) : {};
   return (
-    block(":root:root, :root.light", { ...glazeTokens(glazeColors(g, "light"), "light"), ...r }) +
-    block(":root.dark", glazeTokens(glazeColors(g, "dark"), "dark"))
+    block(":root:root, :root.light", { ...colorwayTokens(colorwayColors(g, "light"), "light"), ...r }) +
+    block(":root.dark", colorwayTokens(colorwayColors(g, "dark"), "dark"))
   );
 }
 
 /** A complete replacement for src/kiln/tokens.css. */
-export function glazeTokensFile(g: GlazeTheme) {
-  return `/* Kiln tokens, generated from the "${g.name}" glaze. Replace src/kiln/tokens.css with this file. */
+export function colorwayTokensFile(g: ColorwayTheme) {
+  return `/* Kiln tokens, generated from the "${g.name}" colorway. Replace src/kiln/tokens.css with this file. */
 
-${block(":root, .light", { ...glazeTokens(glazeColors(g, "light"), "light"), ...radiusTokens(g.radius ?? 8) }, `  --k-float-shadow: 0 1px 2px rgb(20 20 19 / 0.06), 0 12px 32px -8px rgb(20 20 19 / 0.18);
+${block(":root, .light", { ...colorwayTokens(colorwayColors(g, "light"), "light"), ...radiusTokens(g.radius ?? 8) }, `  --k-float-shadow: 0 1px 2px rgb(20 20 19 / 0.06), 0 12px 32px -8px rgb(20 20 19 / 0.18);
   --k-scrim: rgb(20 20 19 / 0.32);
   color-scheme: light;
 `)}
-${block(".dark", glazeTokens(glazeColors(g, "dark"), "dark"), `  --k-float-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -8px rgb(0 0 0 / 0.6);
+${block(".dark", colorwayTokens(colorwayColors(g, "dark"), "dark"), `  --k-float-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -8px rgb(0 0 0 / 0.6);
   --k-scrim: rgb(0 0 0 / 0.55);
   color-scheme: dark;
 `)}`;
 }
 
-/** Kiln's own glazes, the ones the gallery and theme studio start from. */
-export const kilnGlazes: GlazeTheme[] = [
+/** Kiln's own colorways, the ones the gallery and theme studio start from. */
+export const kilnColorways: ColorwayTheme[] = [
   {
     id: "celadon", name: "Celadon", radius: 8,
     light: { ground: "#f3f4f2", surface: "#ffffff", ink: "#141413", accent: "#1b6c80", positive: "#1e7b4f", negative: "#c4242a", warning: "#8a4b0b", info: "#2f63b0" },

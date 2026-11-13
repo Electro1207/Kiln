@@ -20,7 +20,7 @@ const RENAMES = {
   "components/shared/useOverlay:Placement": "OverlayPlacement",
 };
 
-const CORE = ["cn", "motion", "controllable", "theme", "glaze"];
+const CORE = ["cn", "motion", "controllable", "theme", "colorway"];
 
 function walk(dir) {
   return readdirSync(dir).flatMap((n) => {

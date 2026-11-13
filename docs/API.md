@@ -123,9 +123,9 @@ Things measured in pixels take a number:
 ```tsx
 <Button variant="secondary" size="sm" leading={<Plus />} loading={saving}>Add crew</Button>
 <Button shape="pill" trailing={<ArrowRight />}>Open the gallery</Button>  {/* shape: theme (default, --k-radius-control) | pill | square */}
-<ThemeProvider glazes={[{ id: "moss", name: "Moss", light: { ground: "#f3f5f0", ink: "#151a14", accent: "#3d6b2c" }, dark: { ground: "#0e110d", ink: "#e8ede4", accent: "#9fcf7e" } }]}>…</ThemeProvider>
-<GlazePicker />  {/* the provider's glazes; or glazes / value / onChange of your own */}
-<Glaze colors={{ ground: "#14532d", ink: "#ecfdf5", accent: "#86efac" }}>…</Glaze>
+<ThemeProvider colorways={[{ id: "moss", name: "Moss", light: { ground: "#f3f5f0", ink: "#151a14", accent: "#3d6b2c" }, dark: { ground: "#0e110d", ink: "#e8ede4", accent: "#9fcf7e" } }]}>…</ThemeProvider>
+<ColorwayPicker />  {/* the provider's colorways; or colorways / value / onChange of your own */}
+<Colorway colors={{ ground: "#14532d", ink: "#ecfdf5", accent: "#86efac" }}>…</Colorway>
 <IconButton icon={<Trash />} aria-label="Delete" variant="ghost" />
 <ToggleButton icon={<Heart />} pressedIcon={<Heart fill="currentColor" />} aria-label="Like" />
 <SegmentedControl options={[{ value: "grid", label: "Grid" }, { value: "list", label: "List" }]} />

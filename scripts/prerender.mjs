@@ -249,7 +249,7 @@ const llms = `# Kiln
 
 > ${SITE_DESCRIPTION}
 
-Kiln is a free, open-source (MIT) library of ${total} animated React components. It targets React 19, Tailwind CSS v4 and Motion (the animation library formerly called Framer Motion), with lucide-react icons. Every component works in light and dark mode, takes its text from props, works from the keyboard, and animates only transform and opacity so it holds 60fps. Colours come from design tokens, and glazes derive a whole theme from a ground, an ink and an accent colour.
+Kiln is a free, open-source (MIT) library of ${total} animated React components. It targets React 19, Tailwind CSS v4 and Motion (the animation library formerly called Framer Motion), with lucide-react icons. Every component works in light and dark mode, takes its text from props, works from the keyboard, and animates only transform and opacity so it holds 60fps. Colours come from design tokens, and colorways derive a whole theme from a ground, an ink and an accent colour.
 
 Two ways to use it, which ship the same code from the same release:
 

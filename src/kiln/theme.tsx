@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
-import { glazeCss, glazeOwnMode, type GlazeTheme } from "./glaze";
+import { colorwayCss, colorwayOwnMode, type ColorwayTheme } from "./colorway";
 
 export type ThemeMode = "light" | "dark" | "system";
 
@@ -11,22 +11,22 @@ type ThemeContextValue = {
   /** Change mode. Pass the clicked element to open the new theme as a circle from it. */
   setMode: (mode: ThemeMode, origin?: HTMLElement | null) => void;
   toggle: (origin?: HTMLElement | null) => void;
-  /** The glazes passed to ThemeProvider (empty when none). */
-  glazes: GlazeTheme[];
-  /** Id of the glaze in use, or undefined when the page uses tokens.css as it is. */
-  glaze: string | undefined;
-  /** Re-glaze the page. Pass the clicked element to open the new colours as a circle from it. */
-  setGlaze: (id: string, origin?: HTMLElement | null) => void;
+  /** The colorways passed to ThemeProvider (empty when none). */
+  colorways: ColorwayTheme[];
+  /** Id of the colorway in use, or undefined when the page uses tokens.css as it is. */
+  colorway: string | undefined;
+  /** Recolour the page. Pass the clicked element to open the new colours as a circle from it. */
+  setColorway: (id: string, origin?: HTMLElement | null) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 /* Actions live in their own context with a value that never changes, so anything that only
    needs to switch the theme (a shell, a toggle in a menu) never re-renders when it switches. */
-type ThemeActions = Pick<ThemeContextValue, "setMode" | "toggle" | "setGlaze">;
+type ThemeActions = Pick<ThemeContextValue, "setMode" | "toggle" | "setColorway">;
 const ThemeActionsContext = createContext<ThemeActions | null>(null);
 const STORAGE_KEY = "kiln-theme";
-const GLAZE_KEY = "kiln-glaze";
-const STYLE_ID = "kiln-glaze";
+const COLORWAY_KEY = "kiln-colorway";
+const STYLE_ID = "kiln-colorway";
 
 function readStored(): ThemeMode {
   try {
@@ -36,20 +36,20 @@ function readStored(): ThemeMode {
   return "system";
 }
 
-function readGlaze(glazes: GlazeTheme[], fallback?: string) {
-  if (!glazes.length) return undefined;
+function readColorway(colorways: ColorwayTheme[], fallback?: string) {
+  if (!colorways.length) return undefined;
   try {
-    const v = localStorage.getItem(GLAZE_KEY);
-    if (v && glazes.some((g) => g.id === v)) return v;
+    const v = localStorage.getItem(COLORWAY_KEY);
+    if (v && colorways.some((g) => g.id === v)) return v;
   } catch { /* storage blocked */ }
-  return glazes.some((g) => g.id === fallback) ? fallback : glazes[0].id;
+  return colorways.some((g) => g.id === fallback) ? fallback : colorways[0].id;
 }
 
 function systemPrefersDark() {
   return typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
-function writeGlazeCss(g: GlazeTheme | undefined) {
+function writeColorwayCss(g: ColorwayTheme | undefined) {
   let tag = document.getElementById(STYLE_ID) as HTMLStyleElement | null;
   if (!g) return tag?.remove();
   if (!tag) {
@@ -57,7 +57,7 @@ function writeGlazeCss(g: GlazeTheme | undefined) {
     tag.id = STYLE_ID;
     document.head.appendChild(tag);
   }
-  tag.textContent = glazeCss(g);
+  tag.textContent = colorwayCss(g);
 }
 
 /** Run `apply` inside a view transition whose new state opens as a circle from `origin`. */
@@ -81,18 +81,18 @@ export type ThemeProviderProps = {
   /** Mode before the visitor picks one. Default "system". */
   defaultMode?: ThemeMode;
   /**
-   * Whole themes to switch between, each made from a few colours (see `GlazeTheme` in glaze.ts and
-   * `kilnGlazes` for examples). The visitor's choice is remembered. Leave out to use tokens.css as it is.
+   * Whole themes to switch between, each made from a few colours (see `ColorwayTheme` in colorway.ts and
+   * `kilnColorways` for examples). The visitor's choice is remembered. Leave out to use tokens.css as it is.
    */
-  glazes?: GlazeTheme[];
-  /** Id of the glaze before the visitor picks one. Default: the first. */
-  defaultGlaze?: string;
+  colorways?: ColorwayTheme[];
+  /** Id of the colorway before the visitor picks one. Default: the first. */
+  defaultColorway?: string;
 };
 
-export function ThemeProvider({ children, defaultMode, glazes = NONE, defaultGlaze }: ThemeProviderProps) {
-  const [glaze, setGlazeState] = useState<string | undefined>(() => readGlaze(glazes, defaultGlaze));
-  const own = (id: string | undefined) => { const g = glazes.find((x) => x.id === id); return g ? glazeOwnMode(g) : undefined; };
-  const [mode, setModeState] = useState<ThemeMode>(() => own(glaze) ?? defaultMode ?? readStored());
+export function ThemeProvider({ children, defaultMode, colorways = NONE, defaultColorway }: ThemeProviderProps) {
+  const [colorway, setColorwayState] = useState<string | undefined>(() => readColorway(colorways, defaultColorway));
+  const own = (id: string | undefined) => { const g = colorways.find((x) => x.id === id); return g ? colorwayOwnMode(g) : undefined; };
+  const [mode, setModeState] = useState<ThemeMode>(() => own(colorway) ?? defaultMode ?? readStored());
   const [systemDark, setSystemDark] = useState(systemPrefersDark);
 
   useEffect(() => {
@@ -108,13 +108,13 @@ export function ThemeProvider({ children, defaultMode, glazes = NONE, defaultGla
     document.documentElement.classList.toggle("dark", resolved === "dark");
   }, [resolved]);
 
-  // The glaze's colours sit in one <style> after tokens.css; written before paint so nothing flashes.
-  const glazesRef = useRef(glazes);
-  useLayoutEffect(() => { glazesRef.current = glazes; });
+  // The colorway's colours sit in one <style> after tokens.css; written before paint so nothing flashes.
+  const colorwaysRef = useRef(colorways);
+  useLayoutEffect(() => { colorwaysRef.current = colorways; });
   useLayoutEffect(() => {
-    writeGlazeCss(glazes.find((g) => g.id === glaze));
-  }, [glaze, glazes]);
-  useEffect(() => () => writeGlazeCss(undefined), []);
+    writeColorwayCss(colorways.find((g) => g.id === colorway));
+  }, [colorway, colorways]);
+  useEffect(() => () => writeColorwayCss(undefined), []);
 
   const setMode = useCallback((next: ThemeMode, origin?: HTMLElement | null) => {
     const root = document.documentElement;
@@ -126,19 +126,19 @@ export function ThemeProvider({ children, defaultMode, glazes = NONE, defaultGla
     });
   }, []);
 
-  const setGlaze = useCallback((id: string, origin?: HTMLElement | null) => {
-    const g = glazesRef.current.find((x) => x.id === id);
+  const setColorway = useCallback((id: string, origin?: HTMLElement | null) => {
+    const g = colorwaysRef.current.find((x) => x.id === id);
     if (!g) return;
-    const ownMode = glazeOwnMode(g);
+    const ownMode = colorwayOwnMode(g);
     reveal(origin, () => {
       // Colours first, synchronously, so the transition's new snapshot already has them.
-      writeGlazeCss(g);
+      writeColorwayCss(g);
       flushSync(() => {
-        setGlazeState(id);
+        setColorwayState(id);
         if (ownMode) setModeState(ownMode);
       });
       if (ownMode) document.documentElement.classList.toggle("dark", ownMode === "dark");
-      try { localStorage.setItem(GLAZE_KEY, id); } catch { /* ignore */ }
+      try { localStorage.setItem(COLORWAY_KEY, id); } catch { /* ignore */ }
     });
   }, []);
 
@@ -151,8 +151,8 @@ export function ThemeProvider({ children, defaultMode, glazes = NONE, defaultGla
     [setMode],
   );
 
-  const actions = useMemo(() => ({ setMode, toggle, setGlaze }), [setMode, toggle, setGlaze]);
-  const value = useMemo(() => ({ mode, resolved, setMode, toggle, glazes, glaze, setGlaze }), [mode, resolved, setMode, toggle, glazes, glaze, setGlaze]);
+  const actions = useMemo(() => ({ setMode, toggle, setColorway }), [setMode, toggle, setColorway]);
+  const value = useMemo(() => ({ mode, resolved, setMode, toggle, colorways, colorway, setColorway }), [mode, resolved, setMode, toggle, colorways, colorway, setColorway]);
   return (
     <ThemeActionsContext.Provider value={actions}>
       <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
@@ -160,7 +160,7 @@ export function ThemeProvider({ children, defaultMode, glazes = NONE, defaultGla
   );
 }
 
-const NONE: GlazeTheme[] = [];
+const NONE: ColorwayTheme[] = [];
 
 /** Switch the theme without subscribing to it: the caller never re-renders on a theme change. */
 export function useThemeActions() {

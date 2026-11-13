@@ -6,8 +6,8 @@ import { categories } from "./registry";
 import { href, type Route } from "./useRoute";
 import { useStudio } from "./studio/context";
 import { liveCss, PRESETS, type StudioTheme } from "./studio/tokens";
-import { GlazePicker } from "../kiln/components/primitives/GlazePicker";
-import { kilnGlazes } from "../kiln/glaze";
+import { ColorwayPicker } from "../kiln/components/primitives/ColorwayPicker";
+import { kilnColorways } from "../kiln/colorway";
 import { Button } from "../kiln/components/buttons/Button";
 import { Switch } from "../kiln/components/choice-controls/Switch";
 import { Slider } from "../kiln/components/choice-controls/Slider";
@@ -26,7 +26,7 @@ import { ParallaxImg } from "./overview/Parallax";
 import { cn } from "../kiln/cn";
 import { easeOut, springSoft } from "../kiln/motion";
 
-/* Every tile is a live component. Picking a glaze re-themes the whole site, opening from the swatch pressed. */
+/* Every tile is a live component. Picking a colorway re-themes the whole site, opening from the swatch pressed. */
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -46,7 +46,7 @@ function Tile({ i = 0, className, children, as = "div", still }: { i?: number; c
   );
 }
 
-/** Re-fire the site in another glaze: the new colours open as a circle from the swatch. */
+/** Re-fire the site in another colorway: the new colours open as a circle from the swatch. */
 function useRefire() {
   const { setTheme } = useStudio();
   return (theme: StudioTheme, from: HTMLElement) => {
@@ -137,21 +137,21 @@ function Hero({ total, onBrowse, onStudio }: { total: number; onBrowse: () => vo
         </div>
       </Tile>
       <Tile i={4} className="order-4 flex min-h-[200px] flex-col justify-between gap-6 bg-btn-primary p-6 text-btn-primary-ink md:order-none md:col-span-3 md:min-h-[240px]">
-        <p className="text-2xl leading-snug tracking-[-0.01em]">Pick a glaze. The whole site re-fires.</p>
-        <SiteGlaze />
+        <p className="text-2xl leading-snug tracking-[-0.01em]">Pick a colorway. The whole site re-fires.</p>
+        <SiteColorway />
       </Tile>
     </section>
   );
 }
 
-/* Kiln's GlazePicker with the gallery's own handler: a preset re-fires the site through the theme studio. */
-function SiteGlaze() {
+/* Kiln's ColorwayPicker with the gallery's own handler: a preset re-fires the site through the theme studio. */
+function SiteColorway() {
   const { theme } = useStudio();
   const refire = useRefire();
   const current = PRESETS.find((p) => JSON.stringify(p.theme) === JSON.stringify(theme))?.id;
   return (
-    <GlazePicker
-      glazes={kilnGlazes}
+    <ColorwayPicker
+      colorways={kilnColorways}
       value={current}
       showLabel={false}
       onChange={(id, origin) => { const p = PRESETS.find((x) => x.id === id); if (p) refire(p.theme, origin); }}
