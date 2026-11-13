@@ -1,9 +1,14 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useControllable } from "../../controllable";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, animate, motion, useMotionValue } from "motion/react";
 import { ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "../../cn";
-import { easeOut, fade, springFirm, springSnappy, springSoft } from "../../motion";
+import { easeOut, fade, springFirm, springSnappy, springSoft, useMotionTier } from "../../motion";
+
+const FULL = 248;
+const RAIL = 64;
+const OPEN_CLIP = "inset(0px 0px 0px 0px)";
+const RAIL_CLIP = `inset(0px ${FULL - RAIL}px 0px 0px)`;
 
 export type SidebarItem = { id: string; label: string; icon: ReactNode; badge?: number; children?: { id: string; label: string }[] };
 export type SidebarSection = { label?: string; items: SidebarItem[] };
@@ -57,6 +62,55 @@ export function SidebarNav({ sections, value: valueProp, defaultValue, onChange:
   const ic = useMemo(() => ({ ...sidebarNavIcons, ...icons }), [icons]);
   const [value, onChange] = useControllable<string>(valueProp, defaultValue ?? sections[0]?.items[0]?.id ?? "", onChangeProp);
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
+  /* On most devices the bar's width glides, so the page beside it follows. That lays the
+     page out again on every frame, which a low-end phone can't keep up with. In the "lite"
+     tier the bar keeps its full width while it folds, a clip does the folding (no layout),
+     and the width changes once: at the start of opening, at the end of closing. Width and
+     clip are both motion values, so they always change in the same frame. */
+  const lite = useMotionTier() === "lite";
+  const width = useMotionValue(defaultCollapsed ? RAIL : FULL);
+  const clip = useMotionValue(OPEN_CLIP);
+  const was = useRef(collapsed);
+  useLayoutEffect(() => {
+    const toggled = was.current !== collapsed;
+    was.current = collapsed;
+    const target = collapsed ? RAIL : FULL;
+    // A change of tier (no fold or unfold) just settles where it is.
+    if (!toggled) {
+      width.jump(target);
+      clip.jump(OPEN_CLIP);
+      return;
+    }
+    if (!lite) {
+      clip.jump(OPEN_CLIP);
+      const a = animate(width, target, springFirm);
+      return () => a.stop();
+    }
+    let live = true;
+    if (collapsed) {
+      const a = animate(clip, RAIL_CLIP, {
+        ...springFirm,
+        onComplete: () => {
+          if (!live) return;
+          width.jump(RAIL);
+          clip.jump(OPEN_CLIP);
+        },
+      });
+      return () => {
+        live = false;
+        a.stop();
+      };
+    }
+    if (width.get() !== FULL) {
+      width.jump(FULL);
+      clip.jump(RAIL_CLIP);
+    }
+    const a = animate(clip, OPEN_CLIP, springFirm);
+    return () => {
+      live = false;
+      a.stop();
+    };
+  }, [collapsed, lite, width, clip]);
   const [expanded, setExpanded] = useState<string[]>(() =>
     sections.flatMap((s) => s.items).filter((i) => i.children?.some((c) => c.id === value)).map((i) => i.id),
   );
@@ -78,9 +132,7 @@ export function SidebarNav({ sections, value: valueProp, defaultValue, onChange:
 
   return (
     <motion.aside
-      initial={false}
-      animate={{ width: collapsed ? 64 : 248 }}
-      transition={springFirm}
+      style={{ width, clipPath: clip }}
       className={cn("flex h-full shrink-0 flex-col overflow-hidden bg-ground p-3", className)}
     >
       <div className="mb-3 flex h-9 items-center gap-2">
