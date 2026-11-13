@@ -1,5 +1,5 @@
 import type { Category } from "../types";
-import { AccordionDemo, BackToTopDemo, BreadcrumbsDemo, ContextDemo, DocsNavDemo, MenuDemo, NavbarDemo, PaginationDemo, SidebarDemo, StepperDemo, TabsDemo } from "./parts/navigation";
+import { AccordionDemo, BackToTopDemo, BreadcrumbsDemo, ContextDemo, DocsNavDemo, MenuDemo, NavbarDemo, PaginationDemo, SidebarDemo, StepperDemo, TabsDemo, ScrollCheckpointsDemo } from "./parts/navigation";
 
 export const category: Category = {
   id: "navigation",
@@ -17,5 +17,6 @@ export const category: Category = {
     { id: "sidebar-nav", name: "Sidebar", summary: "Side navigation with nested groups that folds into an icon rail.", files: ["src/kiln/components/menus/SidebarNav.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts", "src/kiln/controllable.ts"], Demo: SidebarDemo },
     { id: "docs-nav", name: "Docs navigation", summary: "The sidebar this gallery uses: labelled sections of collapsible groups, a filter field (with an optional shortcut key), counts, and an active row whose fill fades in place.", files: ["src/kiln/components/menus/DocsNav.tsx", "src/kiln/components/text-input/SearchField.tsx", "src/kiln/components/primitives/ScrollArea.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts", "src/kiln/controllable.ts"], Demo: DocsNavDemo },
     { id: "back-to-top", name: "Back to top", summary: "Appears once you have scrolled; its ring fills with your progress down the page.", files: ["src/kiln/components/wayfinding/BackToTop.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: BackToTopDemo },
+    { id: "scroll-checkpoints", name: "Scroll checkpoints", summary: "A tick for each part of a long page, the current one longer; hover to preview a part, click to travel there.", files: ["src/kiln/components/wayfinding/ScrollCheckpoints.tsx", "src/kiln/motion.ts", "src/kiln/controllable.ts", "src/kiln/cn.ts"], Demo: ScrollCheckpointsDemo },
   ],
 };

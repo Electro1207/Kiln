@@ -16,6 +16,7 @@ import { Accordion } from "../../../kiln/components/wayfinding/Accordion";
 import { SidebarNav } from "../../../kiln/components/menus/SidebarNav";
 import { DocsNav, type DocsNavSection } from "../../../kiln/components/menus/DocsNav";
 import { BackToTop } from "../../../kiln/components/wayfinding/BackToTop";
+import { ScrollCheckpoints } from "../../../kiln/components/wayfinding/ScrollCheckpoints";
 
 
 function Mark({ name = "Spook Central" }: { name?: string }) {
@@ -411,6 +412,35 @@ export function BackToTopDemo() {
         </div>
         <BackToTop container={ref} threshold={160} position="inline" />
       </div>
+    </Stage>
+  );
+}
+
+const FELLOWSHIP_PATH = [
+  { id: "cp-shire", label: "The Shire", summary: "Bag End, a birthday party and a ring left on the mantelpiece." },
+  { id: "cp-bree", label: "Bree", summary: "The Prancing Pony, and a Ranger in the corner." },
+  { id: "cp-rivendell", label: "Rivendell", summary: "A council, and nine walkers chosen." },
+  { id: "cp-moria", label: "Moria", summary: "Speak, friend, and enter." },
+  { id: "cp-lorien", label: "Lothlórien", summary: "A mirror, a phial and three grey cloaks." },
+];
+
+export function ScrollCheckpointsDemo() {
+  const box = useRef<HTMLDivElement>(null);
+  return (
+    <Stage className="flex-col items-stretch">
+      <div className="relative mx-auto w-full max-w-3xl">
+        <div ref={box} className="relative h-[420px] overflow-y-auto overscroll-contain rounded-card border border-line bg-surface pr-12">
+          {FELLOWSHIP_PATH.map((c, i) => (
+            <section key={c.id} id={c.id} className="flex min-h-[340px] flex-col justify-center gap-2 border-b border-line px-8 last:border-0">
+              <span className="text-sm text-faint tabular">Chapter {i + 1}</span>
+              <h3 className="text-3xl font-semibold tracking-[-0.02em] text-ink">{c.label}</h3>
+              <p className="max-w-md text-muted">{c.summary}</p>
+            </section>
+          ))}
+        </div>
+        <ScrollCheckpoints items={FELLOWSHIP_PATH} container={box} position="inline" className="absolute right-1 top-1/2 -translate-y-1/2" />
+      </div>
+      <p className="text-center text-sm text-muted">Hover a tick to preview a chapter; click to travel there.</p>
     </Stage>
   );
 }
