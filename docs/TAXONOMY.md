@@ -389,7 +389,7 @@ Group id: `text-effects` · Folder: `text-effects/` · 5 entries
 | Scroll words | `scroll-words` | `ScrollWords.tsx`, `src/kiln/components/shared/useLoop.ts` |
 
 ### Effects
-Group id: `effects` · Folder: `effects/` · 15 entries
+Group id: `effects` · Folder: `effects/` · 16 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -408,6 +408,7 @@ Group id: `effects` · Folder: `effects/` · 15 entries
 | Drift field | `drift-field` | `DriftField.tsx`, `src/kiln/components/shared/useLoop.ts` |
 | Secret hunt | `secret-hunt` | `SecretHunt.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Firefly | `firefly` | `Firefly.tsx`, `src/kiln/components/shared/useLoop.ts`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
+| Card fan | `card-fan` | `CardFan.tsx`, `src/kiln/components/shared/useLoop.ts`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 
 ## Where files live now
 

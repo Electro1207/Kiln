@@ -169,6 +169,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `DriftField` — Small live controls floating up the edges of a page in two columns at their own speeds, looping back in from below; `pin` keeps one at the foot of its column
 - `SecretHunt` (SecretHunt, Secret, useSecretHunt) — Collectibles hidden around a page: each `Secret` lifts away when found, a quiet notice keeps count, finds can be remembered (`storageKey`)
 - `Firefly` — Small lights drifting and blinking across a positioned parent; with `message`, catching one makes it flare and speak, beside it or in a pill at the bottom (`messageAt`)
+- `CardFan` — A hand of cards dealt out of one stack onto an arc as it scrolls into view (`deal`); a card lifts while hovered or focused and its `content({ active })` can play something; a sideways row on phones
 - `Dock` — macOS magnification by transform only: icons swell, neighbours part, the bar widens
 - `OrbitingCircles` — Icons circling a centre on the compositor, upright the whole way round
 - `ParallaxSection` — Sections that hang back and fade as they leave, so the next one slides over them; works at any height

@@ -109,6 +109,7 @@ export { type TerminalStep, type TerminalScriptProps, TerminalScript } from "./c
 export { type AnimatedBeamProps, AnimatedBeam } from "./components/effects/AnimatedBeam";
 export { type AnimatedListProps, AnimatedList } from "./components/effects/AnimatedList";
 export { type BorderBeamProps, BorderBeam } from "./components/effects/BorderBeam";
+export { type FanCard, type CardFanProps, CardFan } from "./components/effects/CardFan";
 export { type JourneyStop, type CardJourneyProps, useJourney, CardJourney } from "./components/effects/CardJourney";
 export { type DockItem, type DockLabels, dockLabels, type DockProps, Dock } from "./components/effects/Dock";
 export { type DriftItem, type DriftFieldProps, DriftField } from "./components/effects/DriftField";
