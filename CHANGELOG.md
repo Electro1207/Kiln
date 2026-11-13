@@ -4,6 +4,10 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+### Added
+
+- Motion tiers for low-end devices. `useMotionTier()` is `"full"` or `"lite"`, detected from device memory, CPU cores, Save-Data and one short frame-rate probe; force it with `<MotionTierProvider tier="full" | "lite">`. In `"lite"`, only the effects that can't be made cheap change, and each keeps its curve and timing.
+
 ### Changed
 
 - Loops (`Spinner`, `Skeleton`, `OrbitingCircles`, `BorderBeam`, `AnimatedBeam`, `Firefly` and every other `useLoop` user) share one IntersectionObserver and one reduced-motion listener per page instead of one each.
