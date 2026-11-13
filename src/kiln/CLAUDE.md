@@ -159,7 +159,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `JSONViewer` — A document as a tree: fold branches, copy any path or value, and search to open what matches
 - `LogStream` — A live tail with level filters that pauses under the pointer and renders only the rows in view
 - `Terminal` — Scrollback with coloured output, a typed prompt with a blinking caret, and auto-scroll that lets go when you scroll up
-- `TerminalScript` — Plays a scripted session in a Terminal: commands typed at a human pace, output line by line, a prompt a `cd` can change; click or a key skips; then the prompt takes real commands
+- `TerminalScript` — Plays a scripted session in a Terminal: commands typed at a human pace, output line by line, a prompt a `cd` can change; click or a key skips; then the prompt takes real commands, and takes focus so people can type at once (`focusWhenDone`)
 
 ### `effects/`
 - `AnimatedBeam` — Curved connectors with a light travelling along them, drawn as a moving dash
