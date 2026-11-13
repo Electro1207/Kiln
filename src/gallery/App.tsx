@@ -6,6 +6,7 @@ import { useRoute, type Route } from "./useRoute";
 import { StudioProvider } from "./studio/store";
 import { ThemeStudio } from "./studio/ThemeStudio";
 import { About } from "./About";
+import { Legal } from "./Legal";
 import { Overview } from "./Overview";
 import { CategoryPage } from "./CategoryPage";
 import { Sidebar } from "./Sidebar";
@@ -205,6 +206,8 @@ function Shell() {
               {route.page === "overview" && <Overview onNavigate={go} />}
               {route.page === "studio" && <ThemeStudio />}
               {route.page === "about" && <About />}
+              {route.page === "privacy" && <Legal doc="privacy" />}
+              {route.page === "terms" && <Legal doc="terms" />}
               {route.page === "category" &&
                 (category ? (
                   <CategoryPage category={category} root={sheet} onActive={onSpy} />
@@ -223,6 +226,8 @@ function Shell() {
             <a href={KILN_LINKS.bug} target="_blank" rel="noreferrer" className="hover:text-accent">Report a bug</a>
             <a href={KILN_LINKS.discussions} target="_blank" rel="noreferrer" className="hover:text-accent">Questions and ideas</a>
             <a href="#/about" onClick={(e) => { e.preventDefault(); go({ page: "about" }); }} className="hover:text-accent">About Kiln</a>
+            <a href="#/privacy" onClick={(e) => { e.preventDefault(); go({ page: "privacy" }); }} className="hover:text-accent">Privacy</a>
+            <a href="#/terms" onClick={(e) => { e.preventDefault(); go({ page: "terms" }); }} className="hover:text-accent">Terms</a>
           </nav>
           <p className="max-w-[75ch]">
             Kiln, an open-source component library. Photographs and video from Wikimedia Commons:{" "}
