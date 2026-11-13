@@ -571,7 +571,17 @@ export function ChangelogDemo() {
       <Changelog
         title="Changelog"
         description="What changed in Ecto, newest first."
+        filter
+        markLatest
+        initialCount={3}
         releases={[
+          {
+            version: "Unreleased", title: "Proton pack, mark II",
+            changes: [
+              { kind: "new", text: "A `stream-cross` warning before two streams meet." },
+              { kind: "deprecated", text: "The **Mark I** wand. It still fires, but not for long." },
+            ],
+          },
           {
             version: "2.4.0", date: "10 Nov 2026", title: "Ecto-1A dispatch",
             body: "The car now picks its own route and tells the client when it will arrive.",
@@ -593,6 +603,13 @@ export function ChangelogDemo() {
             changes: [
               { kind: "new", text: "Flags rising slime levels under the city before the river turns pink." },
               { kind: "improved", text: "Faster search across 1,984 containment records." },
+            ],
+          },
+          {
+            version: "2.2.0", date: "2 Oct 2026", title: "Library edition",
+            changes: [
+              { kind: "removed", text: "The card catalogue sync. The librarian asked us to stop." },
+              { kind: "fixed", text: "Floating books no longer count as Class 4 sightings." },
             ],
           },
         ]}
