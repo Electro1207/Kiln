@@ -19,6 +19,6 @@ export const category: Category = {
     { id: "masonry", name: "Masonry gallery", summary: "Pictures of mixed heights in columns, rising in as they scroll into view.", files: ["src/kiln/components/media/Masonry.tsx", "src/kiln/cn.ts", "src/kiln/motion.ts"], Demo: MasonryDemo },
     { id: "hero", name: "Hero", summary: "A first screen: the title, one sentence, the action and a large picture.", files: ["src/kiln/components/marketing/Hero.tsx", "src/kiln/cn.ts", "src/kiln/motion.ts"], Demo: HeroDemo },
     { id: "feature-split", name: "Feature section", summary: "Text and its picture side by side, either way round.", files: ["src/kiln/components/marketing/FeatureSplit.tsx", "src/kiln/cn.ts", "src/kiln/motion.ts"], Demo: FeatureDemo },
-    { id: "footer", name: "Footer", summary: "A designed close: link columns, then the name at full width.", files: ["src/kiln/components/marketing/Footer.tsx", "src/kiln/cn.ts", "src/kiln/motion.ts"], Demo: FooterDemo },
+    { id: "footer", name: "Footer", summary: "A designed close: link columns, then the name sized to fill the width; `reveal` makes it a curtain the page lifts off.", files: ["src/kiln/components/marketing/Footer.tsx", "src/kiln/cn.ts", "src/kiln/motion.ts"], Demo: FooterDemo },
   ],
 };

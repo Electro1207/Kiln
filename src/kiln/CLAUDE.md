@@ -199,7 +199,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `FAQSection` — Two columns: the heading and a way to ask, then the questions
 - `FeatureSplit` — Text and its picture side by side, either way round
 - `FeatureTabs` — Features on one side, a picture panel that cross-fades on the other; advances on its own and pauses on hover
-- `Footer` — A designed close: link columns, then the name at full width
+- `Footer` — A designed close: link columns (links, external links or plain lines), then the name sized to fill the width; `reveal` makes it a curtain the page scrolls off
 - `Hero` — A first screen: the title, one sentence, the action and a large picture
 - `NewsletterSignup` — Email field with inline validation, a loading state and a success message in place
 - `NotFound` — A plain way back and the places people usually meant

@@ -375,8 +375,8 @@ export function FooterDemo() {
         }
         columns={[
           { title: "Press", links: [{ label: "Maps", href: "#/_/masonry" }, { label: "Invitations", href: "#/_/carousel" }, { label: "Menus", href: "#/_/marquee" }, { label: "Prices", href: "#/_/hero" }] },
-          { title: "Visit", links: [{ label: "Find us", href: "#/_/feature-split" }, { label: "Opening hours", href: "#/_/aspect-image" }, { label: "Printing classes", href: "#/_/stat-card" }] },
-          { title: "Elsewhere", links: [{ label: "Newsletter", href: "#/_/interactive-card" }, { label: "Green Dragon noticeboard", href: "#/_/expandable-card" }, { label: "Email", href: "#/_/separator" }] },
+          { title: "Visit", links: [{ label: "Find us", href: "#/_/feature-split" }, { label: "Opening hours", href: "#/_/aspect-image" }, { label: "Printing classes", href: "#/_/stat-card" }, { label: "Closed on Highdays" }] },
+          { title: "Elsewhere", links: [{ label: "Newsletter", href: "#/_/interactive-card" }, { label: "Green Dragon noticeboard", href: "#/_/expandable-card" }, { label: "Email", href: "#/_/separator" }, { label: "Bag End, on Wikipedia", href: "https://en.wikipedia.org/wiki/Bag_End", external: true }] },
         ]}
         legal="© 2026 Bag End Press. No admittance except on party business."
       />

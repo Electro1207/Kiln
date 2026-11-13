@@ -7,7 +7,7 @@ export { type ContactSectionLabels, type ContactSectionIcons, contactSectionIcon
 export { type FAQSectionProps, FAQSection } from "../components/marketing/FAQSection";
 export { type FeatureSplitProps, FeatureSplit } from "../components/marketing/FeatureSplit";
 export { type FeatureTabsLabels, featureTabsLabels, type Feature, type FeatureTabsProps, FeatureTabs } from "../components/marketing/FeatureTabs";
-export { type FooterProps, Footer } from "../components/marketing/Footer";
+export { type FooterLink, type FooterProps, Footer } from "../components/marketing/Footer";
 export { type HeroProps, Hero } from "../components/marketing/Hero";
 export { type NewsletterSignupLabels, type NewsletterSignupIcons, newsletterSignupIcons, newsletterSignupLabels, type NewsletterSignupProps, NewsletterSignup } from "../components/marketing/NewsletterSignup";
 export { type NotFoundLabels, type NotFoundIcons, notFoundIcons, notFoundLabels, type NotFoundProps, NotFound } from "../components/marketing/NotFound";
