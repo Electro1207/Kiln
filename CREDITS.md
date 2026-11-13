@@ -27,9 +27,28 @@ Every picture, video, font and icon in Kiln is free to use. Anything licensed CC
 
 The credit is shown under the player, in the gallery footer, and here.
 
-## Placeholder photographs
+## Sample photographs
 
-Cards, avatars and galleries in several demos load pictures from [picsum.photos](https://picsum.photos), which serves photographs from [Unsplash](https://unsplash.com) under the [Unsplash Licence](https://unsplash.com/license): free to use, no credit required.
+Cards, avatars and galleries in the demos use these photographs, kept in `public/demo/photos` so the gallery never depends on another site being up. All are dedicated to the public domain under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/); no credit is required, but it is given here.
+
+| File | Title | Creator | Licence | Credit required | Source | Changes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `breakfast.webp` | Breakfast Food | Ali Inay | CC0 1.0 | No | [StockSnap](https://stocksnap.io/photo/breakfast-food-OC8WX0E0X3) | Resized, WebP |
+| `fireworks.webp` | Fireworks Lights | Mike Enerio | CC0 1.0 | No | [StockSnap](https://stocksnap.io/photo/fireworks-lights-11JGOISGC7) | Resized, WebP |
+| `round-door.webp` | Carved Wooden Door | Ray Price | CC0 1.0 | No | [Wikimedia Commons](https://commons.wikimedia.org/w/index.php?curid=82133359) | Resized, WebP |
+| `forest-stream.webp` | Forest Stream | Travel Adventures | CC0 1.0 | No | [StockSnap](https://stocksnap.io/photo/forest-stream-CZYFNORAIG) | Resized, WebP |
+| `hill-ruins.webp` | Visby View | Ypsilon from Finland | CC0 1.0 | No | [Wikimedia Commons](https://commons.wikimedia.org/w/index.php?curid=26751221) | Resized, WebP |
+| `carved-door.webp` | Detail lion head wooden door Vienna | Jebulon | CC0 1.0 | No | [Wikimedia Commons](https://commons.wikimedia.org/w/index.php?curid=18533677) | Resized, WebP |
+| `white-city.webp` | The city of Argos from the Castle of Larissa on September 5, 2020 | George E. Koronaios | CC0 1.0 | No | [Wikimedia Commons](https://commons.wikimedia.org/w/index.php?curid=93890578) | Resized, WebP |
+| `snowy-mountains.webp` | Snowy Mountains | Bernard Spragg | CC0 1.0 | No | [StockSnap](https://stocksnap.io/photo/snowy-mountains-X0MZ2TYH1B) | Resized, WebP |
+| `misty-valley.webp` | Peeking mountains misty valley below | Unknown | CC0 1.0 | No | [rawpixel](https://www.rawpixel.com/image/3290928/free-photo-image-adventure-cc0-cliff) | Resized, WebP |
+| `waterfall.webp` | Nastapoka River Waterfall | NicolasPerrault | CC0 1.0 | No | [Wikimedia Commons](https://commons.wikimedia.org/w/index.php?curid=19240446) | Resized, WebP |
+| `conifers-snow.webp` | Brown conifers in the snowy mountains (Unsplash) | Georg Nietsch bartondawes | CC0 1.0 | No | [Wikimedia Commons](https://commons.wikimedia.org/w/index.php?curid=61694124) | Resized, WebP |
+| `green-hills.webp` | Green Hills barn BucksCo PA | Smallbones | CC0 1.0 | No | [Wikimedia Commons](https://commons.wikimedia.org/w/index.php?curid=17556520) | Resized, WebP |
+| `map.webp` | Topographic map of Kansai | Soren Bradley | CC0 1.0 | No | [Wikimedia Commons](https://commons.wikimedia.org/w/index.php?curid=166081529) | Resized, WebP |
+| `portrait-young.webp` | portrait young man short curly | Unknown | CC0 1.0 | No | [rawpixel](https://www.rawpixel.com/image/7651266/image-vintage-art-public-domain) | Resized, WebP |
+| `portrait-old.webp` | Portrait of an Old Man (Possibly a Rabbi) title QS:P1476,en:'Portrait of an Old Man (Possibly a Rabbi) ' label QS:Len,'Portrait of an Old Man (Possibly a Rabbi) ' label QS:Lfr,'Homme âgé' label QS:Lnl,'Olie schets van een oude man' | Rembrandt | CC0 1.0 | No | [Wikimedia Commons](https://commons.wikimedia.org/w/index.php?curid=19027588) | Resized, WebP |
+| `pub.webp` | English Pub Interior | 55belgianbeerfan | CC0 1.0 | No | [Wikimedia Commons](https://commons.wikimedia.org/w/index.php?curid=188383567) | Resized, WebP |
 
 ## Fonts
 

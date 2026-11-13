@@ -17,8 +17,17 @@ import { BarChart } from "../../../kiln/components/charts/BarChart";
 import { Button } from "../../../kiln/components/buttons/Button";
 import { Dialog } from "../../../kiln/components/overlays/Dialog";
 
-const pic = (seed: string, w: number, h: number) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
-const ALT = "Sample photograph (placeholder)";
+// Sample photographs, CC0, kept in public/demo/photos (sources in its credits.json and CREDITS.md).
+const PHOTOS: Record<string, string> = {
+  "second-breakfast": "breakfast", "eleventy-first": "fireworks", "road-to-bree": "snowy-mountains",
+  "ark-covenant": "misty-valley", "cross-coronado": "waterfall", "holy-grail": "hill-ruins",
+  "bag-end-door": "round-door", "green-dragon": "pub", rivendell: "forest-stream", weathertop: "hill-ruins",
+  "moria-gate": "carved-door", "minas-tirith": "white-city", "mount-doom": "conifers-snow", "mount-doom-tiny": "conifers-snow-tiny",
+  "hobbiton-press": "green-hills", "thrors-map": "map",
+};
+const SHIRE = ["green-hills", "forest-stream", "round-door", "waterfall", "breakfast", "misty-valley", "pub", "white-city", "snowy-mountains"];
+const pic = (seed: string) => `${import.meta.env.BASE_URL}demo/photos/${PHOTOS[seed] ?? SHIRE[Number(seed.split("-").pop()) % SHIRE.length] ?? "green-hills"}.webp`;
+const ALT = "Sample photograph";
 
 export function CardDemo() {
   const used = 68.4, total = 100;
@@ -69,14 +78,14 @@ export function MediaCardDemo() {
       >
         {story && (
           <div className="space-y-3">
-            <img src={pic(story.seed, 640, 480)} alt={ALT} width={640} height={480} className="aspect-[4/3] w-full rounded-control object-cover" />
+            <img src={pic(story.seed)} alt={ALT} width={640} height={480} className="aspect-[4/3] w-full rounded-control object-cover" />
             <p className="text-sm text-ink">{story.body}</p>
           </div>
         )}
       </Dialog>
       <div className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {STORIES.map((s) => (
-          <MediaCard key={s.seed} onClick={() => setStory(s)} image={pic(s.seed, 640, 480)} alt={ALT} meta={s.meta} title={s.title}>
+          <MediaCard key={s.seed} onClick={() => setStory(s)} image={pic(s.seed)} alt={ALT} meta={s.meta} title={s.title}>
             {s.body}
           </MediaCard>
         ))}
@@ -134,7 +143,7 @@ export function ExpandableDemo() {
             id: "ark",
             title: "The Ark of the Covenant",
             meta: "Tanis, Egypt · 1936",
-            image: pic("ark-covenant", 1120, 700),
+            image: pic("ark-covenant"),
             alt: ALT,
             detail: (
               <div className="flex flex-col gap-3">
@@ -152,7 +161,7 @@ export function ExpandableDemo() {
             id: "coronado",
             title: "The Cross of Coronado",
             meta: "Utah · 1912",
-            image: pic("cross-coronado", 1120, 700),
+            image: pic("cross-coronado"),
             alt: ALT,
             detail: <p>Taken back from treasure hunters by a thirteen-year-old scout, lost the same night, recovered off the Portuguese coast in 1938. “It belongs in a museum!”</p>,
           },
@@ -160,7 +169,7 @@ export function ExpandableDemo() {
             id: "grail",
             title: "The Holy Grail",
             meta: "Canyon of the Crescent Moon · 1938",
-            image: pic("holy-grail", 1120, 700),
+            image: pic("holy-grail"),
             alt: ALT,
             detail: <p>Guarded by a knight for seven hundred years and chosen from a table of decoys. Of one visitor: “He chose… poorly.” Of the next: “You have chosen wisely.”</p>,
           },
@@ -225,7 +234,7 @@ export function CarouselDemo() {
         slides={PLACES.map((s) => (
           <figure className="flex flex-col gap-2" key={s.seed}>
             <div className="aspect-[4/3] overflow-hidden rounded-card bg-active">
-              <img decoding="async" src={pic(s.seed, 800, 600)} alt={ALT} width={800} height={600} draggable={false} className="size-full object-cover" />
+              <img decoding="async" src={pic(s.seed)} alt={ALT} width={800} height={600} draggable={false} className="size-full object-cover" />
             </div>
             <figcaption className="flex items-baseline justify-between gap-3 text-sm">
               <span className="shrink-0 whitespace-nowrap font-medium text-ink">{s.title}</span>
@@ -287,8 +296,8 @@ export function ImageDemo() {
       <div className="w-full max-w-xl">
         <AspectImage
           key={n}
-          src={`${pic("mount-doom", 1200, 675)}?v=${n}`}
-          placeholder={pic("mount-doom", 24, 14)}
+          src={`${pic("mount-doom")}?v=${n}`}
+          placeholder={pic("mount-doom-tiny")}
           alt={ALT}
           ratio={16 / 9}
           caption="Space is reserved before the picture arrives, so nothing below it moves."
@@ -303,7 +312,7 @@ export function MasonryDemo() {
   const sizes = [[600, 800], [600, 420], [600, 600], [600, 900], [600, 450], [600, 700], [600, 520], [600, 820], [600, 400]];
   return (
     <Stage align="start">
-      <Masonry items={sizes.map(([w, h], i) => ({ id: `m${i}`, src: pic(`shire-${i}`, w, h), alt: ALT, width: w, height: h }))} />
+      <Masonry items={sizes.map(([w, h], i) => ({ id: `m${i}`, src: pic(`shire-${i}`), alt: ALT, width: w, height: h }))} />
     </Stage>
   );
 }
@@ -322,7 +331,7 @@ export function HeroDemo() {
           </>
         }
         aside="Open every day, after second breakfast."
-        image={{ src: pic("hobbiton-press", 900, 1125), alt: ALT, width: 900, height: 1125 }}
+        image={{ src: pic("hobbiton-press"), alt: ALT, width: 900, height: 1125 }}
       />
     </Stage>
   );
@@ -343,7 +352,7 @@ export function FeatureDemo() {
           { title: "Ready in a fortnight", text: "Sooner, if a wizard asks." },
           { title: "Sent by post", text: "As far as Bree, and beyond." },
         ]}
-        image={{ src: pic("thrors-map", 1000, 800), alt: ALT, width: 1000, height: 800 }}
+        image={{ src: pic("thrors-map"), alt: ALT, width: 1000, height: 800 }}
       />
       <Button size="sm" variant="ghost" className="self-start" onClick={() => setRev((r) => !r)}>Swap sides</Button>
     </Stage>

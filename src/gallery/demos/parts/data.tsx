@@ -22,9 +22,9 @@ import { spring } from "../../../kiln/motion";
 
 
 const FELLOWSHIP = [
-  { name: "Frodo Baggins", src: "https://picsum.photos/seed/frodo-portrait/96/96" },
+  { name: "Frodo Baggins", src: `${import.meta.env.BASE_URL}demo/photos/portrait-young.webp` },
   { name: "Samwise Gamgee" },
-  { name: "Gandalf", src: "https://picsum.photos/seed/gandalf-portrait/96/96" },
+  { name: "Gandalf", src: `${import.meta.env.BASE_URL}demo/photos/portrait-old.webp` },
   { name: "Aragorn" },
   { name: "Legolas" },
   { name: "Gimli" },
@@ -37,7 +37,7 @@ export function AvatarDemo() {
   return (
     <Stage align="start" className="flex-col sm:flex-row sm:gap-12">
       <Variant label="Sizes and status">
-        <Avatar name="Luke Skywalker" src="https://picsum.photos/seed/luke-portrait/96/96" size="lg" status="online" />
+        <Avatar name="Luke Skywalker" src={`${import.meta.env.BASE_URL}demo/photos/portrait-young.webp`} size="lg" status="online" />
         <Avatar name="Leia Organa" size="md" status="away" />
         <Avatar name="Han Solo" size="sm" status="busy" />
         <Avatar name="Ellen Ripley" size="md" status="offline" />
@@ -45,7 +45,7 @@ export function AvatarDemo() {
       <Variant label="Any size in pixels">
         <Avatar name="Sarah Connor" size={20} />
         <Avatar name="Kyle Reese" size={64} status="online" />
-        <Avatar name="John Connor" src="https://picsum.photos/seed/luke-portrait/160/160" size={80} />
+        <Avatar name="John Connor" src={`${import.meta.env.BASE_URL}demo/photos/portrait-old.webp`} size={80} />
       </Variant>
       <Variant label="The Fellowship (hover or focus to fan out)">
         <AvatarGroup people={FELLOWSHIP} max={5} />
