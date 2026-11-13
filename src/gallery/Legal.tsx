@@ -7,8 +7,8 @@ const DOCS = { privacy, terms } as const;
 
 // Repo-relative links in the Markdown point at the site's own pages or at the file on GitHub.
 function target(href: string) {
-  if (href === "PRIVACY.md") return "#/privacy";
-  if (href === "TERMS.md") return "#/terms";
+  if (href === "PRIVACY.md") return "/privacy";
+  if (href === "TERMS.md") return "/terms";
   if (!/^[a-z]+:/i.test(href)) return `${KILN_REPO}/blob/main/${href}`;
   return href;
 }

@@ -188,7 +188,7 @@ A dedicated prop such as `icon`, `leading` or `trailing` still wins over `icons`
 
 Every colour, radius and shadow comes from `tokens.css`. Light values are in `:root` and dark values in `.dark`, which goes on `<html>`. Components only use the token utilities, so when you change a token, the whole library follows in both modes.
 
-The easiest way to make a theme is the theme studio in the gallery (the palette icon in the top bar, or `#/studio`). Pick a preset or set each colour for light and dark, watch every page update, then click Copy tokens.css or Download.
+The easiest way to make a theme is the theme studio in the gallery (the palette icon in the top bar, or [usekiln.pages.dev/studio](https://usekiln.pages.dev/studio)). Pick a preset or set each colour for light and dark, watch every page update, then click Copy tokens.css or Download.
 
 If you copied Kiln in, replace `src/kiln/tokens.css` with the new file. If you use the npm package, put the variables in your own CSS after the Kiln import, and they override the package's values:
 
