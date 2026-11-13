@@ -209,7 +209,7 @@ export function CardJourney({
             <Aside key={s.id} f={f} i={i} hold={h} side={sideOf(i)} reduce={reduce}>{s.aside}</Aside>
           ))}
           {foreground && <div className="pointer-events-none absolute inset-0">{foreground}</div>}
-          <motion.div ref={stage} style={flat ? undefined : { x, y, scale, rotate: rotateZ }} className="pointer-events-none absolute inset-0 grid place-items-center">
+          <motion.div ref={stage} style={flat ? undefined : { x, y, scale, rotate: rotateZ }} className="pointer-events-none absolute inset-0 grid place-items-center will-change-transform">
             <div ref={bob} className="grid size-full place-items-center will-change-transform">
               <motion.div
                 style={flat ? undefined : spin === "x" ? { rotateX: rotate } : { rotateY: rotate }}
@@ -257,7 +257,7 @@ function Aside({ f, i, hold, side, reduce, children }: { f: MotionValue<number>;
       style={{ opacity, y }}
       inert={!shown}
       aria-hidden={!shown}
-      className={cn("pointer-events-none absolute inset-y-0 grid items-center px-[6vw]", place)}
+      className={cn("pointer-events-none absolute inset-y-0 grid items-center px-[6vw] will-change-[opacity,transform]", place)}
     >
       {/* Only the content takes the pointer, so whatever sits behind the empty half stays reachable. */}
       <div className={side !== "center" && shown ? "pointer-events-auto" : undefined}>{children}</div>

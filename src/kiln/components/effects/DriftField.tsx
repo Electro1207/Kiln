@@ -56,7 +56,7 @@ function Piece({ item, at, speed, loop, inset, progress, className, still }: { i
     <motion.div style={{ y }} className="pointer-events-none absolute inset-0 will-change-transform">
       <motion.div
         style={{ rotate, [right ? "right" : "left"]: inset }}
-        className={cn("pointer-events-auto absolute top-0 rounded-card border border-line bg-surface px-4 py-3", className)}
+        className={cn("pointer-events-auto absolute top-0 will-change-transform rounded-card border border-line bg-surface px-4 py-3", className)}
       >
         {item.content}
       </motion.div>
