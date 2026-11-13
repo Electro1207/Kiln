@@ -186,7 +186,10 @@ function build(it, withContent) {
   if (it.deps.length) o.registryDependencies = it.deps.map(url);
   o.files = [...it.files, ...(it.extraFiles ?? [])].map((p) => fileEntry(p, withContent));
   const group = it.entry && order.get(it.entry.id);
-  if (group) o.categories = [group.section, group.group];
+  if (group) {
+    o.categories = [group.section, group.group];
+    o.docs = `Live demo, props and examples: ${SITE}/${group.group}/${it.entry.id}`;
+  }
   if (it.name === "kiln-base") o.docs = BASE_DOCS;
   return o;
 }
