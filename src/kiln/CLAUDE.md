@@ -329,7 +329,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `TreeView` — A file explorer with the full keyboard model of a tree; folders open with a smooth change of height
 - `WeekCalendar` — Events on a time grid, overlapping ones side by side, a line for now; one day at a time on phones
 
-Shared helpers (imported by many, not components): `components/shared/` has `Anchored` (floating panel behind Select, menus, pickers), `Field` (label, hint, error wrapper), `useLoop` (compositor loops, `usePrefersReducedMotion`), `useOverlay` (portal, scroll lock, focus trap, Esc layer stack).
+Shared helpers (imported by many, not components): `components/shared/` has `Anchored` (floating panel behind Select, menus, pickers), `Field` (label, hint, error wrapper), `useLoop` (compositor loops that pause off-screen, `usePrefersReducedMotion`, `useOnScreen`; all instances share one observer), `useOverlay` (portal, scroll lock, focus trap, Esc layer stack).
 
 ## 3. Copy a single component into a project
 
