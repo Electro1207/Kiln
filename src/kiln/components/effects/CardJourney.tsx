@@ -221,9 +221,10 @@ function Aside({ f, i, hold, side, reduce, children }: { f: MotionValue<number>;
       style={{ opacity, y }}
       inert={!shown}
       aria-hidden={!shown}
-      className={cn("absolute inset-y-0 grid items-center px-[6vw]", place, side === "center" ? "pointer-events-none" : shown ? "pointer-events-auto" : "pointer-events-none")}
+      className={cn("pointer-events-none absolute inset-y-0 grid items-center px-[6vw]", place)}
     >
-      {children}
+      {/* Only the content takes the pointer, so whatever sits behind the empty half stays reachable. */}
+      <div className={side !== "center" && shown ? "pointer-events-auto" : undefined}>{children}</div>
     </motion.div>
   );
 }
