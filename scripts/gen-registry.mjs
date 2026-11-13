@@ -4,6 +4,7 @@
      public/r/kiln-base.json    cn, motion, controllable, theme, tokens.css, kiln.css (+ CLAUDE.md)
      public/r/kiln-<helper>.json  shared helpers (Anchored, Field, useOverlay, useLoop, ...)
      public/r/registry.json     the index
+     public/r/stats.json        the version and the number of components, for other sites to show
      public/kiln-add.mjs        the zero-dependency installer (copy of scripts/kiln-add.mjs)
    Entries come from src/gallery/demos/*.tsx; what each needs comes from the real relative imports of its files,
    so a component edited by anyone stays in sync. Files keep their src/kiln/... layout (target), so relative imports work.
@@ -204,5 +205,8 @@ writeFileSync(join(OUT, "registry.json"), JSON.stringify({
   homepage: SITE,
   items: sorted.map((it) => { const { $schema: _schema, ...rest } = build(it, false); return rest; }),
 }, null, 2) + "\n");
+// A few figures other sites can show without loading the whole index (served with CORS like the rest of /r/).
+const version = JSON.parse(readFileSync(join(ROOT, "packages/kiln/package.json"), "utf8")).version;
+writeFileSync(join(OUT, "stats.json"), JSON.stringify({ version, components: entries.length, items: items.size }) + "\n");
 copyFileSync(join(ROOT, "scripts/kiln-add.mjs"), join(dirname(OUT), "kiln-add.mjs"));
 console.log(`gen-registry: ${entries.length} entries, ${items.size} items (${items.size - entries.length} helpers/base) -> ${rel(OUT)}/*.json, base ${SITE}`);
