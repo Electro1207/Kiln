@@ -51,12 +51,15 @@ function Piece({ item, at, speed, loop, inset, progress, className, still }: { i
     return `${pos * 100}%`;
   });
   const rotate = useTransform(progress, (v) => (item.tilt ?? 0) + (still ? 0 : Math.sin(v * 2 + at * 7) * 3));
+  // The layer is as tall as the field, so a percentage move is a share of the field, not of the piece.
   return (
-    <motion.div
-      style={{ y, rotate, [right ? "right" : "left"]: inset }}
-      className={cn("pointer-events-auto absolute top-0 rounded-card border border-line bg-surface px-4 py-3 will-change-transform", className)}
-    >
-      {item.content}
+    <motion.div style={{ y }} className="pointer-events-none absolute inset-0 will-change-transform">
+      <motion.div
+        style={{ rotate, [right ? "right" : "left"]: inset }}
+        className={cn("pointer-events-auto absolute top-0 rounded-card border border-line bg-surface px-4 py-3", className)}
+      >
+        {item.content}
+      </motion.div>
     </motion.div>
   );
 }
