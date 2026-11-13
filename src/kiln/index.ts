@@ -3,7 +3,7 @@
 
 // core
 export { cn } from "./cn";
-export { springSoft, spring, springFirm, springSnappy, springLand, springBouncy, easeOut, easeInOut, fade, press, popVariants, staggerParent, staggerChild } from "./motion";
+export { springSoft, spring, springFirm, springSnappy, springLand, springBouncy, easeOut, easeInOut, fade, press, popVariants, staggerParent, staggerChild, type MotionTier, deviceMotionTier, MotionTierProvider, useMotionTier } from "./motion";
 export { type Size, useControllable } from "./controllable";
 export { type ThemeMode, type ThemeProviderProps, ThemeProvider, useThemeActions, useTheme } from "./theme";
 export { type ColorwayMode, type ColorwayColors, type ColorwayTheme, hexToRgb, mix, contrast, completeColors, colorwayTokens, radiusTokens, colorwayColors, colorwayOwnMode, colorwaySwatch, colorwayCss, colorwayTokensFile, kilnColorways } from "./colorway";
