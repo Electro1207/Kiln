@@ -1,13 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, type Transition } from "motion/react";
 import { Archive, Check, FilePlus2, Moon, Play, Search, Settings, UserPlus } from "lucide-react";
-import { Stage, Variant } from "../../ui";
+import { Stage, Variant, Btn } from "../../ui";
 import { Button } from "../../../kiln/components/buttons/Button";
 import { ThemeSwitcher, ThemeToggle } from "../../../kiln/components/primitives/ThemeToggle";
 import { ScrollArea } from "../../../kiln/components/primitives/ScrollArea";
 import { CommandPalette, type CommandItem } from "../../../kiln/components/menus/CommandPalette";
 import { springBouncy, springFirm, springSnappy, springSoft, easeOut } from "../../../kiln/motion";
 import { useTheme } from "../../../kiln/theme";
+import { GlazePicker } from "../../../kiln/components/primitives/GlazePicker";
+import { Glaze } from "../../../kiln/components/primitives/Glaze";
+import type { GlazeTheme } from "../../../kiln/glaze";
+import { Badge } from "../../../kiln/components/status/Badge";
+import { Slider } from "../../../kiln/components/choice-controls/Slider";
 
 const TOKENS: { name: string; cls: string; note: string }[] = [
   { name: "ground", cls: "bg-ground", note: "Frame" },
@@ -223,6 +228,67 @@ export function PaletteDemo() {
         </AnimatePresence>
       </p>
       <CommandPalette open={open} onOpenChange={setOpen} items={items} placeholder="Search the galaxy…" />
+    </Stage>
+  );
+}
+
+/* Glazes from films: each is a ground, an ink and an accent per mode; Kiln works out the rest. */
+const FILM_GLAZES: GlazeTheme[] = [
+  { id: "tatooine", name: "Tatooine", radius: 10,
+    light: { ground: "#efe3cf", ink: "#2b1d10", accent: "#b5541b" },
+    dark: { ground: "#1a130c", ink: "#f1e4cf", accent: "#f0a35a" } },
+  { id: "ecto", name: "Ecto-1", radius: 6,
+    light: { ground: "#eef4ea", ink: "#13200f", accent: "#3f8f1e" },
+    dark: { ground: "#0c120a", ink: "#e5f0dd", accent: "#8fe05c" } },
+  { id: "nostromo", name: "Nostromo", radius: 2,
+    light: { ground: "#eef1f0", ink: "#0f1514", accent: "#1d6e5f" },
+    dark: { ground: "#070b0a", ink: "#cfe8de", accent: "#5fe0b5" } },
+  { id: "delorean", name: "DeLorean", radius: 999,
+    light: { ground: "#f1f2f4", ink: "#15171c", accent: "#2457d6" },
+    dark: { ground: "#0c0e12", ink: "#e9ecf2", accent: "#ff8a3d" } },
+];
+
+function GlazedCard() {
+  return (
+    <div className="w-full max-w-sm space-y-4 rounded-card border border-line bg-surface p-5">
+      <div className="flex items-center justify-between">
+        <p className="font-semibold">Flux capacitor</p>
+        <Badge tone="positive" dot>Fluxing</Badge>
+      </div>
+      <Slider label="Gigawatts" min={0} max={2.21} step={0.01} defaultValue={[1.21]} format={(n) => n.toFixed(2)} />
+      <div className="flex gap-2">
+        <Btn>Hit 88 mph</Btn>
+        <Btn variant="secondary">Park at the mall</Btn>
+      </div>
+    </div>
+  );
+}
+
+export function GlazePickerDemo() {
+  const [glaze, setGlaze] = useState(FILM_GLAZES[0].id);
+  const chosen = FILM_GLAZES.find((g) => g.id === glaze)!;
+  return (
+    <Stage className="flex-col items-stretch">
+      <GlazePicker glazes={FILM_GLAZES} value={glaze} onChange={setGlaze} labels={{ label: "Glaze this card" }} />
+      <Glaze glaze={chosen} className="grid place-items-center rounded-card p-6 transition-colors duration-300 sm:p-10">
+        <GlazedCard />
+      </Glaze>
+      <p className="text-sm text-muted">Given to ThemeProvider as <code className="font-mono text-ink">glazes</code>, the same picker re-glazes the whole page, opening the new colours from the swatch you press.</p>
+    </Stage>
+  );
+}
+
+export function GlazeDemo() {
+  return (
+    <Stage align="start" className="grid gap-4 sm:grid-cols-2">
+      <Glaze colors={{ ground: "#14532d", ink: "#ecfdf5", accent: "#86efac" }} className="rounded-card p-5">
+        <p className="mb-3 text-sm text-muted">colors: ground, ink and accent</p>
+        <GlazedCard />
+      </Glaze>
+      <Glaze glaze={FILM_GLAZES[3]} mode="dark" className="rounded-card p-5">
+        <p className="mb-3 text-sm text-muted">glaze=&#123;DeLorean&#125; mode="dark"</p>
+        <GlazedCard />
+      </Glaze>
     </Stage>
   );
 }

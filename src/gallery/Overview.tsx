@@ -6,6 +6,8 @@ import { categories } from "./registry";
 import { href, type Route } from "./useRoute";
 import { useStudio } from "./studio/context";
 import { liveCss, PRESETS, type StudioTheme } from "./studio/tokens";
+import { GlazePicker } from "../kiln/components/primitives/GlazePicker";
+import { kilnGlazes } from "../kiln/glaze";
 import { Button } from "../kiln/components/buttons/Button";
 import { Switch } from "../kiln/components/choice-controls/Switch";
 import { Slider } from "../kiln/components/choice-controls/Slider";
@@ -22,7 +24,7 @@ import { InMotion } from "./InMotion";
 import { Orbit } from "./overview/Orbit";
 import { ParallaxImg } from "./overview/Parallax";
 import { cn } from "../kiln/cn";
-import { easeOut, fade, springSoft } from "../kiln/motion";
+import { easeOut, springSoft } from "../kiln/motion";
 
 /* Every tile is a live component. Picking a glaze re-themes the whole site, opening from the swatch pressed. */
 
@@ -136,45 +138,24 @@ function Hero({ total, onBrowse, onStudio }: { total: number; onBrowse: () => vo
       </Tile>
       <Tile i={4} className="order-4 flex min-h-[200px] flex-col justify-between gap-6 bg-btn-primary p-6 text-btn-primary-ink md:order-none md:col-span-3 md:min-h-[240px]">
         <p className="text-2xl leading-snug tracking-[-0.01em]">Pick a glaze. The whole site re-fires.</p>
-        <GlazePicker />
+        <SiteGlaze />
       </Tile>
     </section>
   );
 }
 
-function GlazePicker() {
+/* Kiln's GlazePicker with the gallery's own handler: a preset re-fires the site through the theme studio. */
+function SiteGlaze() {
   const { theme } = useStudio();
   const refire = useRefire();
   const current = PRESETS.find((p) => JSON.stringify(p.theme) === JSON.stringify(theme))?.id;
   return (
-    <div role="radiogroup" aria-label="Glaze" className="flex flex-wrap gap-1.5">
-      {PRESETS.map((p) => {
-        const on = current === p.id;
-        return (
-          <motion.button
-            key={p.id}
-            type="button"
-            role="radio"
-            aria-checked={on}
-            aria-label={p.name}
-            title={p.name}
-            whileTap={{ scale: 0.92 }}
-            transition={springSoft}
-            onClick={(e) => !on && refire(p.theme, e.currentTarget)}
-            className="relative grid size-9 place-items-center rounded-full"
-          >
-            <motion.span
-              aria-hidden
-              className="pointer-events-none absolute inset-0 rounded-full border-2 border-current"
-              initial={false}
-              animate={{ opacity: on ? 1 : 0 }}
-              transition={fade}
-            />
-            <span className="size-6 rounded-full ring-2 ring-white/70" style={{ background: p.theme.light.accent }} />
-          </motion.button>
-        );
-      })}
-    </div>
+    <GlazePicker
+      glazes={kilnGlazes}
+      value={current}
+      showLabel={false}
+      onChange={(id, origin) => { const p = PRESETS.find((x) => x.id === id); if (p) refire(p.theme, origin); }}
+    />
   );
 }
 
