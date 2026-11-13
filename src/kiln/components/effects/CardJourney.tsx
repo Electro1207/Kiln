@@ -35,6 +35,11 @@ export type CardJourneyProps = {
   turns?: 1 | 3 | 5;
   /** How far left or right a side stop rests, as a share of the stage's width. Default 0.22. */
   offset?: number;
+  /**
+   * Degrees a side stop leans at rest. Default 0: upright, which keeps a video and fine text on the card
+   * sharp and correctly clipped in every browser (Firefox misplaces video inside a rotated, rounded box).
+   */
+  lean?: number;
   /** How far it bobs at rest, in px. 0 keeps it still. Default 8. */
   float?: number;
   /**
@@ -93,7 +98,7 @@ function useWide(query = "(min-width: 1024px)") {
  * smoothly as anywhere else.
  */
 export function CardJourney({
-  stops, container, length = 1.2, hold = 0.45, spin = "y", turns = 1, offset = 0.22, float = 8,
+  stops, container, length = 1.2, hold = 0.45, spin = "y", turns = 1, offset = 0.22, lean = 0, float = 8,
   backdrop, foreground, onStopChange, className, cardClassName, sizeClassName = "w-[min(90vw,720px)] h-[min(76vh,540px)]", "aria-label": ariaLabel,
 }: CardJourneyProps) {
   const root = useRef<HTMLElement>(null);
@@ -120,7 +125,7 @@ export function CardJourney({
   };
   const sideOf = (i: number) => (wide ? stops[i]?.side ?? "center" : "center");
   const xOf = (i: number) => ({ left: -offset * 100, center: 0, right: offset * 100 })[sideOf(i)];
-  const tiltOf = (i: number) => ({ left: -0.8, center: 0, right: 0.8 })[sideOf(i)];
+  const tiltOf = (i: number) => ({ left: -lean, center: 0, right: lean })[sideOf(i)];
   const turn = 180 * turns;
 
   const x = useTransform(f, (v) => { const s = at(v); return `${xOf(s.a) + (xOf(s.b) - xOf(s.a)) * s.t}%`; });

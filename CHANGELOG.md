@@ -30,7 +30,7 @@ Glazes, a card that carries a whole page, and the pieces a scroll-driven portfol
 
 ### Fixed
 
-- A video on a resting `CardJourney` card keeps playing in Safari.
+- A video on a resting `CardJourney` card keeps playing in Safari, and sits straight and correctly clipped in Firefox: side stops rest upright unless you set the new `lean` prop.
 - `CardJourney`, `DriftField` and the `ScrollProgress` ring do less work per scroll frame.
 - The `DocsNav` chevron turns in place, and its footer is set apart from the contents.
 - A clickable `MediaCard` keeps its picture at the top of a stretched card.
