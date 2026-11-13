@@ -271,7 +271,7 @@ npx tsc --noEmit -p tsconfig.app.json
 | `src/gallery/` | The gallery app. It isn't part of the package, and `src/kiln/` never imports from it. |
 | `src/gallery/site.ts` | `KILN_SITE` (where the gallery is deployed) and `KILN_PACKAGE`. |
 | `packages/kiln/` | The npm package manifest. `lib/`, `styles.css` and the copied docs are build output. |
-| `scripts/` | `gen-index.mjs`, `gen-registry.mjs`, `build-lib.mjs`, `kiln-add.mjs`. |
+| `scripts/` | `gen-index.mjs`, `gen-registry.mjs`, `build-lib.mjs`, `kiln-add.mjs`, and `prerender.mjs`, which gives every gallery page its own static HTML, plus `sitemap.xml`, `robots.txt` and `llms.txt`, after `vite build`. |
 | `public/r/` | The generated registry, which the deployed gallery serves at `/r/*.json`. |
 
 To try the registry against a local server, generate it with a matching address and serve the output:
