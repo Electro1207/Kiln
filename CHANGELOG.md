@@ -4,6 +4,8 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-13
+
 Colorways, a card that carries a whole page, and the pieces a scroll-driven portfolio needs.
 
 ### Added
@@ -94,7 +96,8 @@ The first release on npm, published with provenance.
 
 - `Switch` and `HeatStrip` fixes, and zero lint warnings.
 
-[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Electro1207/Kiln/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/Electro1207/Kiln/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/Electro1207/Kiln/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Electro1207/Kiln/compare/v0.1.2...v0.2.0
