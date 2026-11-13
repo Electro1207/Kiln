@@ -1,7 +1,7 @@
 import { forwardRef, useMemo, type ReactElement, type ReactNode, type Ref, type RefAttributes } from "react";
 import { AnimatePresence, motion, type HTMLMotionProps } from "motion/react";
 import { cn } from "../../cn";
-import { press, spring, springSnappy } from "../../motion";
+import { press, spring, springSnappy, useMotionTier } from "../../motion";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
@@ -87,11 +87,13 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
     sizes[size],
     className,
   );
+  // Low-end devices keep the fade and scale but skip the blur, which repaints every frame.
+  const lite = useMotionTier() === "lite";
   const content = (
     <>
       <motion.span
         className={cn("inline-flex items-center", sizes[size].split(" ").find((c) => c.startsWith("gap-")))}
-        animate={loading ? { opacity: 0, scale: 0.92, filter: "blur(2px)" } : { opacity: 1, scale: 1, filter: "blur(0px)" }}
+        animate={loading ? { opacity: 0, scale: 0.92, ...(lite ? {} : { filter: "blur(2px)" }) } : { opacity: 1, scale: 1, ...(lite ? {} : { filter: "blur(0px)" }) }}
         transition={spring}
       >
         {leading && <span className="inline-flex shrink-0 [&>svg]:size-4">{leading}</span>}

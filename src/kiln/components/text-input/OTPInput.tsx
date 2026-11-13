@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion, useAnimate, useReducedMotion } from "motion/react";
 import { cn } from "../../cn";
-import { easeOut, springLand } from "../../motion";
+import { easeOut, springLand, useMotionTier } from "../../motion";
 import { useControllable } from "../../controllable";
 
 /**
@@ -43,6 +43,8 @@ export function OTPInput({
   const input = useRef<HTMLInputElement>(null);
   const [focused, setFocused] = useState(false);
   const reduce = useReducedMotion();
+  // Low-end devices keep the drop but skip the blur, which repaints every frame.
+  const lite = useMotionTier() === "lite";
   const [scope, animate] = useAnimate<HTMLDivElement>();
 
   useEffect(() => {
@@ -80,8 +82,8 @@ export function OTPInput({
                   {digit && (
                     <motion.span
                       key={digit + i}
-                      initial={reduce ? { opacity: 0 } : { opacity: 0, y: -8, filter: "blur(3px)" }}
-                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                      initial={reduce ? { opacity: 0 } : lite ? { opacity: 0, y: -8 } : { opacity: 0, y: -8, filter: "blur(3px)" }}
+                      animate={lite ? { opacity: 1, y: 0 } : { opacity: 1, y: 0, filter: "blur(0px)" }}
                       exit={{ opacity: 0, transition: { duration: 0.08, ease: easeOut } }}
                       transition={springLand}
                       className="absolute"
