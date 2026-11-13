@@ -24,7 +24,8 @@
     "./package.json": "./package.json",
     "./*": { "types": "./lib/groups/*.d.ts", "import": "./lib/groups/*.js" }
   },
-  "files": ["lib", "styles.css", "tokens.css", "CLAUDE.md", "README.md", "CHANGELOG.md", "LICENSE"],
+  "bin": { "kiln-css": "./bin/kiln-css.mjs" },
+  "files": ["lib", "bin", "styles.css", "tokens.css", "CLAUDE.md", "README.md", "CHANGELOG.md", "LICENSE"],
   "peerDependencies": {
     "lucide-react": "^1.72.0",
     "motion": "^14.12.0",
