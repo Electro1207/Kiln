@@ -4,9 +4,17 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-16
+
+A new way to show credentials, and columns that line up in Safari.
+
 ### Added
 
 - `StampTrail`: credentials as seals pressed into the page as you scroll. Words run round each seal's edge, its mark sits in the middle, and an inked ring shows the score; each seal drifts at its own depth beside its details. The first `initialCount` show until Show more carries the trail on (`open`, `defaultOpen`, `onOpenChange`).
+
+### Fixed
+
+- `Testimonials` and `Masonry` lay out their columns the same in Safari as everywhere else. Testimonials no longer stacks its quotes unevenly or cuts the last card off, and Masonry's columns end level.
 
 ## [0.5.0] - 2026-11-13
 
@@ -120,7 +128,8 @@ The first release on npm, published with provenance.
 
 - `Switch` and `HeatStrip` fixes, and zero lint warnings.
 
-[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/Electro1207/Kiln/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/Electro1207/Kiln/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/Electro1207/Kiln/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/Electro1207/Kiln/compare/v0.3.1...v0.4.0
