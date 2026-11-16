@@ -24,6 +24,28 @@ function Person({ t, size = "md" }: { t: Testimonial; size?: "md" | "lg" }) {
   );
 }
 
+/** Deals items into `n` columns, each into the one that is shortest so far, so the columns end level. */
+function deal<T>(items: T[], n: number, weight: (t: T) => number) {
+  const cols = Array.from({ length: n }, () => ({ h: 0, items: [] as T[] }));
+  for (const it of items) {
+    const c = cols.reduce((a, b) => (b.h < a.h ? b : a));
+    c.items.push(it);
+    c.h += weight(it);
+  }
+  return cols.map((c) => c.items);
+}
+
+/* One arrangement per width, switched by container queries. Dealing the cards ourselves (instead of CSS
+   columns, which Safari balances differently and can cut a card off at the foot) ends the columns level
+   in every browser. */
+const LAYOUTS = [
+  { n: 1, className: "flex @2xl:hidden" },
+  { n: 2, className: "hidden @2xl:flex @4xl:hidden" },
+  { n: 3, className: "hidden @4xl:flex" },
+];
+/** A card's height, roughly: its padding and name, plus a line per ~38 characters of quote. */
+const weight = (t: Testimonial) => 4 + Math.ceil(t.quote.length / 38);
+
 /** One quotation set large, then the rest in columns. */
 export function Testimonials({ title, description, items, className }: TestimonialsProps) {
   const [lead, ...rest] = items;
@@ -39,16 +61,22 @@ export function Testimonials({ title, description, items, className }: Testimoni
           </div>
         </figure>
       )}
-      <div className="mt-4 columns-1 gap-4 @2xl:columns-2 @4xl:columns-3">
-        {rest.map((t) => (
-          <figure key={t.name} className="mb-4 break-inside-avoid rounded-card bg-surface p-5">
-            <blockquote className="text-[15px] leading-relaxed text-ink">“{t.quote}”</blockquote>
-            <div className="mt-4">
-              <Person t={t} />
+      {LAYOUTS.map(({ n, className: shown }) => (
+        <div key={n} className={cn("mt-4 items-start gap-4", shown)}>
+          {deal(rest, n, weight).map((col, i) => (
+            <div key={i} className="flex min-w-0 flex-1 flex-col gap-4">
+              {col.map((t) => (
+                <figure key={t.name} className="rounded-card bg-surface p-5">
+                  <blockquote className="text-[15px] leading-relaxed text-ink">“{t.quote}”</blockquote>
+                  <div className="mt-4">
+                    <Person t={t} />
+                  </div>
+                </figure>
+              ))}
             </div>
-          </figure>
-        ))}
-      </div>
+          ))}
+        </div>
+      ))}
     </section>
   );
 }
