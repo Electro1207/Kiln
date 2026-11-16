@@ -36,7 +36,7 @@ export function About() {
         <h2 id="who" className="text-base font-semibold">Who makes it</h2>
         <div className="max-w-2xl space-y-4 text-[15px] leading-relaxed text-ink">
           <p>
-            Kiln is built and maintained by one person, and it isn't for sale. If you need a feature, ask for it and I'll try to add it as soon as I can.
+            Kiln is built and maintained by one person, and it's free for everyone to use, now and always. If you need a feature, ask for it and I'll try to add it as soon as I can.
           </p>
           <p>
             The code is MIT licensed, so you can use it in anything, including paid products.{" "}
