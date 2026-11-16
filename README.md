@@ -21,7 +21,7 @@ Kiln is free, all of it. It's a passion project, made so anyone can ship a produ
 
 ## About
 
-Kiln is built and maintained by one person, and it isn't for sale. If you need a feature, ask for it and I'll try to add it as soon as I can.
+Kiln is built and maintained by one person, and it's free for everyone to use, now and always. If you need a feature, ask for it and I'll try to add it as soon as I can.
 
 ## Requests, bugs and questions
 
