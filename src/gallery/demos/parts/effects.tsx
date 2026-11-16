@@ -23,6 +23,7 @@ import { StickyScrollReveal } from "../../../kiln/components/effects/StickyScrol
 import { Parallax } from "../../../kiln/components/effects/Parallax";
 import { ScrollStory } from "../../../kiln/components/effects/ScrollStory";
 import { ScrollTimeline } from "../../../kiln/components/effects/ScrollTimeline";
+import { StampTrail } from "../../../kiln/components/effects/StampTrail";
 import { ScrollWords } from "../../../kiln/components/text-effects/ScrollWords";
 import { cn } from "../../../kiln/cn";
 import { FloatingCard } from "../../../kiln/components/cards/FloatingCard";
@@ -495,6 +496,48 @@ export function ScrollTimelineDemo() {
         <div className="grid h-56 place-items-center text-sm text-muted">Scroll down</div>
         <ScrollTimeline container={box} items={QUEST} labels={{ current: "Now" }} />
         <div className="h-80" />
+      </div>
+    </Stage>
+  );
+}
+
+// Credentials from across the galaxy, newest first; the seal's ring inks the score.
+const CREDENTIALS = [
+  { id: "streams", issuer: "Ghostbusters", title: "Proton Pack Safety", score: 98, of: "49 of 50", when: "Jun 1984", note: "“Don’t cross the streams.” Certified to carry an unlicensed nuclear accelerator on your back." },
+  { id: "saber", issuer: "Jedi Temple", title: "Lightsaber Form III", score: 92, of: "23 of 25", when: "May 1980", note: "“Do. Or do not. There is no try.” Defence first, deflection drills under a blast shield." },
+  { id: "delorean", issuer: "Hill Valley High", title: "Temporal Mechanics", score: 88, of: "22 of 25", when: "Nov 1955", note: "“Great Scott!” 1.21 gigawatts, eighty-eight miles per hour and a firm grasp of the paradoxes." },
+  { id: "loader", issuer: "Weyland-Yutani", title: "Power Loader Operator", score: 100, of: "20 of 20", when: "Jul 2179", note: "“Get away from her!” Class 2 rating; cargo, airlocks and the occasional queen." },
+];
+
+export function StampTrailDemo() {
+  const box = useBox();
+  return (
+    <Stage className="flex-col items-stretch">
+      <div ref={box} className={cn(BOX, "h-[520px] px-6 sm:px-10")}>
+        <div className="grid h-56 place-items-center text-sm text-muted">Scroll down</div>
+        <StampTrail
+          container={box}
+          size={148}
+          items={CREDENTIALS.map((c) => ({
+            id: c.id,
+            ring: `${c.issuer} · ${c.title} · ${c.when}`,
+            fill: c.score / 100,
+            mark: (
+              <span className="flex flex-col items-center">
+                <span className="text-3xl font-semibold leading-none tracking-[-0.03em] tabular">{c.score}%</span>
+                <span className="mt-1 text-xs text-muted">{c.of}</span>
+              </span>
+            ),
+            content: (
+              <div className="max-w-md">
+                <h4 className="text-xl font-semibold leading-tight tracking-[-0.015em] text-ink">{c.title}</h4>
+                <p className="mt-1 text-[15px] text-muted">{c.issuer} · {c.when}</p>
+                <p className="mt-3 text-[15px] leading-6 text-ink">{c.note}</p>
+              </div>
+            ),
+          }))}
+        />
+        <div className="h-72" />
       </div>
     </Stage>
   );

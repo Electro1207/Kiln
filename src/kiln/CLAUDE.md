@@ -177,6 +177,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `Reveal` — Anything you wrap rises into place, with a fade, the first time it scrolls into view; stagger siblings with `delay`
 - `ScrollStory` — Page-length steps in normal flow beside a panel that pins and changes with the step being read; read steps stay lit; inline on phones
 - `ScrollTimeline` — A history told as you scroll: the rail fills, then each entry's title, words and tags arrive in turn
+- `StampTrail` — Credentials as seals pressed into the page as you scroll: words round the edge, a mark in the middle, an inked ring for the score; each seal drifts at its own depth beside its details, and only the first `initialCount` show until Show more carries the trail on
 - `StickyScrollReveal` — Words scroll past a picture that stays pinned and cross-fades with each step, inside a box of fixed height
 
 ### `forms/`
