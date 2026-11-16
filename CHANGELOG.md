@@ -4,6 +4,10 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+### Added
+
+- `StampTrail`: credentials as seals pressed into the page as you scroll. Words run round each seal's edge, its mark sits in the middle, and an inked ring shows the score; each seal drifts at its own depth beside its details. The first `initialCount` show until Show more carries the trail on (`open`, `defaultOpen`, `onOpenChange`).
+
 ## [0.5.0] - 2026-11-13
 
 Lighter on low-end devices, with the same motion everywhere else.

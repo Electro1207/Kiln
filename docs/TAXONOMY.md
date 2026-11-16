@@ -409,6 +409,7 @@ Group id: `effects` · Folder: `effects/` · 16 entries
 | Secret hunt | `secret-hunt` | `SecretHunt.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Firefly | `firefly` | `Firefly.tsx`, `src/kiln/components/shared/useLoop.ts`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Card fan | `card-fan` | `CardFan.tsx`, `src/kiln/components/shared/useLoop.ts`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
+| Stamp trail | `stamp-trail` | `StampTrail.tsx`, `src/kiln/components/shared/useLoop.ts`, `src/kiln/controllable.ts`, `src/kiln/cn.ts` |
 
 ## Where files live now
 
