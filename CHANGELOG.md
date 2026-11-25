@@ -4,6 +4,10 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+### Fixed
+
+- `AppShell` no longer shifts the whole screen when the sidebar collapses or expands. The top bar's actions and the sheet's right edge stay where they are, only the sheet's left edge slides with the sidebar, and the page content reflows once at the start.
+
 ## [0.6.0] - 2026-11-16
 
 A new way to show credentials, and columns that line up in Safari.

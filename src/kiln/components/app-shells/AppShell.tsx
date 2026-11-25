@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type ReactNode } from "react";
-import { animate, motion, useMotionValue } from "motion/react";
+import { animate, motion, useMotionValue, useTransform, type AnimationPlaybackControls } from "motion/react";
 import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
@@ -73,10 +73,14 @@ const RAIL = 64;
 
 /**
  * Sidebar application shell: a tinted frame holds the sidebar and the top bar,
- * and the page sits on a sheet. Collapsing never animates a width: the layout
- * switches at once and the sheet slides from where it was (transform only),
- * so the content never reflows mid-animation. Below 768px of its own width the
- * sidebar moves into a drawer behind a menu button.
+ * and the page sits on a sheet. Collapsing never animates a width, and the
+ * right side never moves: the top bar's actions and the sheet's right edge stay
+ * put. The layout commits at once, then the sheet's left edge (a rounded piece
+ * drawn over a static body) and the page content slide together from where they
+ * were, by transform only, so the content reflows exactly once. One motion
+ * value drives it, and a second click mid-slide reverses from where it is.
+ * Below 768px of its own width the sidebar moves into a drawer behind a menu
+ * button.
  */
 export function AppShell({ brand, nav, value: valueProp, defaultValue, onNavigate, topBar, footer, children, height = 640, className, labels: labelsProp, icons }: AppShellProps) {
   const l = { ...appShellLabels, ...labelsProp };
@@ -87,38 +91,28 @@ export function AppShell({ brand, nav, value: valueProp, defaultValue, onNavigat
   /** Rail-width hit areas: only once the collapse has landed, so nothing visibly squeezes. */
   const [narrow, setNarrow] = useState(false);
   const [drawer, setDrawer] = useState(false);
-  const sheetX = useMotionValue(0);
-  const busy = useRef(false);
+  /** Where the sheet's left edge sits above the rail: 0 collapsed, FULL - RAIL expanded. */
+  const edge = useMotionValue(FULL - RAIL);
+  /** Where the layout has committed to: the content is laid out there and carries this offset back to the edge. */
+  const target = useMotionValue(FULL - RAIL);
+  const shift = useTransform([edge, target], ([e, t]: number[]) => e - t);
+  const anim = useRef<AnimationPlaybackControls | null>(null);
 
+  const slideTo = (to: number, onDone?: () => void) => {
+    anim.current?.stop();
+    target.set(to);
+    anim.current = animate(edge, to, { ...springFirm, onComplete: onDone });
+  };
   const collapse = () => {
-    if (busy.current) return;
-    busy.current = true;
     setLabels(false);
     setCollapsed(true);
-    // The sheet is now laid out at the rail; start it where it was and slide it home.
-    sheetX.set(FULL - RAIL);
-    animate(sheetX, 0, {
-      ...springFirm,
-      onComplete: () => {
-        setNarrow(true);
-        busy.current = false;
-      },
-    });
+    slideTo(0, () => setNarrow(true));
   };
   const expand = () => {
-    if (busy.current) return;
-    busy.current = true;
     setNarrow(false);
     setLabels(true);
-    // Slide the sheet aside to uncover the labels, then commit the wider sidebar.
-    animate(sheetX, FULL - RAIL, {
-      ...springFirm,
-      onComplete: () => {
-        setCollapsed(false);
-        sheetX.set(0);
-        busy.current = false;
-      },
-    });
+    setCollapsed(false);
+    slideTo(FULL - RAIL);
   };
 
   const navList = (rail: boolean, onPick?: () => void) => (
@@ -211,12 +205,30 @@ export function AppShell({ brand, nav, value: valueProp, defaultValue, onNavigat
           {footer && <div className="shrink-0">{footer(!labels)}</div>}
         </aside>
 
-        {/* Top bar and sheet: offset by the sidebar's width, slid by transform while it changes. */}
+        {/* The sheet's chrome: a static body anchored to the right edge, and a rounded left edge that slides over its square end. */}
+        <div
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 top-14 z-[1] rounded-t-sheet border border-b-0 border-line bg-surface @3xl:bottom-2 @3xl:left-[calc(240px+var(--radius-sheet))] @3xl:right-2 @3xl:rounded-none @3xl:rounded-r-sheet @3xl:border-b @3xl:border-l-0"
+        />
         <motion.div
-          className={cn("relative z-[1] flex min-w-0 flex-1 flex-col", collapsed ? "@3xl:ml-16" : "@3xl:ml-60")}
-          style={{ x: sheetX }}
-        >
-          <header className="flex h-14 shrink-0 items-center gap-2 px-3 @3xl:px-2">
+          aria-hidden
+          className="absolute bottom-2 left-16 top-14 z-[1] hidden rounded-l-sheet border-y border-l border-line bg-surface @3xl:block"
+          style={{ x: edge, width: `calc(${FULL - RAIL}px + 2 * var(--radius-sheet))` }}
+        />
+
+        {/* Page: clipped to the sheet's right rounding, laid out at its final box and carried back to the edge. */}
+        <div className="absolute inset-x-0 bottom-0 top-[57px] z-[2] overflow-hidden rounded-t-[calc(var(--radius-sheet)-1px)] @3xl:bottom-[9px] @3xl:left-16 @3xl:right-[9px] @3xl:rounded-none @3xl:rounded-r-[calc(var(--radius-sheet)-1px)]">
+          <motion.main
+            className={cn("absolute inset-y-0 left-0 right-0 overflow-y-auto border-x border-transparent @3xl:border-r-0", collapsed ? "@3xl:left-0" : "@3xl:left-44")}
+            style={{ x: shift }}
+          >
+            {children}
+          </motion.main>
+        </div>
+
+        {/* Top bar: the left cluster travels with the edge, the slot on the right never moves. */}
+        <header className={cn("absolute inset-x-0 top-0 z-[3] flex h-14 items-center gap-2 px-3 @3xl:px-2", collapsed ? "@3xl:left-16" : "@3xl:left-60")}>
+          <motion.div className="flex min-w-0 items-center gap-2" style={{ x: shift }}>
             <button
               type="button"
               aria-label={l.openMenu}
@@ -240,12 +252,9 @@ export function AppShell({ brand, nav, value: valueProp, defaultValue, onNavigat
                 {ic.expand}
               </motion.span>
             </button>
-            <div className="flex min-w-0 flex-1 items-center justify-end gap-2">{topBar}</div>
-          </header>
-          <main className="mx-0 mb-0 min-h-0 flex-1 overflow-y-auto rounded-t-sheet border border-b-0 border-line bg-surface @3xl:mb-2 @3xl:mr-2 @3xl:rounded-sheet @3xl:border-b">
-            {children}
-          </main>
-        </motion.div>
+          </motion.div>
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-2">{topBar}</div>
+        </header>
       </div>
 
       <Drawer open={drawer} onOpenChange={setDrawer} side="left" width={288} label={l.menu} title={brand(false)}>
