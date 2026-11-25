@@ -4,6 +4,10 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-11-25
+
+A sidebar that collapses without moving the rest of the screen.
+
 ### Fixed
 
 - `AppShell` no longer shifts the whole screen when the sidebar collapses or expands. The top bar's actions and the sheet's right edge stay where they are, only the sheet's left edge slides with the sidebar, and the page content reflows once at the start.
@@ -132,7 +136,8 @@ The first release on npm, published with provenance.
 
 - `Switch` and `HeatStrip` fixes, and zero lint warnings.
 
-[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/Electro1207/Kiln/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/Electro1207/Kiln/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/Electro1207/Kiln/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/Electro1207/Kiln/compare/v0.4.0...v0.4.1
