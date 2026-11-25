@@ -217,9 +217,9 @@ export function AppShell({ brand, nav, value: valueProp, defaultValue, onNavigat
         />
 
         {/* Page: clipped to the sheet's right rounding, laid out at its final box and carried back to the edge. */}
-        <div className="absolute inset-x-0 bottom-0 top-[57px] z-[2] overflow-hidden rounded-t-[calc(var(--radius-sheet)-1px)] @3xl:bottom-[9px] @3xl:left-16 @3xl:right-[9px] @3xl:rounded-none @3xl:rounded-r-[calc(var(--radius-sheet)-1px)]">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[57px] z-[2] overflow-hidden rounded-t-[calc(var(--radius-sheet)-1px)] @3xl:bottom-[9px] @3xl:left-16 @3xl:right-[9px] @3xl:rounded-none @3xl:rounded-r-[calc(var(--radius-sheet)-1px)]">
           <motion.main
-            className={cn("absolute inset-y-0 left-0 right-0 overflow-y-auto border-x border-transparent @3xl:border-r-0", collapsed ? "@3xl:left-0" : "@3xl:left-44")}
+            className={cn("pointer-events-auto absolute inset-y-0 left-0 right-0 overflow-y-auto border-x border-transparent @3xl:border-r-0", collapsed ? "@3xl:left-0" : "@3xl:left-44")}
             style={{ x: shift }}
           >
             {children}
