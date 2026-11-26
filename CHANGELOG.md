@@ -4,6 +4,10 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-26
+
+An accessibility system: people tune the page to themselves, developers add support per component, and 18 new components.
+
 ### Added
 
 - `AccessibilityProvider`, `useA11y`, `useA11yProps`, `useA11ySettings`, `AccessibilityScope` and `resolveA11y` in `kiln/a11y`: ten profiles made of thirteen features (reduced motion, no flashing, calm, high contrast, strong focus, text size, readable font, text spacing, large targets, colour-safe, extended time, screen-reader hints, captions), merged from system settings, the person's choices, the nearest scope and the component's prop.
@@ -191,7 +195,8 @@ The first release on npm, published with provenance.
 
 - `Switch` and `HeatStrip` fixes, and zero lint warnings.
 
-[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/Electro1207/Kiln/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/Electro1207/Kiln/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/Electro1207/Kiln/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/Electro1207/Kiln/compare/v0.6.0...v0.6.1
