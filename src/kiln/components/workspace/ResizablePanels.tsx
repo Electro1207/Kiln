@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEve
 import { animate, motion, useMotionValue, useMotionValueEvent, useTransform } from "motion/react";
 import { cn } from "../../cn";
 import { springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ResizablePanelsProps = {
   first: ReactNode;
@@ -18,6 +19,8 @@ export type ResizablePanelsProps = {
   labels?: Partial<ResizablePanelsLabels>;
   onResize?: (percent: number) => void;
   className?: string;
+  /** Accessibility features to add for these panels only (adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Text used by ResizablePanels. Pass a partial via `labels` to translate or reword. */
@@ -42,7 +45,9 @@ export function ResizablePanels({
   labels,
   onResize,
   className,
+  accessibilityFeatures,
 }: ResizablePanelsProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...resizablePanelsLabels, ...labels };
   const id = useId();
   const boxRef = useRef<HTMLDivElement>(null);
@@ -104,7 +109,7 @@ export function ResizablePanels({
   };
 
   return (
-    <div ref={boxRef} className={cn("flex h-full w-full min-h-0 min-w-0 overflow-hidden", horizontal ? "flex-row" : "flex-col", className)}>
+    <div {...rootProps} ref={boxRef} className={cn("flex h-full w-full min-h-0 min-w-0 overflow-hidden", horizontal ? "flex-row" : "flex-col", className)}>
       <motion.div id={`${id}-a`} className="min-h-0 min-w-0 shrink-0 overflow-auto" style={{ flexBasis: basis }}>
         {first}
       </motion.div>
@@ -115,8 +120,9 @@ export function ResizablePanels({
         aria-controls={`${id}-a`}
         aria-orientation={horizontal ? "vertical" : "horizontal"}
         aria-valuenow={now}
-        aria-valuemin={0}
-        aria-valuemax={100}
+        aria-valuemin={Math.ceil(limits()[0])}
+        aria-valuemax={Math.floor(limits()[1])}
+        aria-valuetext={`${now}% / ${100 - now}%`}
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId);
           setDragging(true);

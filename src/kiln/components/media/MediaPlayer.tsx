@@ -5,6 +5,7 @@ import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { easeInOut, fade, springSnappy, springSoft } from "../../motion";
 import { Slider } from "../choice-controls/Slider";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by MediaPlayer. Pass a partial via `labels` to translate or reword. */
 export interface MediaPlayerLabels {
@@ -104,6 +105,9 @@ export type MediaPlayerProps = {
   /** Replace any built-in icon. Merged over `mediaPlayerIcons`. */
   icons?: Partial<MediaPlayerIcons>;
   className?: string;
+  /** Accessibility features to add for this player only (adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
+
   /** Controlled playback. Leave out and use `defaultPlaying` to let the player keep its own. */
   playing?: boolean;
   /** Whether it starts playing when uncontrolled. Browsers may refuse autoplay, which reports `false`. */
@@ -152,12 +156,13 @@ const PAUSE = ["M6 5 L10 5 L10 19 L6 19 Z", "M14 5 L18 5 L18 19 L14 19 Z"];
  * opposite translations, never by changing a width.
  */
 export function MediaPlayer({
-  title, artist, duration, cover, src, peaks, labels, icons, className,
+  title, artist, duration, cover, src, peaks, labels, icons, className, accessibilityFeatures,
   playing: playingProp, defaultPlaying = false, onPlayingChange,
   volume: volumeProp, defaultVolume = 70, onVolumeChange,
   muted: mutedProp, defaultMuted = false, onMutedChange,
   currentTime, defaultCurrentTime = 0, onTimeChange,
 }: MediaPlayerProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...mediaPlayerLabels, ...labels };
   const ic = useMemo(() => ({ ...mediaPlayerIcons, ...icons }), [icons]);
   const [playing, setPlaying] = useControllable(playingProp, defaultPlaying, onPlayingChange);
@@ -287,6 +292,7 @@ export function MediaPlayer({
 
   return (
     <div
+      {...rootProps}
       className={cn("w-full min-w-0 rounded-[20px] border border-line bg-surface p-4 sm:p-5", className)}
       role="group"
       aria-label={l.player(title, artist)}
@@ -323,7 +329,7 @@ export function MediaPlayer({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate text-[17px] font-semibold leading-6 text-ink">{title}</p>
+              <p className="truncate text-[1.0625rem] font-semibold leading-6 text-ink">{title}</p>
               <p className="truncate text-sm text-muted">{artist}</p>
             </div>
             <Equalizer playing={playing} />
@@ -395,7 +401,7 @@ export function MediaPlayer({
             aria-label={l.speed(rate, nextRate)}
             whileTap={{ scale: 0.94 }}
             transition={springSnappy}
-            className="h-8 min-w-12 rounded-full bg-raised px-2.5 text-[13px] font-semibold tabular text-ink transition-colors duration-200 hover:bg-active"
+            className="h-8 min-w-12 rounded-full bg-raised px-2.5 text-[0.8125rem] font-semibold tabular text-ink transition-colors duration-200 hover:bg-active"
           >
             {rate}×
           </motion.button>

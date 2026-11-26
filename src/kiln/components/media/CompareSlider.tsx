@@ -4,6 +4,7 @@ import { ChevronsLeftRight } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by CompareSlider. Pass a partial via `labels` to translate or reword. */
 export interface CompareSliderLabels {
@@ -34,6 +35,8 @@ export type CompareSliderProps = {
   /** Replace any built-in icon. Merged over `compareSliderIcons`. */
   icons?: Partial<CompareSliderIcons>;
   className?: string;
+  /** Accessibility features to add for this slider only (adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -48,7 +51,8 @@ export interface CompareSliderIcons {
 }
 export const compareSliderIcons: CompareSliderIcons = { handle: <ChevronsLeftRight /> };
 
-export function CompareSlider({ before, after, beforeLabel = "Before", afterLabel = "After", value: valueProp, defaultValue, onChange, initial = 50, label = "Compare", labels, icons, className }: CompareSliderProps) {
+export function CompareSlider({ before, after, beforeLabel = "Before", afterLabel = "After", value: valueProp, defaultValue, onChange, initial = 50, label = "Compare", labels, icons, className, accessibilityFeatures }: CompareSliderProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...compareSliderLabels, ...labels };
   const ic = useMemo(() => ({ ...compareSliderIcons, ...icons }), [icons]);
   const box = useRef<HTMLDivElement>(null);
@@ -77,6 +81,7 @@ export function CompareSlider({ before, after, beforeLabel = "Before", afterLabe
 
   return (
     <div
+      {...rootProps}
       ref={box}
       className={cn("relative select-none overflow-hidden rounded-card touch-pan-y", className)}
       onPointerDown={(e) => {

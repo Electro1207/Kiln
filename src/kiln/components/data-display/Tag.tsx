@@ -36,7 +36,7 @@ export interface TagIcons {
 }
 export const tagIcons: TagIcons = { remove: <X /> };
 
-const tagSizes: Record<Size, string> = { sm: "h-6 text-xs", md: "h-7 text-[13px]", lg: "h-8 text-sm" };
+const tagSizes: Record<Size, string> = { sm: "h-6 text-xs", md: "h-7 text-[0.8125rem]", lg: "h-8 text-sm" };
 
 const tones: Record<TagTone, string> = {
   neutral: "bg-active text-ink",
@@ -79,7 +79,7 @@ export const Tag = forwardRef<HTMLSpanElement, TagProps>(function Tag(
           whileTap={{ scale: 0.85 }}
           transition={springSnappy}
           aria-label={l.remove(typeof children === "string" ? children : l.tag)}
-          className="grid size-5 place-items-center rounded-full opacity-70 transition-[opacity,background-color] hover:bg-ink/10 hover:opacity-100 [&>svg]:size-3 [&>svg]:stroke-[2.5]"
+          className="k-hit grid size-5 place-items-center rounded-full opacity-70 transition-[opacity,background-color] hover:bg-ink/10 hover:opacity-100 [&>svg]:size-3 [&>svg]:stroke-[2.5]"
         >
           {ic.remove}
         </motion.button>

@@ -121,7 +121,7 @@ export function Alert({
                 <span className="sr-only">{l[tone]}: </span>
                 {title}
               </p>
-              {children && <div className="mt-1 text-[13.5px] leading-5 text-muted">{children}</div>}
+              {children && <div className="mt-1 text-[0.84375rem] leading-5 text-muted">{children}</div>}
               {action && <div className="mt-3 flex flex-wrap items-center gap-2">{action}</div>}
             </div>
             {dismissible && (
@@ -129,7 +129,7 @@ export function Alert({
                 type="button"
                 aria-label={l.dismiss}
                 onClick={() => setOpen(false)}
-                className="-mr-1.5 -mt-1.5 grid size-8 shrink-0 place-items-center rounded-full [&>svg]:size-4 text-muted transition-colors hover:bg-raised hover:text-ink"
+                className="k-hit -mr-1.5 -mt-1.5 grid size-8 shrink-0 place-items-center rounded-full [&>svg]:size-4 text-muted transition-colors hover:bg-raised hover:text-ink"
               >
                 {ic.close}
               </button>

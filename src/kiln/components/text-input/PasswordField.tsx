@@ -5,6 +5,7 @@ import { cn } from "../../cn";
 import { easeOut, spring, springSnappy } from "../../motion";
 import { Field, inputBox } from "../shared/Field";
 import { useControllable, type Size } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type PasswordRule = { label: string; test: (v: string) => boolean };
 
@@ -74,7 +75,10 @@ export const PasswordField = forwardRef<HTMLInputElement, Omit<InputHTMLAttribut
   labels?: Partial<PasswordFieldLabels>;
   /** Replace any built-in icon. Merged over `passwordFieldIcons`. */
   icons?: Partial<PasswordFieldIcons>;
-}>(function PasswordField({ value: valueProp, defaultValue = "", onValueChange: onValueProp, label = "Password", error, meter, rules = defaultPasswordRules, size = "md", id: idProp, labels, icons, ...rest }, ref) {
+  /** Accessibility features to add for this field only (adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
+}>(function PasswordField({ value: valueProp, defaultValue = "", onValueChange: onValueProp, label = "Password", error, meter, rules = defaultPasswordRules, size = "md", id: idProp, labels, icons, accessibilityFeatures, ...rest }, ref) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...passwordFieldLabels, ...labels };
   const ic = { ...passwordFieldIcons, ...icons };
   const [value, onValueChange] = useControllable(valueProp, defaultValue, onValueProp);
@@ -86,6 +90,7 @@ export const PasswordField = forwardRef<HTMLInputElement, Omit<InputHTMLAttribut
   const level = levels[Math.min(score, levels.length - 1)];
 
   return (
+    <div className="contents" {...rootProps}>
     <Field id={id} label={label} error={error}>
       <div className={inputBox(!!error, size)}>
         <span className="grid shrink-0 place-items-center text-faint [&>svg]:size-4" aria-hidden>{ic.lock}</span>
@@ -139,13 +144,13 @@ export const PasswordField = forwardRef<HTMLInputElement, Omit<InputHTMLAttribut
                 </div>
               ))}
             </div>
-            <span className={cn("w-16 text-right text-[13px] font-medium transition-colors duration-300", value ? level.text : "text-faint")} aria-live="polite">
+            <span className={cn("w-16 text-right text-[0.8125rem] font-medium transition-colors duration-300", value ? level.text : "text-faint")} aria-live="polite">
               {value ? (l.strength[Math.min(score, levels.length - 1)] ?? level.word) : l.empty}
             </span>
           </div>
           <ul className="grid gap-1 sm:grid-cols-2">
             {rules.map((r, i) => (
-              <li key={r.label} className={cn("flex items-center gap-2 text-[13px] transition-colors duration-300", passed[i] ? "text-ink" : "text-muted")}>
+              <li key={r.label} className={cn("flex items-center gap-2 text-[0.8125rem] transition-colors duration-300", passed[i] ? "text-ink" : "text-muted")}>
                 <svg viewBox="0 0 16 16" className="size-3.5 shrink-0" aria-hidden>
                   <circle cx="8" cy="8" r="7" className={cn("transition-colors duration-300", passed[i] ? "fill-positive" : "fill-active")} />
                   <motion.path d="M5 8.2l2 2L11 6" fill="none" stroke="var(--k-surface)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
@@ -159,5 +164,6 @@ export const PasswordField = forwardRef<HTMLInputElement, Omit<InputHTMLAttribut
       )}
       </AnimatePresence>
     </Field>
+    </div>
   );
 });

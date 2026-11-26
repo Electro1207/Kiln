@@ -62,7 +62,7 @@ export type TagInputProps = {
 };
 
 const boxSizes: Record<Size, string> = { sm: "min-h-8", md: "min-h-10", lg: "min-h-12" };
-const chipSizes: Record<Size, string> = { sm: "h-5 text-xs", md: "h-7 text-[13px]", lg: "h-8 text-sm" };
+const chipSizes: Record<Size, string> = { sm: "h-5 text-xs", md: "h-7 text-[0.8125rem]", lg: "h-8 text-sm" };
 
 /** Chips in a text box, with suggestions. Controlled with `value` + `onChange`, or uncontrolled with `defaultValue`. */
 export function TagInput({
@@ -138,7 +138,7 @@ export function TagInput({
   return (
     <div className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
       {label && (
-        <label htmlFor={`${id}-input`} className="text-[13px] font-medium text-ink">
+        <label htmlFor={`${id}-input`} className="text-[0.8125rem] font-medium text-ink">
           {label}
         </label>
       )}
@@ -176,7 +176,7 @@ export function TagInput({
                     e.stopPropagation();
                     remove(tag);
                   }}
-                  className="grid size-5 place-items-center rounded-[4px] text-muted transition-colors hover:bg-surface/70 hover:text-ink [&>svg]:size-3"
+                  className="k-hit grid size-5 place-items-center rounded-[4px] text-muted transition-colors hover:bg-surface/70 hover:text-ink [&>svg]:size-3"
                 >
                   {ic.remove}
                 </button>

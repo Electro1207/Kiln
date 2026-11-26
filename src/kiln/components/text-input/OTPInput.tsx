@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useAnimate, useReducedMotion } from "motion/re
 import { cn } from "../../cn";
 import { easeOut, springLand, useMotionTier } from "../../motion";
 import { useControllable } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /**
  * A one-time code: separate cells drawn over one real <input>,
@@ -20,7 +21,7 @@ export interface OTPInputLabels {
 export const otpInputLabels: OTPInputLabels = { label: "Verification code", complete: "Code complete" };
 
 export function OTPInput({
-  length = 6, value: valueProp, defaultValue = "", onChange: onChangeProp, onComplete, label: labelProp, error, disabled, className, labels,
+  length = 6, value: valueProp, defaultValue = "", onChange: onChangeProp, onComplete, label: labelProp, error, disabled, className, labels, accessibilityFeatures,
 }: {
   length?: number;
   /** Controlled code. Leave out and use `defaultValue` to let the field keep its own. */
@@ -35,7 +36,10 @@ export function OTPInput({
   error?: boolean;
   disabled?: boolean;
   className?: string;
+  /** Accessibility features to add for this field only (adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...otpInputLabels, ...labels };
   const label = labelProp ?? l.label;
   const [value, onChange] = useControllable(valueProp, defaultValue, onChangeProp);
@@ -58,7 +62,7 @@ export function OTPInput({
   };
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div {...rootProps} className={cn("flex flex-col gap-2", className)}>
       <label htmlFor={id} className="text-sm font-medium text-ink">{label}</label>
       <div ref={scope} className="relative w-[360px] max-w-full">
         <div aria-hidden className="grid gap-2" style={{ gridTemplateColumns: `repeat(${length}, minmax(0, 1fr))` }}>
@@ -69,7 +73,7 @@ export function OTPInput({
               <div
                 key={i}
                 className={cn(
-                  "relative flex h-[52px] items-center justify-center rounded-control border bg-surface font-mono text-[22px] text-ink transition-[border-color,box-shadow] duration-200 ease-out-soft",
+                  "relative flex h-[52px] items-center justify-center rounded-control border bg-surface font-mono text-[1.375rem] text-ink transition-[border-color,box-shadow] duration-200 ease-out-soft",
                   error
                     ? "border-negative shadow-[0_0_0_3px_var(--k-negative-soft)]"
                     : current
@@ -102,6 +106,13 @@ export function OTPInput({
           id={id}
           value={value}
           onChange={(e) => set(e.target.value)}
+          onPaste={(e) => {
+            // The input is capped at `length`, which would cut "123 456" short; read the whole clipboard instead.
+            const text = e.clipboardData.getData("text");
+            if (!text) return;
+            e.preventDefault();
+            set(text);
+          }}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           inputMode="numeric"
