@@ -4,6 +4,10 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+### Fixed
+
+- `VideoPlayer`: the Settings menu is now as tall as the page it shows instead of the tallest one, and long chapter lists scroll inside it without pushing the rows past the right edge, which showed in Firefox.
+
 ## [0.8.0] - 2026-11-26
 
 An accessibility system: people tune the page to themselves, developers add support per component, and 18 new components.
