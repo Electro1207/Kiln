@@ -4,6 +4,10 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-11-26
+
+A VideoPlayer Settings menu that fits what it shows.
+
 ### Fixed
 
 - `VideoPlayer`: the Settings menu is now as tall as the page it shows instead of the tallest one, and long chapter lists scroll inside it without pushing the rows past the right edge, which showed in Firefox.
@@ -199,7 +203,8 @@ The first release on npm, published with provenance.
 
 - `Switch` and `HeatStrip` fixes, and zero lint warnings.
 
-[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/Electro1207/Kiln/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/Electro1207/Kiln/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/Electro1207/Kiln/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/Electro1207/Kiln/compare/v0.6.1...v0.7.0
