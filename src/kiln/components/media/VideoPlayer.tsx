@@ -899,7 +899,9 @@ export function VideoPlayer({
         aria-keyshortcuts={keyboard ? ["Space K J L M C F T ?", ...(shortcuts ?? []).map((x) => x.keys.join("+"))].join(" ") : undefined}
         onKeyDown={onKey}
         onPointerMove={(e) => e.pointerType === "mouse" && live && wake()}
-        onPointerLeave={() => playing && setActive(false)}
+        onPointerLeave={(e) => e.pointerType !== "touch" && playing && setActive(false)}
+        // A tap on a control (not on the picture) keeps the controls up; the picture's own tap toggles them.
+        onPointerDown={(e) => e.pointerType === "touch" && live && !(e.target as HTMLElement).closest("[data-video-surface]") && wake()}
         onFocus={() => live && wake()}
         className={cn(
           // The player is always dark inside: its controls sit on picture, whatever the page theme.
@@ -926,7 +928,7 @@ export function VideoPlayer({
         </video>
         {freeze && <Still from={video} />}
 
-        <div className="absolute inset-0" onPointerUp={onSurfaceUp} aria-hidden />
+        <div data-video-surface className="absolute inset-0" onPointerUp={onSurfaceUp} aria-hidden />
 
         <AnimatePresence>
           {ripple && (

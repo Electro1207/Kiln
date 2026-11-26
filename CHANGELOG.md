@@ -7,6 +7,7 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 ### Fixed
 
 - `VideoPlayer` no longer starts the line on its poster with a stray "·" before the chapter count when the video's length is not known yet.
+- `VideoPlayer`'s controls can be brought back on a phone: tapping the picture now shows or hides them instead of always hiding them, they still fade out after a moment while the video plays, and tapping a control keeps them up.
 
 ## [0.7.0] - 2026-11-26
 
