@@ -1017,7 +1017,12 @@ export function VideoPlayer({
                 )}
                 <p className={cn("shrink-0 text-[13px] font-medium tabular text-white/80", !showTitle && "ml-auto")}>
                   {duration ? fmt(duration) : ""}
-                  {chapters.length > 0 && <span className="hidden sm:inline"> · {l.chapterCount(chapters.length)}</span>}
+                  {chapters.length > 0 && (
+                    <span className="hidden sm:inline">
+                      {duration ? " · " : ""}
+                      {l.chapterCount(chapters.length)}
+                    </span>
+                  )}
                 </p>
               </div>
             </motion.div>
