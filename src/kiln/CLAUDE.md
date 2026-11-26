@@ -218,7 +218,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `Marquee` — An endless row without a seam, which eases to a stop under the pointer
 - `Masonry` — Pictures of mixed heights in columns, rising in as they scroll into view
 - `MediaPlayer` — An audio player that scrubs along the track’s real waveform, with skip, playback speed and volume
-- `VideoPlayer` — Chapters and frame previews on the scrubber, speed and quality that keep your place, captions, picture-in-picture, theater and full screen; `autoPlay` plays it muted while it is on screen, `loop` repeats it, `freeze` holds the picture still (for a player inside a 3D turn) while playback continues
+- `VideoPlayer` — Chapters and frame previews on the scrubber, speed and quality that keep your place, captions, picture-in-picture, theater and full screen; `autoPlay` plays it muted while it is on screen, `loop` repeats it, `freeze` holds the picture still (for a player inside a 3D turn) while playback continues; every control switches off (`volume`, `speed`, `quality`, `pip`, `fullscreen`, `skipButtons`, `showTitle`, `keyboard`, `bigPlayButton`, `autoHideControls`), `src` replaces `renditions`, a `ref` gives play/pause/seek/setRate/setVolume/fullscreen and `video`, `useVideoTime(ref)` is the time as a motion value, `timelineSplit`, `markers`, `cues`, `showChapterTitle`, `controlsStart`/`controlsEnd` (build them with `VideoPlayerControl`), `overlay` (stays in full screen), `onKeyDown` + `shortcuts`, and events
 
 ### `menus/`
 - `CommandPalette` — A keyboard-first launcher with grouped results; the highlight fades between rows; `shortcut="k"` opens it with ⌘K / Ctrl+K
