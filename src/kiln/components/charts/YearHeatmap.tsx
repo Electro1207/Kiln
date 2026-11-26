@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useMotionValue } from "motion/react";
 import { cn } from "../../cn";
 import { fade } from "../../motion";
+import { ChartShell, chartA11yLabels, patternStyle, useChartA11y, type ChartA11yLabels, type ChartA11yProps } from "./ChartA11y";
 
 export type YearDay = { date: string; count: number };
 
@@ -9,9 +10,17 @@ const CELL = 11;
 const GAP = 3;
 const PITCH = CELL + GAP;
 const LEVELS = [0, 0.25, 0.5, 0.75, 1];
+/** Colour-safe mode marks each level with its own texture on top of its strength: plain, lines, dots, crosshatch. */
+const LEVEL_IMG = [
+  "none",
+  "none",
+  patternStyle(2).backgroundImage as string,
+  patternStyle(1).backgroundImage as string,
+  patternStyle(3).backgroundImage as string,
+];
 
 /** Text used by YearHeatmap. Pass a partial via `labels` to translate or reword. Weekday and month names come from `locale`. */
-export interface YearHeatmapLabels {
+export interface YearHeatmapLabels extends ChartA11yLabels {
   /** aria-label of the grid; receives the total count and the `unit`. */
   gridLabel: (total: number, unit: string) => string;
   /** Left end of the colour legend. */
@@ -20,6 +29,7 @@ export interface YearHeatmapLabels {
   more: string;
 }
 export const yearHeatmapLabels: YearHeatmapLabels = {
+  ...chartA11yLabels,
   gridLabel: (total, unit) => `${total} ${unit} in the year`,
   fewer: "Fewer",
   more: "More",
@@ -38,7 +48,7 @@ const fmt = (iso: string, locale: string) => parse(iso).toLocaleDateString(local
  * found from the pointer's position over the grid, so gaps never flicker. The
  * cells render once; only the ring and the readout change on hover.
  */
-export function YearHeatmap({ days, unit, locale = "en-GB", className, labels }: {
+export function YearHeatmap({ days, unit, locale = "en-GB", className, labels, accessibilityFeatures, tableToggle }: {
   days: YearDay[];
   unit: string;
   /** Locale for dates and numbers. Defaults to "en-GB". */
@@ -46,8 +56,17 @@ export function YearHeatmap({ days, unit, locale = "en-GB", className, labels }:
   className?: string;
   /** Override any UI text. Merged over `yearHeatmapLabels`. */
   labels?: Partial<YearHeatmapLabels>;
-}) {
+} & ChartA11yProps) {
   const l = { ...yearHeatmapLabels, ...labels };
+  const ca = useChartA11y({ accessibilityFeatures, tableToggle });
+  const months = useMemo(() => {
+    const m = new Map<string, number>();
+    days.forEach((d) => {
+      const k = parse(d.date).toLocaleDateString(locale, { month: "long", year: "numeric" });
+      m.set(k, (m.get(k) ?? 0) + d.count);
+    });
+    return [...m.entries()];
+  }, [days, locale]);
   const [active, setActive] = useState<number | null>(null);
   const activeRef = useRef<number | null>(null);
   const grid = useRef<HTMLDivElement>(null);
@@ -79,9 +98,19 @@ export function YearHeatmap({ days, unit, locale = "en-GB", className, labels }:
   };
 
   const cur = active != null ? days[active] : null;
+  const busiest = days.reduce((b, d) => (d.count > b.count ? d : b), days[0]);
   return (
-    <div className={cn("flex w-full min-w-0 flex-col gap-3", className)}>
-      <div className="flex items-baseline justify-between gap-3 text-[13px]" aria-live="polite">
+    <ChartShell
+      ca={ca}
+      title={l.gridLabel(total, unit)}
+      summary={`${l.gridLabel(total, unit)}. ${fmt(busiest.date, locale)}: ${busiest.count} ${unit}, the most in one day.`}
+      table={{ caption: l.gridLabel(total, unit), columns: [l.label, unit], rows: months.map(([m, n]) => [m, n.toLocaleString(locale)]) }}
+      labels={labels}
+      className={className}
+      figureClassName="w-full min-w-0"
+      bodyClassName="flex w-full min-w-0 flex-col gap-3"
+    >
+      <div className="flex items-baseline justify-between gap-3 text-[0.8125rem]" aria-live="polite">
         <span className="truncate text-muted">{cur ? fmt(cur.date, locale) : `${parse(days[0].date).getFullYear()}`}</span>
         <span className="tabular shrink-0 font-medium text-ink">
           {(cur ? cur.count : total).toLocaleString(locale)} {unit}
@@ -89,7 +118,7 @@ export function YearHeatmap({ days, unit, locale = "en-GB", className, labels }:
       </div>
       <div className="-m-1 overflow-x-auto p-1">
         <div className="flex w-max gap-2">
-          <div className="flex flex-col pt-5 text-[10px] text-muted" style={{ gap: GAP }} aria-hidden>
+          <div className="flex flex-col pt-5 text-[0.625rem] text-muted" style={{ gap: GAP }} aria-hidden>
             {weekdays(locale).map((d, i) => (
               <span key={i} className="leading-none" style={{ height: CELL }}>{d}</span>
             ))}
@@ -112,7 +141,7 @@ export function YearHeatmap({ days, unit, locale = "en-GB", className, labels }:
                 if (!grid.current?.contains(e.relatedTarget as Node)) show(null);
               }}
             >
-              <Cells days={days} lead={lead} unit={unit} locale={locale} gridRef={grid} />
+              <Cells days={days} lead={lead} unit={unit} locale={locale} gridRef={grid} colourSafe={ca.colourSafe} />
               <motion.span
                 aria-hidden
                 className="pointer-events-none absolute left-0 top-0 z-10 rounded-[4px] border-2 border-ink"
@@ -125,14 +154,14 @@ export function YearHeatmap({ days, unit, locale = "en-GB", className, labels }:
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-1.5 self-end text-[11px] text-muted" aria-hidden>
+      <div className="flex items-center gap-1.5 self-end text-[0.6875rem] text-muted" aria-hidden>
         {l.fewer}
-        {LEVELS.map((l, i) => (
-          <span key={i} className={cn("size-2.5 rounded-[3px]", i === 0 ? "bg-active" : "bg-accent")} style={{ opacity: i === 0 ? 1 : l }} />
+        {LEVELS.map((lv, i) => (
+          <span key={i} className={cn("size-2.5 rounded-[3px]", i === 0 ? "bg-active" : !ca.colourSafe && "bg-accent")} style={i === 0 ? undefined : { opacity: lv, ...(ca.colourSafe ? patternStyle(0) : null), ...(ca.colourSafe ? { backgroundImage: LEVEL_IMG[i] } : null) }} />
         ))}
         {l.more}
       </div>
-    </div>
+    </ChartShell>
   );
 }
 
@@ -145,7 +174,7 @@ const Months = memo(function Months({ days, lead, locale }: { days: YearDay[]; l
     }
   });
   return (
-    <div className="relative h-3.5 text-[10px] text-muted" aria-hidden>
+    <div className="relative h-3.5 text-[0.625rem] text-muted" aria-hidden>
       {labels.map((l) => (
         <span key={l.col} className="absolute top-0 leading-none" style={{ left: l.col * PITCH }}>{l.text}</span>
       ))}
@@ -154,8 +183,8 @@ const Months = memo(function Months({ days, lead, locale }: { days: YearDay[]; l
 });
 
 const Cells = memo(function Cells({
-  days, lead, unit, locale, gridRef,
-}: { days: YearDay[]; lead: number; unit: string; locale: string; gridRef: React.RefObject<HTMLDivElement | null> }) {
+  days, lead, unit, locale, gridRef, colourSafe,
+}: { days: YearDay[]; lead: number; unit: string; locale: string; gridRef: React.RefObject<HTMLDivElement | null>; colourSafe: boolean }) {
   const wrap = useRef<HTMLDivElement>(null);
   const max = useMemo(() => Math.max(1, ...days.map((d) => d.count)), [days]);
   useEffect(() => {
@@ -203,8 +232,8 @@ const Cells = memo(function Cells({
               all[n].tabIndex = 0;
               all[n].focus();
             }}
-            className={cn("absolute rounded-[3px] outline-none", lvl === 0 ? "bg-active" : "bg-accent")}
-            style={{ left: col * PITCH, top: row * PITCH, width: CELL, height: CELL, opacity: lvl === 0 ? 1 : LEVELS[lvl] }}
+            className={cn("absolute rounded-[3px] outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-surface", lvl === 0 ? "bg-active" : !colourSafe && "bg-accent")}
+            style={{ left: col * PITCH, top: row * PITCH, width: CELL, height: CELL, opacity: lvl === 0 ? 1 : LEVELS[lvl], ...(colourSafe && lvl > 0 ? { ...patternStyle(0), backgroundImage: LEVEL_IMG[lvl] } : null) }}
           />
         );
       })}

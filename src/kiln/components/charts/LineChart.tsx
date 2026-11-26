@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { motion } from "motion/react";
-import { cn } from "../../cn";
 import { easeInOut, springFirm } from "../../motion";
+import { announce } from "../accessibility/announce";
+import { ChartShell, chartA11yLabels, cvd, markerClip, markerShape, rovingNext, summariseSeries, useChartA11y, type ChartA11yLabels, type ChartA11yProps } from "./ChartA11y";
 
 export type LinePoint = { label: string; value: number };
 
@@ -13,10 +14,14 @@ export type LineChartProps = {
   format?: (v: number) => string;
   title: string;
   className?: string;
-};
+  /** Override the accessibility text (table button, summary). Merged over `chartA11yLabels`. */
+  labels?: Partial<ChartA11yLabels>;
+} & ChartA11yProps;
 
 /** A line that draws itself in once in view, with a scrubbing readout. */
-export function LineChart({ data, compare, height = 200, format = String, title, className }: LineChartProps) {
+export function LineChart({ data, compare, height = 200, format = String, title, className, labels, accessibilityFeatures, tableToggle }: LineChartProps) {
+  const l = { ...chartA11yLabels, ...labels };
+  const ca = useChartA11y({ accessibilityFeatures, tableToggle });
   // `at` is the last spot shown, so the marker fades out where it was; `jump` skips travel on re-entry.
   const [cursor, setCursor] = useState({ hover: null as number | null, at: data.length - 1, jump: false });
   const { hover, at: lastAt, jump } = cursor;
@@ -44,9 +49,22 @@ export function LineChart({ data, compare, height = 200, format = String, title,
   const shown = lastAt;
   const readout = data[hover ?? data.length - 1];
   return (
-    <figure className={cn("flex w-full flex-col gap-2", className)}>
-      <div className="flex items-baseline justify-between gap-3" aria-live="polite">
-        <span className="text-[13px] text-muted">{readout.label}</span>
+    <ChartShell
+      ca={ca}
+      title={title}
+      summary={summariseSeries(l, data.map((d) => d.label), data.map((d) => d.value), format)}
+      table={{
+        caption: title,
+        columns: compare ? [l.label, l.value, l.compare] : [l.label, l.value],
+        rows: data.map((d, i) => (compare ? [d.label, format(d.value), format(compare[i])] : [d.label, format(d.value)])),
+      }}
+      labels={labels}
+      className={className}
+      figureClassName="w-full"
+      bodyClassName="flex w-full flex-col gap-2"
+    >
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-[0.8125rem] text-muted">{readout.label}</span>
         <span className="tabular text-sm font-medium text-ink">{format(readout.value)}</span>
       </div>
       <div
@@ -54,13 +72,20 @@ export function LineChart({ data, compare, height = 200, format = String, title,
         className="relative touch-pan-y"
         style={{ height }}
         tabIndex={0}
-        role="img"
-        aria-label={`${title}. ${data.map((d) => `${d.label} ${format(d.value)}`).join(", ")}`}
+        role="group"
+        aria-roledescription="chart"
+        aria-label={`${title}. ${l.keysHint}`}
+        onFocus={(e) => {
+          if (e.target === e.currentTarget && e.currentTarget.matches(":focus-visible")) setHover((h) => h ?? data.length - 1);
+        }}
         onPointerMove={(e) => onMove(e.clientX)}
         onPointerLeave={() => setHover(null)}
         onKeyDown={(e) => {
-          if (e.key === "ArrowRight") setHover((h) => Math.min(data.length - 1, (h ?? -1) + 1));
-          if (e.key === "ArrowLeft") setHover((h) => Math.max(0, (h ?? data.length) - 1));
+          const n = rovingNext(e.key, hover ?? data.length - 1, data.length, { prev: ["ArrowLeft"], next: ["ArrowRight"] });
+          if (n == null) return;
+          e.preventDefault();
+          setHover(n);
+          announce(`${data[n].label}: ${format(data[n].value)}`);
         }}
         onBlur={() => setHover(null)}
       >
@@ -98,13 +123,24 @@ export function LineChart({ data, compare, height = 200, format = String, title,
           <path
             d={path(data.map((d) => d.value))}
             fill="none"
-            className="stroke-accent"
+            className={ca.colourSafe ? undefined : "stroke-accent"}
+            style={ca.colourSafe ? { stroke: cvd(0) } : undefined}
             strokeWidth={2}
             strokeLinejoin="round"
             strokeLinecap="round"
             vectorEffect="non-scaling-stroke"
           />
         </motion.svg>
+        {ca.colourSafe && (
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            {compare?.map((v, i) => (
+              <span key={`c${i}`} className="absolute size-2 -translate-x-1/2 -translate-y-1/2 bg-ink" style={{ left: `${(i / (data.length - 1)) * 100}%`, top: `${(y(v) / H) * 100}%`, clipPath: markerClip(markerShape(1)) }} />
+            ))}
+            {data.map((d, i) => (
+              <span key={d.label} className="absolute size-2.5 -translate-x-1/2 -translate-y-1/2" style={{ left: `${(i / (data.length - 1)) * 100}%`, top: `${(y(d.value) / H) * 100}%`, clipPath: markerClip(markerShape(0)), backgroundColor: cvd(0) }} />
+            ))}
+          </div>
+        )}
         <motion.div
           aria-hidden
           className="pointer-events-none absolute inset-0"
@@ -123,12 +159,11 @@ export function LineChart({ data, compare, height = 200, format = String, title,
           </motion.span>
         </motion.div>
       </div>
-      <div className="flex justify-between text-[11px] text-muted" aria-hidden>
+      <div className="flex justify-between text-[0.6875rem] text-muted" aria-hidden>
         {data.map((d, i) =>
           i % Math.ceil((data.length - 1) / 4) === 0 || i === data.length - 1 ? <span key={d.label} className="whitespace-nowrap">{d.label}</span> : null,
         )}
       </div>
-      <figcaption className="sr-only">{title}</figcaption>
-    </figure>
+    </ChartShell>
   );
 }

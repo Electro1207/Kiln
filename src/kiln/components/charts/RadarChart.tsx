@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
+import { announce } from "../accessibility/announce";
 import { fade, springSoft } from "../../motion";
+import { ChartShell, MarkerGlyph, MarkerSwatch, chartA11yLabels, cvd, markerShape, rovingNext, useChartA11y, type ChartA11yLabels, type ChartA11yProps } from "./ChartA11y";
 
 export type RadarSeries = { name: string; values: number[] };
 
@@ -11,8 +13,14 @@ export type RadarSeries = { name: string; values: number[] };
  * nearest the pointer is read out, worked out from the pointer's angle.
  */
 export function RadarChart({
-  axes, series, max = 10, title, size = 280, className,
-}: { axes: string[]; series: RadarSeries[]; max?: number; title: string; size?: number; className?: string }) {
+  axes, series, max = 10, title, size = 280, className, labels, accessibilityFeatures, tableToggle,
+}: {
+  axes: string[]; series: RadarSeries[]; max?: number; title: string; size?: number; className?: string;
+  /** Override the accessibility text (table button, summary). Merged over `chartA11yLabels`. */
+  labels?: Partial<ChartA11yLabels>;
+} & ChartA11yProps) {
+  const l = { ...chartA11yLabels, ...labels };
+  const ca = useChartA11y({ accessibilityFeatures, tableToggle });
   const [hover, setHover] = useState<number | null>(null);
   const svg = useRef<SVGSVGElement>(null);
   const n = axes.length;
@@ -34,13 +42,22 @@ export function RadarChart({
     { stroke: "stroke-accent", fill: "fill-accent", fillOpacity: 0.18, dot: "fill-accent" },
     { stroke: "stroke-muted", fill: "fill-muted", fillOpacity: 0.08, dot: "fill-muted" },
   ];
+  const sw = (k: number) => (ca.colourSafe ? <MarkerSwatch shape={markerShape(k)} i={k} /> : <span aria-hidden className={cn("size-2 rounded-full", k === 0 ? "bg-accent" : "bg-muted")} />);
   return (
-    <figure className={cn("flex flex-col items-center gap-3", className)}>
-      <div className="flex min-h-10 flex-wrap items-center justify-center gap-x-5 gap-y-1 text-sm" aria-live="polite">
+    <ChartShell
+      ca={ca}
+      title={title}
+      summary={`${axes.length} axes, scored out of ${max}. ${series.map((s) => `${s.name}: ${axes.map((a, i) => `${a} ${s.values[i]}`).join(", ")}`).join(". ")}.`}
+      table={{ caption: title, columns: [l.label, ...series.map((s) => s.name)], rows: axes.map((a, i) => [a, ...series.map((s) => s.values[i])]) }}
+      labels={labels}
+      className={className}
+      bodyClassName="flex flex-col items-center gap-3"
+    >
+      <div className="flex min-h-10 flex-wrap items-center justify-center gap-x-5 gap-y-1 text-sm">
         {hover == null ? (
           series.map((s, k) => (
             <span key={s.name} className="flex items-center gap-1.5 text-muted">
-              <span aria-hidden className={cn("size-2 rounded-full", k === 0 ? "bg-accent" : "bg-muted")} />
+              {sw(k)}
               {s.name}
             </span>
           ))
@@ -49,7 +66,7 @@ export function RadarChart({
             <span className="font-medium text-ink">{axes[hover]}</span>
             {series.map((s, k) => (
               <span key={s.name} className="tabular flex items-center gap-1.5 text-muted">
-                <span aria-hidden className={cn("size-2 rounded-full", k === 0 ? "bg-accent" : "bg-muted")} />
+                {sw(k)}
                 {s.name} <span className="font-medium text-ink">{s.values[hover]}</span>
               </span>
             ))}
@@ -62,8 +79,21 @@ export function RadarChart({
         width={size}
         height={size}
         className="max-w-full touch-none overflow-visible"
-        role="img"
-        aria-label={`${title}. ${axes.map((a, i) => `${a}: ${series.map((s) => `${s.name} ${s.values[i]}`).join(", ")}`).join("; ")}`}
+        tabIndex={0}
+        role="group"
+        aria-roledescription="chart"
+        aria-label={`${title}. ${l.keysHint}`}
+        onFocus={(e) => {
+          if (e.target === e.currentTarget && e.currentTarget.matches(":focus-visible")) setHover((h) => h ?? 0);
+        }}
+        onBlur={() => setHover(null)}
+        onKeyDown={(e) => {
+          const next = rovingNext(e.key, hover ?? 0, n, { prev: ["ArrowLeft", "ArrowUp"], next: ["ArrowRight", "ArrowDown"] });
+          if (next == null) return;
+          e.preventDefault();
+          setHover(next);
+          announce(`${axes[next]}: ${series.map((s) => `${s.name} ${s.values[next]}`).join(", ")}`);
+        }}
         onPointerMove={(e) => pick(e.clientX, e.clientY)}
         onPointerLeave={() => setHover(null)}
       >
@@ -81,7 +111,7 @@ export function RadarChart({
                 y={ly}
                 textAnchor={Math.abs(lx - c) < 2 ? "middle" : lx > c ? "start" : "end"}
                 dominantBaseline="middle"
-                className={cn("text-[3.6px] transition-[fill] duration-200", hover === i ? "fill-ink font-medium" : "fill-muted")}
+                className={cn("text-[0.225rem] transition-[fill] duration-200", hover === i ? "fill-ink font-medium" : "fill-muted")}
               >
                 {a}
               </text>
@@ -100,9 +130,24 @@ export function RadarChart({
               viewport={{ once: true }}
               transition={{ ...springSoft, delay: k * 0.12 }}
             >
-              <polygon points={poly(s.values)} className={cn(st.fill, st.stroke)} fillOpacity={st.fillOpacity} strokeWidth={0.8} strokeLinejoin="round" />
+              <polygon
+                points={poly(s.values)}
+                className={ca.colourSafe ? undefined : cn(st.fill, st.stroke)}
+                style={ca.colourSafe ? { fill: cvd(k), stroke: cvd(k) } : undefined}
+                fillOpacity={st.fillOpacity}
+                strokeWidth={0.8}
+                strokeLinejoin="round"
+                strokeDasharray={ca.colourSafe && k > 0 ? "2 1.4" : undefined}
+              />
               {s.values.map((v, i) => {
                 const [x, y] = pt(i, (v / max) * R);
+                if (ca.colourSafe) {
+                  return (
+                    <motion.g key={i} initial={false} animate={{ opacity: hover == null || hover === i ? 1 : 0.35 }} transition={fade}>
+                      <MarkerGlyph shape={markerShape(k)} x={x} y={y} size={hover === i ? 3.8 : 3} style={{ fill: cvd(k) }} />
+                    </motion.g>
+                  );
+                }
                 return (
                   <motion.circle key={i} cx={x} cy={y} r={hover === i ? 1.6 : 1} className={st.dot} initial={false} animate={{ opacity: hover == null || hover === i ? 1 : 0.35 }} transition={fade} />
                 );
@@ -111,7 +156,6 @@ export function RadarChart({
           );
         })}
       </svg>
-      <figcaption className="sr-only">{title}</figcaption>
-    </figure>
+    </ChartShell>
   );
 }
