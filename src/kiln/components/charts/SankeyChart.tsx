@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeInOut } from "../../motion";
+import { ChartPatternDefs, ChartShell, chartA11yLabels, cvd, patternUrl, useChartA11y, type ChartA11yLabels, type ChartA11yProps } from "./ChartA11y";
 
 export type SankeyNode = { id: string; label: string; column: number };
 export type SankeyLink = { from: string; to: string; value: number };
@@ -12,8 +13,17 @@ export type SankeyLink = { from: string; to: string; value: number };
  * back; the last thing hovered stays lit until the pointer leaves the chart.
  */
 export function SankeyChart({
-  nodes, links, title, height = 320, format = (v) => v.toLocaleString("en-US"), className,
-}: { nodes: SankeyNode[]; links: SankeyLink[]; title: string; height?: number; format?: (v: number) => string; className?: string }) {
+  nodes, links, title, height = 320, format = (v) => v.toLocaleString("en-US"), className, labels, accessibilityFeatures, tableToggle,
+}: {
+  nodes: SankeyNode[]; links: SankeyLink[]; title: string; height?: number; format?: (v: number) => string; className?: string;
+  /** Override the accessibility text (table button, summary). Merged over `chartA11yLabels`. */
+  labels?: Partial<ChartA11yLabels>;
+} & ChartA11yProps) {
+  const l = { ...chartA11yLabels, ...labels };
+  const ca = useChartA11y({ accessibilityFeatures, tableToggle });
+  const pid = `${ca.uid}-p`;
+  const nameOf = (id: string) => nodes.find((n) => n.id === id)?.label ?? id;
+  const idx = (id: string) => nodes.findIndex((n) => n.id === id);
   const box = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(0);
   const [focus, setFocus] = useState<{ kind: "node" | "link"; key: string } | null>(null);
@@ -74,17 +84,28 @@ export function SankeyChart({
     : title;
 
   return (
-    <figure className={cn("flex w-full flex-col gap-3", className)}>
-      <p className="truncate text-sm text-muted" aria-live="polite">{readout}</p>
+    <ChartShell
+      ca={ca}
+      title={title}
+      summary={`${nodes.length} nodes, ${links.length} flows. ${links.map((k) => `${nameOf(k.from)} to ${nameOf(k.to)} ${format(k.value)}`).join("; ")}.`}
+      table={{ caption: title, columns: [l.from, l.to, l.value], rows: links.map((k) => [nameOf(k.from), nameOf(k.to), format(k.value)]) }}
+      labels={labels}
+      className={className}
+      figureClassName="w-full"
+      bodyClassName="flex w-full flex-col gap-3"
+    >
+      <p className="truncate text-sm text-muted">{readout}</p>
       <div ref={box} className="relative w-full" style={{ height }} onPointerLeave={() => setFocus(null)}>
         {layout && (
-          <svg width={w} height={height} className="absolute inset-0 overflow-visible" role="img" aria-label={`${title}. ${links.map((l) => `${l.from} to ${l.to} ${format(l.value)}`).join("; ")}`}>
+          <svg width={w} height={height} className="absolute inset-0 overflow-visible" aria-hidden>
+            {ca.colourSafe && <ChartPatternDefs id={pid} size={4} />}
             {layout.bands.map((b, i) => (
               <motion.path
                 key={b.key}
                 d={b.d}
                 fill="none"
-                className="stroke-accent transition-[stroke-opacity] duration-200"
+                className={cn(!ca.colourSafe && "stroke-accent", "transition-[stroke-opacity] duration-200")}
+                stroke={ca.colourSafe ? cvd(idx(b.from)) : undefined}
                 strokeWidth={Math.max(1, b.t)}
                 style={{ strokeOpacity: lit(b) ? 0.32 : 0.07 }}
                 initial={{ pathLength: 0 }}
@@ -100,13 +121,13 @@ export function SankeyChart({
               const side = n.column === 0 ? "left" : n.column === lastCol ? "right" : "top";
               return (
                 <g key={n.id} onPointerEnter={() => setFocus({ kind: "node", key: n.id })} className="transition-opacity duration-200" style={{ opacity: nodeLit(n.id) ? 1 : 0.35 }}>
-                  <rect x={p.x} y={p.y} width={NODE_W} height={Math.max(2, p.h)} rx={3} className="fill-ink" />
+                  <rect x={p.x} y={p.y} width={NODE_W} height={Math.max(2, p.h)} rx={3} className={ca.colourSafe ? undefined : "fill-ink"} style={ca.colourSafe ? { fill: patternUrl(pid, idx(n.id)) } : undefined} />
                   <text
                     x={side === "right" ? p.x + NODE_W + 8 : side === "left" ? p.x - 8 : p.x + NODE_W / 2}
                     y={side === "top" ? p.y - 10 : p.y + p.h / 2}
                     textAnchor={side === "right" ? "start" : side === "left" ? "end" : "middle"}
                     dominantBaseline={side === "top" ? "auto" : "middle"}
-                    className="fill-ink text-[12px]"
+                    className="fill-ink text-[0.75rem]"
                   >
                     {n.label}
                     <tspan className="fill-muted tabular" dx={6}>{format(p.v)}</tspan>
@@ -117,7 +138,6 @@ export function SankeyChart({
           </svg>
         )}
       </div>
-      <figcaption className="sr-only">{title}</figcaption>
-    </figure>
+    </ChartShell>
   );
 }

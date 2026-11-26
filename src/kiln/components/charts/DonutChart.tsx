@@ -3,15 +3,16 @@ import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeInOut, fade } from "../../motion";
 import { SwapText } from "../shared/Anchored";
+import { ChartPatternDefs, ChartShell, chartA11yLabels, patternStyle, patternUrl, rovingNext, summariseParts, useChartA11y, type ChartA11yLabels, type ChartA11yProps } from "./ChartA11y";
 
 export type DonutSegment = { label: string; value: number };
 
 /** Text used by DonutChart. Pass a partial via `labels` to translate or reword. */
-export interface DonutChartLabels {
+export interface DonutChartLabels extends ChartA11yLabels {
   /** Centre text when nothing is hovered and no `centreLabel` is given. */
   total: string;
 }
-export const donutChartLabels: DonutChartLabels = { total: "Total" };
+export const donutChartLabels: DonutChartLabels = { ...chartA11yLabels, total: "Total" };
 
 export type DonutChartProps = {
   data: DonutSegment[];
@@ -24,7 +25,7 @@ export type DonutChartProps = {
   className?: string;
   /** Override any UI text. Merged over `donutChartLabels`. */
   labels?: Partial<DonutChartLabels>;
-};
+} & ChartA11yProps;
 
 /** Accent at four strengths: one hue, ordered by size, never a rainbow. */
 const STRENGTH = [1, 0.66, 0.42, 0.24, 0.14];
@@ -42,9 +43,14 @@ function arc(cx: number, cy: number, r: number, a0: number, a1: number) {
  * segment comes from the pointer's angle around the centre, so the gaps between
  * segments belong to a segment too and nothing flickers.
  */
-export function DonutChart({ data, title, centreLabel, format = String, size = 200, thickness = 22, className, labels }: DonutChartProps) {
+export function DonutChart({ data, title, centreLabel, format = String, size = 200, thickness = 22, className, labels, accessibilityFeatures, tableToggle }: DonutChartProps) {
   const l = { ...donutChartLabels, ...labels };
+  const ca = useChartA11y({ accessibilityFeatures, tableToggle });
+  const pid = `${ca.uid}-p`;
   const [hover, setHover] = useState<number | null>(null);
+  const [rove, setRove] = useState(0);
+  const [kb, setKb] = useState(false);
+  const rows = useRef<(HTMLButtonElement | null)[]>([]);
   const svg = useRef<SVGSVGElement>(null);
   const total = data.reduce((s, d) => s + d.value, 0);
   const order = [...data.keys()].sort((a, b) => data[b].value - data[a].value);
@@ -75,17 +81,25 @@ export function DonutChart({ data, title, centreLabel, format = String, size = 2
 
   const cur = hover != null ? data[hover] : null;
   return (
-    <figure className={cn("flex flex-col items-center gap-5 sm:flex-row sm:gap-8", className)}>
+    <ChartShell
+      ca={ca}
+      title={title}
+      summary={summariseParts(l, data, format)}
+      table={{ caption: title, columns: [l.label, l.value, l.share], rows: data.map((d) => [d.label, format(d.value), `${Math.round((d.value / total) * 100)}%`]) }}
+      labels={labels}
+      className={className}
+      bodyClassName="flex flex-col items-center gap-5 sm:flex-row sm:gap-8"
+    >
       <div className="relative shrink-0" style={{ width: size, height: size }}>
         <svg
           ref={svg}
           viewBox="0 0 100 100"
           className="size-full touch-none"
-          role="img"
-          aria-label={`${title}. ${data.map((d) => `${d.label} ${format(d.value)}`).join(", ")}`}
+          aria-hidden
           onPointerMove={(e) => pick(e.clientX, e.clientY)}
           onPointerLeave={() => setHover(null)}
         >
+          {ca.colourSafe && <ChartPatternDefs id={pid} size={3} />}
           <circle cx={c} cy={c} r={r} fill="none" className="stroke-active" strokeWidth={sw} />
           {segs.map((g) => {
             const gap = segs.length > 1 ? GAP_DEG / 2 : 0;
@@ -94,9 +108,12 @@ export function DonutChart({ data, title, centreLabel, format = String, size = 2
                 key={g.label}
                 d={arc(c, c, r, g.a0 + gap, g.a1 - gap)}
                 fill="none"
-                className="stroke-accent transition-opacity duration-200"
+                className={cn(ca.colourSafe ? "" : "stroke-accent", "transition-opacity duration-200")}
                 strokeWidth={sw}
-                style={{ opacity: hover == null || hover === g.i ? strength(g.i) : strength(g.i) * 0.35 }}
+                style={{
+                  opacity: ca.colourSafe ? (hover == null || hover === g.i ? 1 : 0.35) : hover == null || hover === g.i ? strength(g.i) : strength(g.i) * 0.35,
+                  ...(ca.colourSafe ? { stroke: patternUrl(pid, g.i) } : null),
+                }}
                 initial={{ pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
@@ -104,6 +121,9 @@ export function DonutChart({ data, title, centreLabel, format = String, size = 2
               />
             );
           })}
+          {kb && hover != null && (
+            <path d={arc(c, c, r + sw / 2 + 1.6, segs[hover].a0 + 0.8, segs[hover].a1 - 0.8)} fill="none" className="stroke-ink" strokeWidth={1.1} strokeLinecap="round" />
+          )}
         </svg>
         <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
           <div className="flex flex-col items-center" style={{ maxWidth: size - thickness * 2 - 16 }}>
@@ -116,7 +136,7 @@ export function DonutChart({ data, title, centreLabel, format = String, size = 2
           </div>
         </div>
       </div>
-      <ul className="flex min-w-0 flex-col gap-0.5 self-stretch sm:self-center" onPointerLeave={() => setHover(null)} aria-label="Legend">
+      <ul className="flex min-w-0 flex-col gap-0.5 self-stretch sm:self-center" onPointerLeave={() => setHover(null)} aria-label={`Legend. ${l.keysHint}`}>
         {data.map((d, i) => (
           <li key={d.label}>
             <button
@@ -125,12 +145,24 @@ export function DonutChart({ data, title, centreLabel, format = String, size = 2
                 "flex h-8 w-full items-center gap-2.5 rounded-control px-2 text-left text-sm transition-colors duration-200",
                 hover === i ? "bg-raised" : "",
               )}
-              onPointerEnter={() => setHover(i)}
-              onFocus={() => setHover(i)}
-              onBlur={() => setHover(null)}
+              ref={(el) => { rows.current[i] = el; }}
+              tabIndex={rove === i ? 0 : -1}
+              onPointerEnter={() => { setKb(false); setHover(i); }}
+              onFocus={(e) => { setRove(i); setHover(i); setKb(e.currentTarget.matches(":focus-visible")); }}
+              onBlur={() => { setHover(null); setKb(false); }}
+              onKeyDown={(e) => {
+                const n = rovingNext(e.key, i, data.length);
+                if (n == null) return;
+                e.preventDefault();
+                rows.current[n]?.focus();
+              }}
               aria-label={`${d.label}: ${format(d.value)}, ${Math.round((d.value / total) * 100)}%`}
             >
-              <span aria-hidden className="size-2.5 shrink-0 rounded-full bg-accent" style={{ opacity: strength(i) }} />
+              {ca.colourSafe ? (
+                <span aria-hidden className="size-3 shrink-0 rounded-[3px]" style={patternStyle(i)} />
+              ) : (
+                <span aria-hidden className="size-2.5 shrink-0 rounded-full bg-accent" style={{ opacity: strength(i) }} />
+              )}
               <span className="min-w-0 flex-1 truncate text-ink">{d.label}</span>
               <motion.span
                 aria-hidden
@@ -145,7 +177,6 @@ export function DonutChart({ data, title, centreLabel, format = String, size = 2
           </li>
         ))}
       </ul>
-      <figcaption className="sr-only">{title}</figcaption>
-    </figure>
+    </ChartShell>
   );
 }

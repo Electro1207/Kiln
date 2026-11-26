@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { springSoft } from "../../motion";
+import { ChartShell, chartA11yLabels, patternStyle, rovingNext, summariseParts, useChartA11y, type ChartA11yLabels, type ChartA11yProps } from "./ChartA11y";
 
 export type TreemapItem = { label: string; value: number };
 type Rect = { x: number; y: number; w: number; h: number };
@@ -49,7 +50,21 @@ const STRENGTH = [1, 0.72, 0.5, 0.34, 0.22, 0.14];
  * The hovered tile comes from the pointer over the whole map, so the 2px gaps
  * between tiles never flip it back and forth.
  */
-export function TreemapChart({ items, title, height = 320, format = (v) => v.toLocaleString("en-US"), className }: { items: TreemapItem[]; title: string; height?: number; format?: (v: number) => string; className?: string }) {
+export function TreemapChart({
+  items, title, height = 320, format = (v) => v.toLocaleString("en-US"), className, labels, accessibilityFeatures, tableToggle,
+}: {
+  items: TreemapItem[];
+  title: string;
+  height?: number;
+  format?: (v: number) => string;
+  className?: string;
+  /** Override the accessibility text (table button, summary). Merged over `chartA11yLabels`. */
+  labels?: Partial<ChartA11yLabels>;
+} & ChartA11yProps) {
+  const l = { ...chartA11yLabels, ...labels };
+  const ca = useChartA11y({ accessibilityFeatures, tableToggle });
+  const [rove, setRove] = useState(0);
+  const tileEls = useRef<(HTMLDivElement | null)[]>([]);
   const box = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(0);
   const [hover, setHover] = useState<number | null>(null);
@@ -64,7 +79,16 @@ export function TreemapChart({ items, title, height = 320, format = (v) => v.toL
   const total = items.reduce((s, i) => s + i.value, 0);
   const cur = hover != null ? tiles[hover] : null;
   return (
-    <figure className={cn("flex w-full flex-col gap-3", className)}>
+    <ChartShell
+      ca={ca}
+      title={title}
+      summary={summariseParts(l, items, format)}
+      table={{ caption: title, columns: [l.label, l.value, l.share], rows: [...items].sort((a, b) => b.value - a.value).map((t) => [t.label, format(t.value), `${((t.value / total) * 100).toFixed(1)}%`]) }}
+      labels={labels}
+      className={className}
+      figureClassName="w-full"
+      bodyClassName="flex w-full flex-col gap-3"
+    >
       <div className="flex items-baseline justify-between gap-3 text-sm" aria-live="polite">
         <span className="truncate text-muted">{cur ? cur.label : title}</span>
         <span className="tabular shrink-0 font-medium text-ink">
@@ -77,7 +101,7 @@ export function TreemapChart({ items, title, height = 320, format = (v) => v.toL
         className="relative w-full overflow-hidden rounded-card"
         style={{ height }}
         role="list"
-        aria-label={title}
+        aria-label={`${title}. ${l.keysHint}`}
         onPointerMove={(e) => {
           const r = box.current!.getBoundingClientRect();
           const x = e.clientX - r.left, y = e.clientY - r.top;
@@ -92,10 +116,17 @@ export function TreemapChart({ items, title, height = 320, format = (v) => v.toL
             <motion.div
               key={t.label}
               role="listitem"
-              tabIndex={0}
+              ref={(el) => { tileEls.current[i] = el; }}
+              tabIndex={rove === i ? 0 : -1}
               aria-label={`${t.label}: ${format(t.value)}`}
-              onFocus={() => setHover(i)}
+              onFocus={() => { setRove(i); setHover(i); }}
               onBlur={() => setHover(null)}
+              onKeyDown={(e) => {
+                const n = rovingNext(e.key, i, tiles.length);
+                if (n == null) return;
+                e.preventDefault();
+                tileEls.current[n]?.focus();
+              }}
               className="absolute p-[1px] outline-offset-[-2px]"
               style={{ left: t.x, top: t.y, width: t.w, height: t.h, originX: 0, originY: 0 }}
               initial={{ opacity: 0, scale: 0.96 }}
@@ -106,9 +137,9 @@ export function TreemapChart({ items, title, height = 320, format = (v) => v.toL
               <div
                 className={cn("relative flex size-full flex-col justify-end overflow-hidden rounded-[6px] p-2 transition-opacity duration-200", hover != null && hover !== i && "opacity-60")}
               >
-                <span aria-hidden className="absolute inset-0 bg-btn-primary" style={{ opacity: STRENGTH[Math.min(i, STRENGTH.length - 1)] }} />
+                <span aria-hidden className={cn("absolute inset-0", !ca.colourSafe && "bg-btn-primary")} style={ca.colourSafe ? patternStyle(i) : { opacity: STRENGTH[Math.min(i, STRENGTH.length - 1)] }} />
                 {big && (
-                  <span className={cn("relative truncate text-xs font-medium", STRENGTH[Math.min(i, STRENGTH.length - 1)] >= 0.5 ? "text-btn-primary-ink" : "text-ink")}>
+                  <span className={cn("relative truncate text-xs font-medium", ca.colourSafe ? "self-start rounded-[4px] bg-surface px-1.5 py-0.5 text-ink" : STRENGTH[Math.min(i, STRENGTH.length - 1)] >= 0.5 ? "text-btn-primary-ink" : "text-ink")}>
                     {t.label}
                     <span className="tabular block font-normal opacity-80">{format(t.value)}</span>
                   </span>
@@ -118,7 +149,6 @@ export function TreemapChart({ items, title, height = 320, format = (v) => v.toL
           );
         })}
       </div>
-      <figcaption className="sr-only">{title}</figcaption>
-    </figure>
+    </ChartShell>
   );
 }

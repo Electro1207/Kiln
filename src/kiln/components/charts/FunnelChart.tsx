@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { springSoft } from "../../motion";
+import { ChartShell, chartA11yLabels, patternStyle, useChartA11y, type ChartA11yLabels, type ChartA11yProps } from "./ChartA11y";
 
 export type FunnelStage = { label: string; value: number };
 
@@ -8,10 +9,31 @@ export type FunnelStage = { label: string; value: number };
  * Stages that narrow, each bar centred and as wide as its share of the first,
  * with the step-to-step conversion between them. Bars open from the centre once in view.
  */
-export function FunnelChart({ stages, title, format = (v) => v.toLocaleString("en-US"), className }: { stages: FunnelStage[]; title: string; format?: (v: number) => string; className?: string }) {
+export function FunnelChart({
+  stages, title, format = (v) => v.toLocaleString("en-US"), className, labels, accessibilityFeatures, tableToggle,
+}: {
+  stages: FunnelStage[];
+  title: string;
+  format?: (v: number) => string;
+  className?: string;
+  /** Override the accessibility text (table button, summary). Merged over `chartA11yLabels`. */
+  labels?: Partial<ChartA11yLabels>;
+} & ChartA11yProps) {
+  const l = { ...chartA11yLabels, ...labels };
+  const ca = useChartA11y({ accessibilityFeatures, tableToggle });
   const top = stages[0]?.value || 1;
+  const lastStage = stages[stages.length - 1];
   return (
-    <figure className={cn("flex w-full flex-col", className)} aria-label={title}>
+    <ChartShell
+      ca={ca}
+      title={title}
+      summary={l.stages({ count: stages.length, first: stages[0].label, firstValue: format(stages[0].value), last: lastStage.label, lastValue: format(lastStage.value), overall: `${((lastStage.value / top) * 100).toFixed(1)}%` })}
+      table={{ caption: title, columns: [l.label, l.value, l.share], rows: stages.map((s) => [s.label, format(s.value), `${((s.value / top) * 100).toFixed(1)}%`]) }}
+      labels={labels}
+      className={className}
+      figureClassName="w-full"
+      bodyClassName="flex w-full flex-col"
+    >
       <ol className="flex flex-col">
         {stages.map((s, i) => {
           const share = s.value / top;
@@ -28,8 +50,8 @@ export function FunnelChart({ stages, title, format = (v) => v.toLocaleString("e
                 <div className="relative flex h-9 justify-center">
                   <motion.span
                     aria-hidden
-                    className="h-full rounded-[6px] bg-accent"
-                    style={{ width: `${share * 100}%`, opacity: 1 - i * (0.55 / Math.max(1, stages.length - 1)) }}
+                    className={cn("h-full rounded-[6px]", !ca.colourSafe && "bg-accent")}
+                    style={{ width: `${share * 100}%`, opacity: ca.colourSafe ? 1 : 1 - i * (0.55 / Math.max(1, stages.length - 1)), ...(ca.colourSafe ? patternStyle(i) : null) }}
                     initial={{ scaleX: 0 }}
                     whileInView={{ scaleX: 1 }}
                     viewport={{ once: true }}
@@ -44,7 +66,6 @@ export function FunnelChart({ stages, title, format = (v) => v.toLocaleString("e
           );
         })}
       </ol>
-      <figcaption className="sr-only">{title}</figcaption>
-    </figure>
+    </ChartShell>
   );
 }

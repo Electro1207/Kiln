@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
 import { fade, springFirm } from "../../motion";
+import { ChartShell, patternStyle, rovingNext, summariseSeries, useChartA11y, chartA11yLabels, type ChartA11yLabels, type ChartA11yProps } from "./ChartA11y";
 
 export type BarDatum = { label: string; value: number };
 
@@ -14,7 +15,9 @@ export type BarChartProps = {
   /** What the chart shows, read by screen readers. */
   title: string;
   className?: string;
-};
+  /** Override the accessibility text (table button, summary). Merged over `chartA11yLabels`. */
+  labels?: Partial<ChartA11yLabels>;
+} & ChartA11yProps;
 
 function niceMax(v: number) {
   const p = Math.pow(10, Math.floor(Math.log10(v || 1)));
@@ -27,7 +30,11 @@ function niceMax(v: number) {
  * The hovered bar comes from the pointer's position over the whole plot,
  * so moving between bars never flickers.
  */
-export function BarChart({ data, highlight, height = 200, format = String, title, className }: BarChartProps) {
+export function BarChart({ data, highlight, height = 200, format = String, title, className, labels, accessibilityFeatures, tableToggle }: BarChartProps) {
+  const l = { ...chartA11yLabels, ...labels };
+  const ca = useChartA11y({ accessibilityFeatures, tableToggle });
+  const [rove, setRove] = useState<number | null>(null);
+  const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const [hover, setHover] = useState<number | null>(null);
   const plot = useRef<HTMLDivElement>(null);
   const hi = highlight ?? data.length - 1;
@@ -40,9 +47,18 @@ export function BarChart({ data, highlight, height = 200, format = String, title
     setHover(Math.max(0, Math.min(data.length - 1, i)));
   };
   return (
-    <figure className={cn("relative flex w-full flex-col gap-2", className)}>
+    <ChartShell
+      ca={ca}
+      title={title}
+      summary={summariseSeries(l, data.map((d) => d.label), data.map((d) => d.value), format)}
+      table={{ caption: title, columns: [l.label, l.value], rows: data.map((d) => [d.label, format(d.value)]) }}
+      labels={labels}
+      className={className}
+      figureClassName="w-full"
+      bodyClassName="flex w-full flex-col gap-2"
+    >
       <div className="relative flex" style={{ height }}>
-        <div className="tabular relative w-10 shrink-0 text-[11px] text-muted" aria-hidden>
+        <div className="tabular relative w-10 shrink-0 text-[0.6875rem] text-muted" aria-hidden>
           {ticks.map((t) => (
             <span key={t} className="absolute right-2 -translate-y-1/2 leading-none" style={{ top: `${(1 - t) * 100}%` }}>
               {format(max * t)}
@@ -58,7 +74,7 @@ export function BarChart({ data, highlight, height = 200, format = String, title
           {ticks.map((t) => (
             <span key={t} aria-hidden className={cn("absolute inset-x-0 h-px", t === 0 ? "bg-line-strong" : "bg-line")} style={{ top: `calc(${(1 - t) * 100}% - ${t === 0 ? 1 : 0}px)` }} />
           ))}
-          <div className="absolute inset-0 flex" role="list" aria-label={title}>
+          <div className="absolute inset-0 flex" role="list" aria-label={`${title}. ${l.keysHint}`}>
             {data.map((d, i) => {
               const pct = (d.value / max) * 100;
               return (
@@ -75,17 +91,26 @@ export function BarChart({ data, highlight, height = 200, format = String, title
                     <motion.span
                       className={cn(
                         "block size-full transition-opacity duration-200",
-                        i === hi ? "bg-accent" : "bg-line-strong",
+                        i === hi ? (ca.colourSafe ? "" : "bg-accent") : "bg-line-strong",
                         hover != null && hover !== i && "opacity-50",
                       )}
+                      style={i === hi && ca.colourSafe ? patternStyle(0) : undefined}
                       variants={{ hidden: { y: "101%" }, shown: { y: "0%", transition: { ...springFirm, delay: i * 0.035 } } }}
                     />
                   </motion.span>
                   <button
                     type="button"
+                    ref={(el) => { buttons.current[i] = el; }}
                     className="absolute inset-0 rounded-[4px] outline-offset-0"
-                    onFocus={() => setHover(i)}
+                    tabIndex={(rove ?? hi) === i ? 0 : -1}
+                    onFocus={() => { setRove(i); setHover(i); }}
                     onBlur={() => setHover(null)}
+                    onKeyDown={(e) => {
+                      const n = rovingNext(e.key, i, data.length);
+                      if (n == null) return;
+                      e.preventDefault();
+                      buttons.current[n]?.focus();
+                    }}
                     aria-label={`${d.label}: ${format(d.value)}`}
                   />
                   <AnimatePresence>
@@ -108,14 +133,13 @@ export function BarChart({ data, highlight, height = 200, format = String, title
           </div>
         </div>
       </div>
-      <div className="flex pl-10 text-[11px] text-muted" aria-hidden>
+      <div className="flex pl-10 text-[0.6875rem] text-muted" aria-hidden>
         {data.map((d, i) => (
           <span key={d.label} className={cn("flex-1 truncate text-center", i === hi && "font-medium text-ink")}>
             {d.label}
           </span>
         ))}
       </div>
-      <figcaption className="sr-only">{title}</figcaption>
-    </figure>
+    </ChartShell>
   );
 }

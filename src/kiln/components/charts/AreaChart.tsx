@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { motion } from "motion/react";
-import { cn } from "../../cn";
 import { easeInOut, fade, springFirm } from "../../motion";
+import { announce } from "../accessibility/announce";
+import { ChartPatternDefs, ChartShell, chartA11yLabels, cvd, markerClip, markerShape, patternUrl, rovingNext, summariseSeries, useChartA11y, type ChartA11yLabels, type ChartA11yProps } from "./ChartA11y";
 
 export type AreaSeries = { name: string; values: number[] };
 
@@ -13,7 +14,9 @@ export type AreaChartProps = {
   height?: number;
   format?: (v: number) => string;
   className?: string;
-};
+  /** Override the accessibility text (table button, summary). Merged over `chartA11yLabels`. */
+  a11yLabels?: Partial<ChartA11yLabels>;
+} & ChartA11yProps;
 
 const STRENGTH = [0.9, 0.5, 0.26, 0.14];
 
@@ -21,7 +24,10 @@ const STRENGTH = [0.9, 0.5, 0.26, 0.14];
  * Stacked areas, revealed by a wipe. The cursor comes from the pointer over the
  * whole plot (or the arrow keys) and the readout lists every layer and the total.
  */
-export function AreaChart({ labels, series, title, height = 220, format = String, className }: AreaChartProps) {
+export function AreaChart({ labels, series, title, height = 220, format = String, className, a11yLabels, accessibilityFeatures, tableToggle }: AreaChartProps) {
+  const l = { ...chartA11yLabels, ...a11yLabels };
+  const ca = useChartA11y({ accessibilityFeatures, tableToggle });
+  const pid = `${ca.uid}-p`;
   // `at` is the last spot shown, so the marker fades out where it was; `jump` skips travel on re-entry.
   const [cursor, setCursor] = useState({ hover: null as number | null, at: labels.length - 1, jump: false });
   const { hover, at: lastAt, jump } = cursor;
@@ -58,15 +64,32 @@ export function AreaChart({ labels, series, title, height = 220, format = String
   const idx = hover ?? n - 1;
 
   return (
-    <figure className={cn("flex w-full flex-col gap-3", className)}>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1" aria-live="polite">
-        <span className="text-[13px] text-muted">{labels[idx]}</span>
-        <dl className="flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
+    <ChartShell
+      ca={ca}
+      title={title}
+      summary={summariseSeries(l, labels, stacks.map((s) => s[s.length - 1]), format).replace(/^/, `${series.length} layers. `)}
+      table={{
+        caption: title,
+        columns: [l.label, ...series.map((s) => s.name), l.total],
+        rows: labels.map((x, i) => [x, ...series.map((s) => format(s.values[i])), format(stacks[i][series.length - 1])]),
+      }}
+      labels={a11yLabels}
+      className={className}
+      figureClassName="w-full"
+      bodyClassName="flex w-full flex-col gap-3"
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <span className="text-[0.8125rem] text-muted">{labels[idx]}</span>
+        <dl className="flex flex-wrap gap-x-4 gap-y-1 text-[0.8125rem]">
           {[...series].reverse().map((s) => {
             const k = series.indexOf(s);
             return (
               <div key={s.name} className="flex items-center gap-1.5">
-                <span aria-hidden className="size-2 rounded-full bg-accent" style={{ opacity: STRENGTH[k] ?? 0.14 }} />
+                {ca.colourSafe ? (
+                  <span aria-hidden className="inline-block size-2.5 shrink-0" style={{ clipPath: markerClip(markerShape(k)), backgroundColor: cvd(k) }} />
+                ) : (
+                  <span aria-hidden className="size-2 rounded-full bg-accent" style={{ opacity: STRENGTH[k] ?? 0.14 }} />
+                )}
                 <dt className="text-muted">{s.name}</dt>
                 <dd className="tabular font-medium text-ink">{format(s.values[idx])}</dd>
               </div>
@@ -83,13 +106,20 @@ export function AreaChart({ labels, series, title, height = 220, format = String
         className="relative touch-pan-y"
         style={{ height }}
         tabIndex={0}
-        role="img"
-        aria-label={title}
+        role="group"
+        aria-roledescription="chart"
+        aria-label={`${title}. ${l.keysHint}`}
+        onFocus={(e) => {
+          if (e.target === e.currentTarget && e.currentTarget.matches(":focus-visible")) setHover((h) => h ?? n - 1);
+        }}
         onPointerMove={(e) => pick(e.clientX)}
         onPointerLeave={() => setHover(null)}
         onKeyDown={(e) => {
-          if (e.key === "ArrowRight") { e.preventDefault(); setHover((h) => Math.min(n - 1, (h ?? -1) + 1)); }
-          if (e.key === "ArrowLeft") { e.preventDefault(); setHover((h) => Math.max(0, (h ?? n) - 1)); }
+          const next = rovingNext(e.key, hover ?? n - 1, n, { prev: ["ArrowLeft"], next: ["ArrowRight"] });
+          if (next == null) return;
+          e.preventDefault();
+          setHover(next);
+          announce(`${labels[next]}: ${series.map((s) => `${s.name} ${format(s.values[next])}`).join(", ")}, ${l.total} ${format(stacks[next][series.length - 1])}`);
         }}
         onBlur={() => setHover(null)}
       >
@@ -107,16 +137,17 @@ export function AreaChart({ labels, series, title, height = 220, format = String
           viewport={{ once: true }}
           transition={{ duration: 1.2, ease: easeInOut }}
         >
+          {ca.colourSafe && <ChartPatternDefs id={pid} size={4} />}
           {series.map((s, k) => (
-            <path key={s.name} d={area(k)} className="fill-accent" style={{ fillOpacity: (STRENGTH[k] ?? 0.14) * 0.55 }} />
+            <path key={s.name} d={area(k)} className={ca.colourSafe ? undefined : "fill-accent"} style={ca.colourSafe ? { fill: patternUrl(pid, k), fillOpacity: 0.75 } : { fillOpacity: (STRENGTH[k] ?? 0.14) * 0.55 }} />
           ))}
           {series.map((s, k) => (
             <path
               key={s.name + "-l"}
               d={line(k)}
               fill="none"
-              className="stroke-accent"
-              style={{ strokeOpacity: STRENGTH[k] ?? 0.14 }}
+              className={ca.colourSafe ? undefined : "stroke-accent"}
+              style={ca.colourSafe ? { stroke: cvd(k) } : { strokeOpacity: STRENGTH[k] ?? 0.14 }}
               strokeWidth={k === 0 ? 2 : 1.5}
               strokeLinejoin="round"
               vectorEffect="non-scaling-stroke"
@@ -139,18 +170,21 @@ export function AreaChart({ labels, series, title, height = 220, format = String
               animate={{ y: `${(y(stacks[at][k]) / H) * 100}%` }}
               transition={jump ? { duration: 0 } : springFirm}
             >
-              <span
-                className="absolute left-0 top-0 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent ring-2 ring-surface"
-                style={{ opacity: k === 0 ? 1 : 0.75 }}
-              />
+              {ca.colourSafe ? (
+                <span className="absolute left-0 top-0 size-3 -translate-x-1/2 -translate-y-1/2" style={{ clipPath: markerClip(markerShape(k)), backgroundColor: cvd(k), outline: "none" }} />
+              ) : (
+                <span
+                  className="absolute left-0 top-0 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent ring-2 ring-surface"
+                  style={{ opacity: k === 0 ? 1 : 0.75 }}
+                />
+              )}
             </motion.span>
           ))}
         </motion.div>
       </div>
-      <div className="flex justify-between text-[11px] text-muted" aria-hidden>
+      <div className="flex justify-between text-[0.6875rem] text-muted" aria-hidden>
         {labels.map((l, i) => (i % Math.ceil((n - 1) / 4) === 0 || i === n - 1 ? <span key={l} className="whitespace-nowrap">{l}</span> : null))}
       </div>
-      <figcaption className="sr-only">{title}</figcaption>
-    </figure>
+    </ChartShell>
   );
 }

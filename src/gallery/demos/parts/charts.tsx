@@ -20,6 +20,7 @@ export function DonutDemo() {
     <Stage>
       <div className="w-full max-w-lg rounded-card bg-surface p-5 sm:p-6">
         <DonutChart
+          tableToggle
           title="The Fellowship of the Ring, by people"
           centreLabel="Fellowship"
           data={[
@@ -53,7 +54,7 @@ export function AreaDemo() {
             { name: "A-wing", values: AWING },
           ]}
         />
-        <p className="mt-3 text-xs text-muted">Move along the chart, or focus it and use the arrow keys.</p>
+        <p className="mt-3 text-xs text-muted">Move along the chart, or focus it and use the arrow keys. "View as table" shows the same readings.</p>
       </div>
     </Stage>
   );
@@ -145,6 +146,7 @@ export function BarDemo() {
     <Stage>
       <div className="w-full max-w-xl rounded-card bg-surface p-5 sm:p-6">
         <BarChart
+          tableToggle
           title="Ghosts captured per month, June to November 1984"
           data={[
             { label: "Jun", value: 6 },
@@ -168,12 +170,13 @@ export function LineDemo() {
     <Stage>
       <div className="w-full max-w-xl rounded-card bg-surface p-5 sm:p-6">
         <LineChart
+          tableToggle
           title="PKE readings at 55 Central Park West over twelve days, against the Sedgewick Hotel"
           data={PKE.map((v, i) => ({ label: `Day ${i + 1}`, value: v }))}
           compare={PKE_SEDGEWICK}
           format={(v) => `${v} PKE`}
         />
-        <p className="mt-3 text-xs text-muted">Dashed line: the Sedgewick Hotel over the same days. Move along the chart, or focus it and use the arrow keys.</p>
+        <p className="mt-3 text-xs text-muted">Dashed line: the Sedgewick Hotel over the same days. Move along the chart, or focus it and use the arrow keys. "View as table" shows the same readings.</p>
       </div>
     </Stage>
   );
