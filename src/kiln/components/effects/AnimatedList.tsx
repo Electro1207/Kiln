@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut, springSoft } from "../../motion";
-import { useOnScreen, usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { useOnScreen } from "../shared/useLoop";
 
 export type AnimatedListProps<T> = {
   items: T[];
@@ -12,6 +13,11 @@ export type AnimatedListProps<T> = {
   /** How many stay in view; the oldest leaves when a new one lands. */
   visible?: number;
   className?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion and calm stop the cycling and show the first items, still.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -19,10 +25,12 @@ export type AnimatedListProps<T> = {
  * landing; the rest slide down to make room. It loops through `items` while
  * on screen.
  */
-export function AnimatedList<T>({ items, render, interval = 1800, visible = 4, className }: AnimatedListProps<T>) {
+export function AnimatedList<T>({ items, render, interval = 1800, visible = 4, className, accessibilityFeatures }: AnimatedListProps<T>) {
   const ref = useRef<HTMLUListElement>(null);
   const onScreen = useOnScreen(ref);
-  const reduce = usePrefersReducedMotion();
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  // Self-advancing, so calm holds it still as well as reduced motion.
+  const reduce = a11y.reduceMotion || a11y.calm;
   const [count, setCount] = useState(1);
 
   useEffect(() => {
@@ -39,7 +47,7 @@ export function AnimatedList<T>({ items, render, interval = 1800, visible = 4, c
       });
 
   return (
-    <ul ref={ref} aria-live="off" className={cn("relative flex flex-col gap-2.5", className)}>
+    <ul ref={ref} aria-live="off" {...rootProps} className={cn("relative flex flex-col gap-2.5", className)}>
       <AnimatePresence initial={false} mode="popLayout">
         {shown.map(({ key, item }) => (
           <motion.li

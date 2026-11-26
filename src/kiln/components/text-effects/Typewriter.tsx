@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../../cn";
-import { useLoop, useOnScreen, usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { useLoop, useOnScreen } from "../shared/useLoop";
 
 export type TypewriterProps = {
   /** Phrases typed one after another, then deleted, in a loop. */
@@ -13,6 +14,11 @@ export type TypewriterProps = {
   hold?: number;
   className?: string;
   caretClassName?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -20,10 +26,12 @@ export type TypewriterProps = {
  * stays solid while it is typing. Under reduced motion it shows the first
  * phrase, still.
  */
-export function Typewriter({ phrases, speed = 55, deleteSpeed = 28, hold = 1600, className, caretClassName }: TypewriterProps) {
+export function Typewriter({ phrases, speed = 55, deleteSpeed = 28, hold = 1600, className, caretClassName, accessibilityFeatures }: TypewriterProps) {
   const root = useRef<HTMLSpanElement>(null);
   const caret = useRef<HTMLSpanElement>(null);
-  const reduce = usePrefersReducedMotion();
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  // Reduced motion and calm both hold the first phrase, still.
+  const reduce = a11y.reduceMotion || a11y.calm;
   const visible = useOnScreen(root);
   const [text, setText] = useState("");
   const [typing, setTyping] = useState(true);
@@ -59,15 +67,16 @@ export function Typewriter({ phrases, speed = 55, deleteSpeed = 28, hold = 1600,
     return () => window.clearTimeout(t);
   }, [reduce, visible, phrases, speed, deleteSpeed, hold]);
 
+  // useLoop reads the shared settings; the caret also holds still for this component's own prop.
   useLoop(
     caret,
-    (el) => (typing ? [] : [el.animate([{ opacity: 1 }, { opacity: 1, offset: 0.5 }, { opacity: 0, offset: 0.5 }, { opacity: 0 }], { duration: 1000, iterations: Infinity })]),
-    [typing],
+    (el) => (typing || reduce ? [] : [el.animate([{ opacity: 1 }, { opacity: 1, offset: 0.5 }, { opacity: 0, offset: 0.5 }, { opacity: 0 }], { duration: 1000, iterations: Infinity })]),
+    [typing, reduce],
   );
 
   const shown = reduce ? phrases[0] : text;
   return (
-    <span ref={root} className={cn("whitespace-pre-wrap", className)}>
+    <span ref={root} className={cn("whitespace-pre-wrap", className)} {...rootProps}>
       <span className="sr-only">{phrases[0]}</span>
       <span aria-hidden>
         {shown}

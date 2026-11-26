@@ -2,7 +2,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { animate, motion, useMotionValue, useScroll, useTransform, type MotionValue } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut, springSoft } from "../../motion";
-import { usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type FanCard = {
   id: string;
@@ -29,6 +29,11 @@ export type CardFanProps = {
   cardClassName?: string;
   className?: string;
   "aria-label"?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion shows the hand already dealt, and a card lifts without springing.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -36,9 +41,10 @@ export type CardFanProps = {
  * and a card lifts out of the hand while it is hovered or focused, so its face can play something.
  * On narrow screens the hand lays out as a row you can scroll sideways. Transform only.
  */
-export function CardFan({ cards, spread = 22, overlap = 0.28, lift = 26, deal = "scroll", onActiveChange, cardClassName, className, "aria-label": ariaLabel }: CardFanProps) {
+export function CardFan({ cards, spread = 22, overlap = 0.28, lift = 26, deal = "scroll", onActiveChange, cardClassName, className, "aria-label": ariaLabel, accessibilityFeatures }: CardFanProps) {
   const root = useRef<HTMLUListElement>(null);
-  const reduce = usePrefersReducedMotion();
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const reduce = a11y.reduceMotion;
   const [active, setActive] = useState<string | null>(null);
   const { scrollYProgress } = useScroll({ target: root, offset: ["start end", "center 60%"] });
   const once = useMotionValue(0);
@@ -56,6 +62,7 @@ export function CardFan({ cards, spread = 22, overlap = 0.28, lift = 26, deal = 
     <motion.ul
       ref={root}
       aria-label={ariaLabel}
+      {...rootProps}
       onViewportEnter={() => deal === "view" && animate(once, 1, { duration: 0.9, ease: easeOut })}
       viewport={{ once: true, amount: 0.4 }}
       className={cn(
@@ -73,6 +80,7 @@ export function CardFan({ cards, spread = 22, overlap = 0.28, lift = 26, deal = 
           overlap={overlap}
           lift={lift}
           dealt={dealt}
+          reduce={reduce}
           active={active === c.id}
           onActive={(on) => set(on ? c.id : active === c.id ? null : active)}
           className={cardClassName}
@@ -84,7 +92,8 @@ export function CardFan({ cards, spread = 22, overlap = 0.28, lift = 26, deal = 
   );
 }
 
-function Card({ i, mid, n, spread, overlap, lift, dealt, active, onActive, className, children }: {
+function Card({ i, mid, n, spread, overlap, lift, dealt, reduce, active, onActive, className, children }: {
+  reduce: boolean;
   i: number; mid: number; n: number; spread: number; overlap: number; lift: number; dealt: MotionValue<number>;
   active: boolean; onActive: (on: boolean) => void; className?: string; children: ReactNode;
 }) {
@@ -112,7 +121,7 @@ function Card({ i, mid, n, spread, overlap, lift, dealt, active, onActive, class
       {/* The lift is its own layer, so it springs on top of wherever the deal has put the card. */}
       <motion.div
         animate={{ y: active ? -lift : 0, rotate: active ? -angle * 0.6 : 0, scale: active ? 1.04 : 1 }}
-        transition={springSoft}
+        transition={reduce ? { duration: 0 } : springSoft}
         className="size-full overflow-hidden rounded-card border border-line bg-surface shadow-float"
       >
         {children}

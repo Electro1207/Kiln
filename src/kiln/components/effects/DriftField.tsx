@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { motion, useMotionValue, useScroll, useTransform, type MotionValue } from "motion/react";
 import { cn } from "../../cn";
-import { usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type DriftItem = {
   /** What floats: usually a small live control (a switch, a slider, a progress ring). */
@@ -36,6 +36,11 @@ export type DriftFieldProps = {
   className?: string;
   /** Names the group of controls for screen readers. */
   "aria-label"?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion keeps the pieces where they start.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 function useScreens() {
@@ -92,8 +97,9 @@ function useDock() {
  * The field fills its positioned parent and only the pieces take the pointer. Transforms only; with
  * reduced motion the pieces stay where they start.
  */
-export function DriftField({ items, progress, speed, loop = 1.5, inset, itemClassName, className, "aria-label": ariaLabel }: DriftFieldProps) {
-  const still = usePrefersReducedMotion();
+export function DriftField({ items, progress, speed, loop = 1.5, inset, itemClassName, className, "aria-label": ariaLabel, accessibilityFeatures }: DriftFieldProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion;
   const screens = useScreens();
   const zero = useMotionValue(0);
   const p = progress ?? screens ?? zero;
@@ -108,7 +114,7 @@ export function DriftField({ items, progress, speed, loop = 1.5, inset, itemClas
     return { side, drift: drift.map((it, i) => ({ it, at: offset + (i * loop) / Math.max(1, drift.length) })), pinned: own.filter((it) => it.pin) };
   });
   return (
-    <div role="group" aria-label={ariaLabel} className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}>
+    <div role="group" aria-label={ariaLabel} {...rootProps} className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}>
       {sides.map(({ side, drift, pinned }) => {
         const dock = side === "left" ? leftH : rightH;
         // Each column drifts in its own layer, which ends above that column's pinned pieces and fades out there.

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
 import { cn } from "../../cn";
 import { springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type TiltCardProps = {
   children: ReactNode;
@@ -10,13 +11,20 @@ export type TiltCardProps = {
   className?: string;
   /** Classes for the card surface itself. */
   cardClassName?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion keeps the card flat.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
  * A card that leans towards the pointer in 3D and settles flat when it leaves.
  * Wrap inner pieces in TiltLayer to float them above the surface.
  */
-export function TiltCard({ children, max = 8, className, cardClassName }: TiltCardProps) {
+export function TiltCard({ children, max = 8, className, cardClassName, accessibilityFeatures }: TiltCardProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion;
   const px = useMotionValue(0);
   const py = useMotionValue(0);
   const rx = useSpring(useTransform(py, (v) => -v * max * 2), springSoft);
@@ -27,10 +35,10 @@ export function TiltCard({ children, max = 8, className, cardClassName }: TiltCa
   const sheenOpacity = useTransform(sheen, (v) => v * 0.5);
 
   return (
-    <div className={cn("[perspective:900px]", className)}>
+    <div {...rootProps} className={cn("[perspective:900px]", className)}>
       <motion.div
         onPointerMove={(e) => {
-          if (e.pointerType !== "mouse") return;
+          if (still || e.pointerType !== "mouse") return;
           const r = e.currentTarget.getBoundingClientRect();
           px.set((e.clientX - r.left) / r.width - 0.5);
           py.set((e.clientY - r.top) / r.height - 0.5);

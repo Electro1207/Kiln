@@ -1,7 +1,7 @@
 import { useMemo, useRef, type ElementType, type RefObject } from "react";
 import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { cn } from "../../cn";
-import { usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ScrollWordsProps = {
   text: string;
@@ -17,6 +17,12 @@ export type ScrollWordsProps = {
   /** The scrolling element, when it isn't the page. */
   container?: RefObject<HTMLElement | null>;
   className?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features.
+   * Reduced motion shows the whole paragraph fully lit.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -25,14 +31,15 @@ export type ScrollWordsProps = {
  * costs no React renders, and the words never move, so nothing reflows. Screen
  * readers get the plain sentence; with reduced motion it is fully lit.
  */
-export function ScrollWords({ text, as: Tag = "p", dim = 0.2, line = 0.55, container, className }: ScrollWordsProps) {
+export function ScrollWords({ text, as: Tag = "p", dim = 0.2, line = 0.55, container, className, accessibilityFeatures }: ScrollWordsProps) {
   const ref = useRef<HTMLElement>(null);
-  const reduce = usePrefersReducedMotion();
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const reduce = a11y.reduceMotion;
   const words = useMemo(() => text.split(/\s+/).filter(Boolean), [text]);
   const { scrollYProgress } = useScroll({ target: ref, container, offset: ["start 0.9", `end ${line}`] });
   const n = words.length;
   return (
-    <Tag ref={ref} className={cn(className)}>
+    <Tag ref={ref} className={cn(className)} {...rootProps}>
       {words.map((w, i) => (
         <Word key={i} p={scrollYProgress} from={i / n} to={(i + 1) / n} dim={reduce ? 1 : dim}>
           {w}

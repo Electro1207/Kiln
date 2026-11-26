@@ -1,5 +1,6 @@
 import { Children, useRef, type ReactNode } from "react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { useLoop } from "../shared/useLoop";
 
 export type OrbitingCirclesProps = {
@@ -14,6 +15,11 @@ export type OrbitingCirclesProps = {
   /** Draw the orbit's ring. */
   path?: boolean;
   className?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion and calm hold the items at their starting places.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -22,8 +28,10 @@ export type OrbitingCirclesProps = {
  * under reduced motion and stop while off-screen. Place inside a relative
  * container and put the centrepiece in its middle.
  */
-export function OrbitingCircles({ children, radius, duration = 24, reverse, itemSize = 40, path = true, className }: OrbitingCirclesProps) {
+export function OrbitingCircles({ children, radius, duration = 24, reverse, itemSize = 40, path = true, className, accessibilityFeatures }: OrbitingCirclesProps) {
   const root = useRef<HTMLDivElement>(null);
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const hold = a11y.reduceMotion || a11y.calm;
   const items = Children.toArray(children);
   const angle = (i: number) => (360 / items.length) * i;
   const place = (a: number) => `rotate(${a}deg) translateX(${radius}px) rotate(${-a}deg)`;
@@ -31,16 +39,16 @@ export function OrbitingCircles({ children, radius, duration = 24, reverse, item
   useLoop(
     root,
     (el) =>
-      Array.from(el.querySelectorAll<HTMLElement>("[data-orbit]")).map((node, i) => {
+      hold ? [] : Array.from(el.querySelectorAll<HTMLElement>("[data-orbit]")).map((node, i) => {
         const a = angle(i);
         const end = reverse ? a - 360 : a + 360;
         return node.animate([{ transform: place(a) }, { transform: place(end) }], { duration: duration * 1000, iterations: Infinity, easing: "linear" });
       }),
-    [items.length, radius, duration, reverse],
+    [items.length, radius, duration, reverse, hold],
   );
 
   return (
-    <div ref={root} aria-hidden className={cn("pointer-events-none absolute inset-0", className)}>
+    <div ref={root} aria-hidden {...rootProps} className={cn("pointer-events-none absolute inset-0", className)}>
       {path && (
         <span
           className="absolute left-1/2 top-1/2 rounded-full border border-line-strong/70"

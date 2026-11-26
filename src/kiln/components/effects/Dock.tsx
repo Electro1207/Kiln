@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from "motion/react";
 import { cn } from "../../cn";
 import { fade, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type DockItem = {
   id: string;
@@ -30,6 +31,11 @@ export type DockProps = {
   className?: string;
   /** Override any UI text. Merged over `dockLabels`. */
   labels?: Partial<DockLabels>;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion turns the swell off: the icons stay at rest size.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const GAP = 8;
@@ -43,7 +49,9 @@ type Layout = { s: number[]; dx: number[]; grow: number };
  * slide apart to make room; the bar widens to fit. Everything moves by
  * transform only, and labels appear above the icon under the pointer or focus.
  */
-export function Dock({ items, size: wanted = 44, magnify = 1.6, reach = 140, className, labels }: DockProps) {
+export function Dock({ items, size: wanted = 44, magnify = 1.6, reach = 140, className, labels, accessibilityFeatures }: DockProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion;
   const l = { ...dockLabels, ...labels };
   const n = items.length;
   // Shrink the tiles to fit narrow containers (a phone), never grow them.
@@ -100,10 +108,11 @@ export function Dock({ items, size: wanted = 44, magnify = 1.6, reach = 140, cla
       ref={root}
       role="toolbar"
       aria-label={l.dock}
+      {...rootProps}
       className={cn("relative", className)}
-      style={{ width, height }}
+      style={{ ...rootProps.style, width, height }}
       onPointerMove={(e) => {
-        if (e.pointerType !== "mouse") return;
+        if (still || e.pointerType !== "mouse") return;
         const m = e.clientX - e.currentTarget.getBoundingClientRect().left;
         mx.set(m);
         presence.set(1);

@@ -1,7 +1,7 @@
 import { useRef, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
 import { cn } from "../../cn";
-import { usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ParallaxProps = {
   children: ReactNode;
@@ -20,6 +20,11 @@ export type ParallaxProps = {
   container?: RefObject<HTMLElement | null>;
   className?: string;
   style?: CSSProperties;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion keeps the layer still.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -28,9 +33,10 @@ export type ParallaxProps = {
  * scrolling never re-renders React, and only transform changes. With reduced
  * motion it stays still.
  */
-export function Parallax({ children, as = "div", distance = 80, axis = "y", rotate = 0, container, className, style }: ParallaxProps) {
+export function Parallax({ children, as = "div", distance = 80, axis = "y", rotate = 0, container, className, style, accessibilityFeatures }: ParallaxProps) {
   const ref = useRef<HTMLElement>(null);
-  const reduce = usePrefersReducedMotion();
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const reduce = a11y.reduceMotion;
   const { scrollYProgress } = useScroll({ target: ref, container, offset: ["start end", "end start"] });
   const d = reduce ? 0 : distance;
   const shift = useTransform(scrollYProgress, [0, 1], [d, -d]);
@@ -39,8 +45,9 @@ export function Parallax({ children, as = "div", distance = 80, axis = "y", rota
   return (
     <Tag
       ref={ref as never}
+      {...rootProps}
       className={cn("will-change-transform", className)}
-      style={{ ...style, [axis]: shift, rotate: rotate ? turn : undefined }}
+      style={{ ...rootProps.style, ...style, [axis]: shift, rotate: rotate ? turn : undefined }}
     >
       {children}
     </Tag>

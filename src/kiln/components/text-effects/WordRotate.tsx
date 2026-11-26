@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut, springSoft } from "../../motion";
-import { useOnScreen, usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { useOnScreen } from "../shared/useLoop";
 
 export type WordRotateProps = {
   words: string[];
@@ -10,6 +11,11 @@ export type WordRotateProps = {
   interval?: number;
   className?: string;
   align?: "start" | "center" | "end";
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -18,21 +24,24 @@ export type WordRotateProps = {
  * The cell has room above and below the line, so marks over and under letters
  * (Devanagari, Kannada, Thai, Vietnamese) are never clipped.
  */
-export function WordRotate({ words, interval = 2200, className, align = "start" }: WordRotateProps) {
+export function WordRotate({ words, interval = 2200, className, align = "start", accessibilityFeatures }: WordRotateProps) {
   const ref = useRef<HTMLSpanElement>(null);
   const [i, setI] = useState(0);
-  const reduce = usePrefersReducedMotion();
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  // Reduced motion and calm both hold the first word: nothing changes on its own.
+  const hold = a11y.reduceMotion || a11y.calm;
   const visible = useOnScreen(ref);
 
   useEffect(() => {
-    if (reduce || !visible) return;
+    if (hold || !visible) return;
     const t = window.setInterval(() => setI((n) => (n + 1) % words.length), interval);
     return () => window.clearInterval(t);
-  }, [reduce, visible, interval, words.length]);
+  }, [hold, visible, interval, words.length]);
 
   return (
     <span
       ref={ref}
+      {...rootProps}
       className={cn(
         "inline-grid overflow-hidden py-[0.3em] -my-[0.3em] align-bottom [&>*]:[grid-area:1/1]",
         align === "center" ? "justify-items-center" : align === "end" ? "justify-items-end" : "justify-items-start",

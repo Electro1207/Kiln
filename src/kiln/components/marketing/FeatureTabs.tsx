@@ -1,8 +1,9 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { AnimatePresence, animate, motion, useInView, useMotionValue, useReducedMotion } from "motion/react";
+import { AnimatePresence, animate, motion, useInView, useMotionValue } from "motion/react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { easeOut, fade } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by FeatureTabs. Pass a partial via `labels` to translate or reword. */
 export interface FeatureTabsLabels {
@@ -26,6 +27,11 @@ export type FeatureTabsProps = {
   /** Override any UI text. Merged over `featureTabsLabels`. */
   labels?: Partial<FeatureTabsLabels>;
   className?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion and calm turn auto-advance off, so the feature changes only when someone picks it.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -33,14 +39,16 @@ export type FeatureTabsProps = {
  * chosen feature; it advances on its own, with a progress bar that pauses
  * while the pointer or focus is inside, and stops for good once someone picks.
  */
-export function FeatureTabs({ features, value, defaultValue = 0, onChange, interval = 6, labels, className }: FeatureTabsProps) {
+export function FeatureTabs({ features, value, defaultValue = 0, onChange, interval = 6, labels, className, accessibilityFeatures }: FeatureTabsProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...featureTabsLabels, ...labels };
   const id = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useControllable(value, defaultValue, onChange);
   const [paused, setPaused] = useState(false);
   const [manual, setManual] = useState(false);
-  const reduce = useReducedMotion();
+  // Auto-advance changes the page on its own, so calm stops it as well as reduced motion.
+  const reduce = a11y.reduceMotion || a11y.calm;
   const inView = useInView(rootRef, { amount: 0.3 });
   const progress = useMotionValue(0);
   const auto = interval > 0 && !manual && !reduce;
@@ -77,6 +85,7 @@ export function FeatureTabs({ features, value, defaultValue = 0, onChange, inter
   return (
     <div
       ref={rootRef}
+      {...rootProps}
       onPointerEnter={() => setPaused(true)}
       onPointerLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -108,7 +117,7 @@ export function FeatureTabs({ features, value, defaultValue = 0, onChange, inter
                   className="pointer-events-none absolute inset-0 rounded-card bg-surface"
                 />
                 <span className="relative z-[1] block">
-                  <span className={cn("block text-[15px] font-medium transition-colors duration-200", on ? "text-ink" : "text-muted")}>{f.title}</span>
+                  <span className={cn("block text-[0.9375rem] font-medium transition-colors duration-200", on ? "text-ink" : "text-muted")}>{f.title}</span>
                   <span className={cn("mt-1 block text-sm leading-relaxed transition-colors duration-200", on ? "text-ink" : "text-muted")}>{f.body}</span>
                   <span aria-hidden className="mt-3 block h-0.5 overflow-hidden rounded-full bg-active">
                     {on && auto ? (

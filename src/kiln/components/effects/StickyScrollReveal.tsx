@@ -1,6 +1,7 @@
 import { useRef, useState, type ReactNode } from "react";
-import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform, type MotionValue } from "motion/react";
+import { motion, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type RevealStep = {
   title: string;
@@ -29,6 +30,12 @@ export type StickyScrollRevealProps = {
   className?: string;
   /** Override any UI text. Merged over `stickyScrollRevealLabels`. */
   labels?: Partial<StickyScrollRevealLabels>;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features.
+   * Reduced motion turns the story into plain stacked content: each step with its visual above it, no pinning or scroll box.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Height of the pinned visual when the layout is stacked on a phone, px. */
@@ -41,10 +48,48 @@ const PHONE_VISUAL = 188;
  * React. Only the step counter changes state, once per step. On a phone the
  * visual pins above the text instead of beside it.
  */
-export function StickyScrollReveal({ steps, height = 480, className, labels }: StickyScrollRevealProps) {
+export function StickyScrollReveal({ steps, height = 480, className, labels, accessibilityFeatures }: StickyScrollRevealProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...stickyScrollRevealLabels, ...labels };
+  // The pinned story and the stacked one are separate trees, so each starts with fresh scroll tracking.
+  if (a11y.reduceMotion) return <Stacked steps={steps} className={className} l={l} rootProps={rootProps} />;
+  return <Pinned steps={steps} height={height} className={className} l={l} rootProps={rootProps} />;
+}
+
+type Inner = { steps: RevealStep[]; className?: string; l: StickyScrollRevealLabels; rootProps: ReturnType<typeof useA11yProps>["rootProps"] };
+
+/** Reduced motion: every step in flow, its visual above its words. */
+function Stacked({ steps, className, l, rootProps }: Inner) {
+  return (
+    <div
+      role="group"
+      aria-label={l.story}
+      {...rootProps}
+      className={cn("divide-y divide-line overflow-hidden rounded-card border border-line bg-surface", className)}
+    >
+      {steps.map((st) => (
+        <section key={st.title} className="grid gap-4 p-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:items-center md:gap-8 md:p-8">
+          <div className="relative h-[188px] overflow-hidden rounded-card bg-raised md:order-2 md:h-64">
+            {st.image ? (
+              <img src={st.image.src} alt={st.image.alt} draggable={false} className="size-full object-cover" />
+            ) : (
+              <div className="grid size-full place-items-center">{st.panel}</div>
+            )}
+          </div>
+          <div className="max-w-md md:order-1">
+            {st.eyebrow && <p className="text-xs font-medium text-accent">{st.eyebrow}</p>}
+            <h3 className="mt-1.5 text-xl font-semibold leading-tight tracking-[-0.015em] text-ink md:text-3xl">{st.title}</h3>
+            <div className="mt-2 text-sm leading-6 text-muted md:mt-3 md:text-base md:leading-7">{st.body}</div>
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function Pinned({ steps, height, className, l, rootProps }: Inner & { height: number }) {
   const scroller = useRef<HTMLDivElement>(null);
-  const reduce = !!useReducedMotion();
+  const reduce = false; // reduced motion renders <Stacked> instead
   const [active, setActive] = useState(0);
   const n = steps.length;
 
@@ -68,7 +113,8 @@ export function StickyScrollReveal({ steps, height = 480, className, labels }: S
         "overflow-y-auto overscroll-contain rounded-card border border-line bg-surface [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         className,
       )}
-      style={{ height, ["--h" as string]: `${height}px`, ["--vis" as string]: `${PHONE_VISUAL}px` }}
+      {...rootProps}
+      style={{ ...rootProps.style, height, ["--h" as string]: `${height}px`, ["--vis" as string]: `${PHONE_VISUAL}px` }}
     >
       <div className="grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         <div className="sticky top-0 z-10 flex h-[var(--vis)] flex-col gap-2 bg-surface p-3 md:order-2 md:h-[var(--h)] md:gap-3 md:self-start md:bg-transparent md:p-5">
@@ -136,7 +182,7 @@ function Step({ s, i, reduce, step }: { s: MotionValue<number>; i: number; reduc
 function Tick({ s, i, label, onPick }: { s: MotionValue<number>; i: number; label: string; onPick: () => void }) {
   const opacity = useTransform(s, [i - 0.6, i, i + 0.6], [0.18, 1, 0.18]);
   return (
-    <button type="button" aria-label={label} onClick={onPick} className="group flex h-5 flex-1 items-center outline-none">
+    <button type="button" aria-label={label} onClick={onPick} className="group flex h-5 flex-1 items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-accent">
       <motion.span style={{ opacity }} className="block h-0.5 w-full rounded-full bg-ink group-focus-visible:h-1" />
     </button>
   );
