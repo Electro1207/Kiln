@@ -4,6 +4,10 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+### Fixed
+
+- `BorderBeam`'s beam now sits exactly on the card's 1px border instead of spilling half a pixel onto the card, so its edge is crisp and no longer looks doubled at the corners.
+
 ## [0.8.1] - 2026-11-26
 
 A VideoPlayer Settings menu that fits what it shows.
