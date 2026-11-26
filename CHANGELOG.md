@@ -4,6 +4,10 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+## [0.8.2] - 2026-11-26
+
+A crisper BorderBeam.
+
 ### Fixed
 
 - `BorderBeam`'s beam now sits exactly on the card's 1px border instead of spilling half a pixel onto the card, so its edge is crisp and no longer looks doubled at the corners.
@@ -207,7 +211,8 @@ The first release on npm, published with provenance.
 
 - `Switch` and `HeatStrip` fixes, and zero lint warnings.
 
-[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.8.1...HEAD
+[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.8.2...HEAD
+[0.8.2]: https://github.com/Electro1207/Kiln/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/Electro1207/Kiln/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/Electro1207/Kiln/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/Electro1207/Kiln/compare/v0.7.0...v0.7.1
