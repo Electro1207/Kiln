@@ -4,4 +4,4 @@ export { type CompareSliderLabels, compareSliderLabels, type CompareSliderProps,
 export { type MarqueeProps, Marquee } from "../components/media/Marquee";
 export { type MasonryItem, Masonry } from "../components/media/Masonry";
 export { type MediaPlayerLabels, mediaPlayerLabels, type MediaPlayerIcons, mediaPlayerIcons, type MediaPlayerProps, MediaPlayer } from "../components/media/MediaPlayer";
-export { type VideoRendition, type VideoChapter, type VideoPlayerLabels, videoPlayerLabels, type VideoPlayerProps, type VideoPlayerIcons, videoPlayerIcons, VideoPlayer } from "../components/media/VideoPlayer";
+export { type VideoRendition, type VideoChapter, type VideoMarker, type VideoCue, type VideoShortcut, type VideoPlayerHandle, type VideoPlayerLabels, videoPlayerLabels, type VideoPlayerProps, type VideoPlayerIcons, videoPlayerIcons, VideoPlayer, VideoPlayerControl, useVideoTime } from "../components/media/VideoPlayer";

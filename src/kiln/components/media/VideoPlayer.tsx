@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, type RefObject } from "react";
+import { createContext, useCallback, useContext, useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, type Ref, type RefObject } from "react";
 import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
 import { Captions, Check, ChevronLeft, ChevronRight, Keyboard, Maximize, Minimize, PictureInPicture2, RectangleHorizontal, RotateCcw, Settings, Volume1, Volume2, VolumeX, X } from "lucide-react";
 import { cn } from "../../cn";
@@ -6,6 +6,33 @@ import { easeOut, fade, springFirm, springSnappy, springSoft } from "../../motio
 
 export type VideoRendition = { label: string; src: string; height: number };
 export type VideoChapter = { start: number; title: string };
+/** A numbered hit marker on the scrubber. Clicking near it seeks to it. */
+export type VideoMarker = { time: number; label?: string; tone?: "accent" | "neutral" | "danger" };
+/** One caption, from data. */
+export type VideoCue = { start: number; end: number; text: string };
+/** A shortcut of your own, listed in the shortcuts sheet. Handle the key itself in `onKeyDown`. */
+export type VideoShortcut = { keys: string[]; label: string };
+
+/** What a `ref` on VideoPlayer gives you, and what `controlsStart`, `controlsEnd` and `overlay` are called with. */
+export interface VideoPlayerHandle {
+  play: () => Promise<void>;
+  pause: () => void;
+  toggle: () => void;
+  /** Jump to a time in seconds. */
+  seek: (time: number) => void;
+  setRate: (rate: number) => void;
+  /** 0 to 1. Zero also mutes. */
+  setVolume: (volume: number) => void;
+  enterFullscreen: () => void;
+  exitFullscreen: () => void;
+  readonly currentTime: number;
+  readonly duration: number;
+  readonly paused: boolean;
+  /** The raw video element, or null before it mounts. */
+  readonly video: HTMLVideoElement | null;
+  /** The current time as a motion value, updated every frame while it plays. See `useVideoTime`. */
+  readonly time: MotionValue<number>;
+}
 type Previews = { src: string; cols: number; interval: number; width: number; height: number };
 
 /**
@@ -38,6 +65,10 @@ export interface VideoPlayerLabels {
   back10: string;
   /** Skip forward control. */
   forward10: string;
+  /** Skip back control when the skip is not ten seconds (`skipButtons`). */
+  skipBack: (seconds: number) => string;
+  /** Skip forward control when the skip is not ten seconds (`skipButtons`). */
+  skipForward: (seconds: number) => string;
   /** Mute control. */
   mute: string;
   /** Unmute control. */
@@ -116,6 +147,8 @@ export const videoPlayerLabels: VideoPlayerLabels = {
   pause: "Pause (k)",
   back10: "Back 10 seconds (j)",
   forward10: "Forward 10 seconds (l)",
+  skipBack: (s) => `Back ${s} seconds (j)`,
+  skipForward: (s) => `Forward ${s} seconds (l)`,
   mute: "Mute (m)",
   unmute: "Unmute (m)",
   captionsToggle: "Captions (c)",
@@ -163,16 +196,76 @@ export const videoPlayerLabels: VideoPlayerLabels = {
 };
 
 export type VideoPlayerProps = {
+  /** The accessible name of the player. Shown on the poster and top bar unless `showTitle` is false. */
   title: string;
   /** A short line under the title on the poster and the top bar (a series, an episode, a credit). */
   subtitle?: string;
-  renditions: VideoRendition[];
+  /** Show the title and subtitle on the poster and the top bar. Defaults to true. */
+  showTitle?: boolean;
+  /** Several sizes of one video, with a quality menu. Give this or `src`. */
+  renditions?: VideoRendition[];
+  /** One video file, without a quality menu. Give this or `renditions`. */
+  src?: string;
+  /** The player's handle: play, pause, seek and more. */
+  ref?: Ref<VideoPlayerHandle>;
   /** Label of the rendition to start with. Defaults to the middle one. */
   initialQuality?: string;
   poster?: string;
-  /** A WebVTT captions file. */
-  captions?: { src: string; label: string; lang: string };
+  /** A WebVTT captions file, or `false` to leave captions out even when `cues` are given. */
+  captions?: false | { src: string; label: string; lang: string };
+  /** Captions from data, used when there is no captions file. */
+  cues?: VideoCue[];
   chapters?: VideoChapter[];
+  /** Draw the scrubber as one segment per chapter, with a gap between. Defaults to true; false draws one bar. */
+  timelineSplit?: boolean;
+  /** Show the current chapter's title in the control bar. */
+  showChapterTitle?: boolean;
+  /** Numbered markers on the scrubber. */
+  markers?: VideoMarker[];
+  /** Seconds the skip buttons and J and L jump, or `false` to hide the skip buttons. Defaults to 10. */
+  skipButtons?: number | false;
+  /** The volume button and slider (and the M and arrow keys). Defaults to true. */
+  volume?: boolean;
+  /** The speed choices, the speed badge and the `<` `>` keys. Defaults to true. */
+  speed?: boolean;
+  /** The quality choices, when there are several renditions. Defaults to true. */
+  quality?: boolean;
+  /** The picture-in-picture button. Defaults to true. */
+  pip?: boolean;
+  /** The theater button, which also needs `onTheaterChange`. Defaults to true. (`theater` itself is the current state.) */
+  theaterButton?: boolean;
+  /** The full screen button and the F key. Defaults to true. */
+  fullscreen?: boolean;
+  /** Built-in keyboard shortcuts. Defaults to true. `onKeyDown` still works when false. */
+  keyboard?: boolean;
+  /** Milliseconds of stillness before the controls fade while playing, or `false` to keep them. Defaults to 2600. */
+  autoHideControls?: number | false;
+  /** The large play button on the poster. Defaults to true. Without it the control bar shows from the start. */
+  bigPlayButton?: boolean;
+  /** Your own controls at the end of the left group, after the volume. */
+  controlsStart?: (player: VideoPlayerHandle) => ReactNode;
+  /** Your own controls at the start of the right group, before captions. */
+  controlsEnd?: (player: VideoPlayerHandle) => ReactNode;
+  /**
+   * Rendered inside the player, so it stays visible in full screen. It sits over the picture and
+   * the control bar, in a layer that lets pointer events through: give your own panel `pointer-events-auto`.
+   */
+  overlay?: (player: VideoPlayerHandle) => ReactNode;
+  /** Called first for every key pressed in the player (not in a text field). Call `preventDefault()` to skip the built-in shortcut. */
+  onKeyDown?: (e: ReactKeyboardEvent, player: VideoPlayerHandle) => void;
+  /** Your own shortcuts, added to the shortcuts sheet. */
+  shortcuts?: VideoShortcut[];
+  /** About four times a second while it plays, and on every seek. */
+  onTimeUpdate?: (time: number) => void;
+  onPlay?: () => void;
+  onPause?: () => void;
+  onEnded?: () => void;
+  /** After a seek lands, with the new time. */
+  onSeek?: (time: number) => void;
+  onLoadedMetadata?: (duration: number) => void;
+  onRateChange?: (rate: number) => void;
+  onVolumeChange?: (state: { volume: number; muted: boolean }) => void;
+  onFullscreenChange?: (fullscreen: boolean) => void;
   /** A sprite of preview frames for the scrubber: `cols` across, one frame every `interval` seconds. */
   previews?: Previews;
   /**
@@ -246,20 +339,20 @@ export interface VideoPlayerIcons {
   /** Buffering spinner. The wrapper spins it. */
   spinner: ReactNode;
 }
-const skip10 = (dir: -1 | 1) => (
+const skipIcon = (dir: -1 | 1, seconds = 10) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <g transform={dir < 0 ? "" : "translate(24 0) scale(-1 1)"}>
       <path d="M4 12a8 8 0 1 0 2.6-5.9" />
       <path d="M4 3.5v4.5h4.5" />
     </g>
-    <text x="12" y="15.4" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="currentColor" stroke="none" fontFamily="IBM Plex Sans, sans-serif">10</text>
+    <text x="12" y="15.4" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="currentColor" stroke="none" fontFamily="IBM Plex Sans, sans-serif">{seconds}</text>
   </svg>
 );
 export const videoPlayerIcons: VideoPlayerIcons = {
   play: null,
   pause: null,
-  back10: skip10(-1),
-  forward10: skip10(1),
+  back10: skipIcon(-1),
+  forward10: skipIcon(1),
   volume: null,
   volumeLow: null,
   mute: null,
@@ -286,6 +379,13 @@ export const videoPlayerIcons: VideoPlayerIcons = {
 const VideoIconsContext = createContext<VideoPlayerIcons>(videoPlayerIcons);
 const useVideoIcons = () => useContext(VideoIconsContext);
 
+/** Pixels either side of a marker where a press on the scrubber lands on the marker. */
+const MARKER_REACH = 12;
+const MARKER_TONES = {
+  accent: "bg-accent text-on-accent shadow-[0_0_0_3px_color-mix(in_oklab,var(--color-accent)_28%,transparent),0_0_14px_color-mix(in_oklab,var(--color-accent)_70%,transparent)]",
+  neutral: "bg-white text-black shadow-[0_0_0_3px_rgb(255_255_255/0.22),0_0_14px_rgb(255_255_255/0.5)]",
+  danger: "bg-btn-danger text-btn-danger-ink shadow-[0_0_0_3px_color-mix(in_oklab,var(--color-btn-danger)_28%,transparent),0_0_14px_color-mix(in_oklab,var(--color-btn-danger)_70%,transparent)]",
+} as const;
 const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 const HIDE_AFTER = 2600;
 /* Clicks in the outer 30% on either side seek on a double click; the middle plays and pauses. */
@@ -345,14 +445,24 @@ function captionTrack(v: HTMLVideoElement) {
  * in full screen.
  */
 export function VideoPlayer({
-  title, subtitle, renditions, initialQuality, poster, captions, chapters = [], previews, autoPlay = false, loop = false, defaultMuted, freeze = false, theater = false, onTheaterChange, labels, icons, className,
+  title, subtitle, showTitle = true, renditions: renditionList, src, ref, initialQuality, poster, captions, cues, chapters = [], timelineSplit = true, showChapterTitle = false, markers, previews,
+  skipButtons = 10, volume: showVolume = true, speed: showSpeed = true, quality: showQuality = true, pip: showPip = true, theaterButton = true, fullscreen: showFullscreen = true,
+  keyboard = true, autoHideControls = HIDE_AFTER, bigPlayButton = true, controlsStart, controlsEnd, overlay, onKeyDown, shortcuts,
+  onTimeUpdate, onPlay, onPause, onEnded, onSeek, onLoadedMetadata, onRateChange, onVolumeChange, onFullscreenChange,
+  autoPlay = false, loop = false, defaultMuted, freeze = false, theater = false, onTheaterChange, labels, icons, className,
 }: VideoPlayerProps) {
   const l = { ...videoPlayerLabels, ...labels };
   const ic = useMemo(() => ({ ...videoPlayerIcons, ...icons }), [icons]);
   const root = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
+  const renditions = useMemo<VideoRendition[]>(() => renditionList ?? [{ label: "Original", src: src ?? "", height: 0 }], [renditionList, src]);
   const [quality, setQuality] = useState(initialQuality ?? renditions[Math.floor(renditions.length / 2)].label);
   const rendition = renditions.find((r) => r.label === quality) ?? renditions[0];
+  const skipSeconds = skipButtons === false ? 10 : skipButtons;
+  const captionFile = captions || undefined;
+  const hasCaptions = !!captionFile || (captions !== false && !!cues?.length);
+  const events = useRef({ onTimeUpdate, onPlay, onPause, onEnded, onSeek, onLoadedMetadata, onRateChange, onVolumeChange, onFullscreenChange });
+  events.current = { onTimeUpdate, onPlay, onPause, onEnded, onSeek, onLoadedMetadata, onRateChange, onVolumeChange, onFullscreenChange };
 
   const [playing, setPlaying] = useState(false);
   const [started, setStarted] = useState(false);
@@ -373,6 +483,7 @@ export function VideoPlayer({
   const [scrubbing, setScrubbing] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [remaining, setRemaining] = useState(true);
+  const live = started || !bigPlayButton;
   const [flash, setFlash] = useState<{ key: number; node: ReactNode; round?: boolean } | null>(null);
 
   const time = useMotionValue(0);
@@ -434,6 +545,7 @@ export function VideoPlayer({
     const on: Record<string, () => void> = {
       loadedmetadata: () => {
         setDuration(v.duration);
+        events.current.onLoadedMetadata?.(v.duration);
         v.muted = mutedRef.current;
         if (resume.current) {
           v.currentTime = resume.current.t;
@@ -447,11 +559,17 @@ export function VideoPlayer({
         setPlaying(true);
         setStarted(true);
         setEnded(false);
+        events.current.onPlay?.();
       },
-      pause: () => setPlaying(false),
+      pause: () => {
+        setPlaying(false);
+        // The browser pauses a video as it ends; that is the end, not a pause.
+        if (!v.ended) events.current.onPause?.();
+      },
       ended: () => {
         setPlaying(false);
         setEnded(true);
+        events.current.onEnded?.();
       },
       waiting: () => {
         window.clearTimeout(waitTimer);
@@ -465,9 +583,17 @@ export function VideoPlayer({
         window.clearTimeout(waitTimer);
         setWaiting(false);
       },
-      seeked: () => time.set(v.currentTime),
+      seeked: () => {
+        time.set(v.currentTime);
+        events.current.onSeek?.(v.currentTime);
+      },
       progress: measure,
-      timeupdate: measure,
+      timeupdate: () => {
+        measure();
+        events.current.onTimeUpdate?.(v.currentTime);
+      },
+      ratechange: () => events.current.onRateChange?.(v.playbackRate),
+      volumechange: () => events.current.onVolumeChange?.({ volume: v.volume, muted: v.muted }),
     };
     for (const [k, f] of Object.entries(on)) v.addEventListener(k, f);
     return () => {
@@ -477,7 +603,14 @@ export function VideoPlayer({
   }, [rendition.src, speed, time, buffered, volume]);
 
   useEffect(() => {
-    const track = video.current && captionTrack(video.current);
+    const v = video.current;
+    if (!v || (!captionFile && !(captions !== false && cues?.length))) return;
+    let track = captionTrack(v);
+    if (!captionFile && !track && cues) {
+      track = v.addTextTrack("captions", l.captions, "en");
+      track.mode = "hidden";
+      for (const c of cues) track.addCue(new VTTCue(c.start, Math.max(c.end, c.start + 0.01), c.text));
+    }
     if (!track) return;
     const onCue = () => {
       const c = track.activeCues?.[0] as VTTCue | undefined;
@@ -485,10 +618,18 @@ export function VideoPlayer({
     };
     track.addEventListener("cuechange", onCue);
     return () => track.removeEventListener("cuechange", onCue);
-  }, [rendition.src]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rendition.src, cues, captionFile?.src]);
 
+  const fsNow = useRef(false);
   useEffect(() => {
-    const on = () => setFullscreen(document.fullscreenElement === root.current);
+    const on = () => {
+      const now = document.fullscreenElement === root.current;
+      if (fsNow.current === now) return;
+      fsNow.current = now;
+      setFullscreen(now);
+      events.current.onFullscreenChange?.(now);
+    };
     document.addEventListener("fullscreenchange", on);
     return () => document.removeEventListener("fullscreenchange", on);
   }, []);
@@ -497,10 +638,10 @@ export function VideoPlayer({
   const wake = useCallback(() => {
     setActive(true);
     window.clearTimeout(hideTimer.current);
-    hideTimer.current = window.setTimeout(() => setActive(false), HIDE_AFTER);
-  }, []);
+    if (autoHideControls !== false) hideTimer.current = window.setTimeout(() => setActive(false), autoHideControls);
+  }, [autoHideControls]);
   useEffect(() => () => window.clearTimeout(hideTimer.current), []);
-  const showControls = started && (!playing || active || menu !== null || scrubbing || help);
+  const showControls = live && (!playing || active || autoHideControls === false || menu !== null || scrubbing || help);
 
   const say = (node: ReactNode, round = false) => setFlash({ key: performance.now(), node, round });
   // Keep keyboard focus on the player, even when the button that was clicked goes away.
@@ -565,6 +706,12 @@ export function VideoPlayer({
     if (document.fullscreenElement) void document.exitFullscreen();
     else void root.current?.requestFullscreen?.();
   };
+  const enterFullscreen = () => {
+    if (document.fullscreenElement !== root.current) void root.current?.requestFullscreen?.();
+  };
+  const exitFullscreen = () => {
+    if (document.fullscreenElement === root.current) void document.exitFullscreen();
+  };
   const togglePip = async () => {
     const v = video.current;
     if (!v || !document.pictureInPictureEnabled) return;
@@ -576,8 +723,49 @@ export function VideoPlayer({
     say(<span>{on ? l.captionsOn : l.captionsOff}</span>);
   };
 
+  // The handle is built once; each method calls the latest version of its function.
+  const api = useRef({ toggle, seekTo, setVol, changeSpeed, enterFullscreen, exitFullscreen });
+  api.current = { toggle, seekTo, setVol, changeSpeed, enterFullscreen, exitFullscreen };
+  const handle = useMemo<VideoPlayerHandle>(
+    () => ({
+      play: () => {
+        heldByViewer.current = false;
+        return video.current?.play() ?? Promise.resolve();
+      },
+      pause: () => {
+        heldByViewer.current = true;
+        video.current?.pause();
+      },
+      toggle: () => api.current.toggle(),
+      seek: (t) => api.current.seekTo(t),
+      setRate: (r) => api.current.changeSpeed(r),
+      setVolume: (x) => api.current.setVol(x),
+      enterFullscreen: () => api.current.enterFullscreen(),
+      exitFullscreen: () => api.current.exitFullscreen(),
+      get currentTime() {
+        return video.current?.currentTime ?? 0;
+      },
+      get duration() {
+        return video.current?.duration || 0;
+      },
+      get paused() {
+        return video.current?.paused ?? true;
+      },
+      get video() {
+        return video.current;
+      },
+      time,
+    }),
+    [time],
+  );
+  useImperativeHandle(ref, () => handle, [handle]);
+
   const onKey = (e: ReactKeyboardEvent) => {
     if (e.target instanceof HTMLElement && e.target.closest("[data-player-menu]")) return;
+    // Typing in a field of your own (in the overlay, say) is never a shortcut.
+    if (e.target instanceof HTMLElement && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))) return;
+    onKeyDown?.(e, handle);
+    if (e.defaultPrevented || !keyboard) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key;
     const onSlider = !!(e.target as HTMLElement).closest("[role=slider]");
@@ -591,19 +779,19 @@ export function VideoPlayer({
         say(<PlayGlyph playing={!playing} size={30} />, true);
         return true;
       }
-      if (k === "j" || k === "J") return skip(-10), true;
-      if (k === "l" || k === "L") return skip(10), true;
+      if (k === "j" || k === "J") return skip(-skipSeconds), true;
+      if (k === "l" || k === "L") return skip(skipSeconds), true;
       if (k === "ArrowLeft" && !onSlider) return skip(-5), true;
       if (k === "ArrowRight" && !onSlider) return skip(5), true;
-      if (k === "ArrowUp" && !onSlider) return setVol(volume.get() + 0.05, true), true;
-      if (k === "ArrowDown" && !onSlider) return setVol(volume.get() - 0.05, true), true;
-      if (k === "m" || k === "M") return toggleMute(), say(<span>{muted ? l.soundOn : l.muted}</span>), true;
-      if (k === "f" || k === "F") return toggleFullscreen(), true;
-      if ((k === "c" || k === "C") && captions) return setCaptions(!cc), true;
+      if (k === "ArrowUp" && !onSlider && showVolume) return setVol(volume.get() + 0.05, true), true;
+      if (k === "ArrowDown" && !onSlider && showVolume) return setVol(volume.get() - 0.05, true), true;
+      if ((k === "m" || k === "M") && showVolume) return toggleMute(), say(<span>{muted ? l.soundOn : l.muted}</span>), true;
+      if ((k === "f" || k === "F") && showFullscreen) return toggleFullscreen(), true;
+      if ((k === "c" || k === "C") && hasCaptions) return setCaptions(!cc), true;
       if ((k === "t" || k === "T") && onTheaterChange) return onTheaterChange(!theater), true;
       if (k === "Home") return seekTo(0), true;
       if (k === "End") return seekTo(duration), true;
-      if (k === ">" || k === "<") {
+      if ((k === ">" || k === "<") && showSpeed) {
         const i = SPEEDS.indexOf(speed) + (k === ">" ? 1 : -1);
         const s = SPEEDS[Math.max(0, Math.min(SPEEDS.length - 1, i))];
         changeSpeed(s);
@@ -615,7 +803,7 @@ export function VideoPlayer({
     })();
     if (handled) {
       e.preventDefault();
-      if (started) wake();
+      if (live) wake();
     }
   };
 
@@ -689,6 +877,15 @@ export function VideoPlayer({
     else wake();
   };
 
+  // Rows of the shortcuts sheet: the built-ins that still work, then yours.
+  const sheetRows = useMemo<Array<[string, string]>>(() => {
+    const off = [false, false, false, !showVolume, !showVolume, false, !showFullscreen, false, false, !showSpeed, false];
+    const std = !keyboard ? [] : l.shortcuts.length === videoPlayerLabels.shortcuts.length ? l.shortcuts.filter((_, i) => !off[i]) : l.shortcuts;
+    return [...std, ...(shortcuts ?? []).map((x): [string, string] => [x.keys.join("  "), x.label])];
+  }, [l.shortcuts, keyboard, showVolume, showFullscreen, showSpeed, shortcuts]);
+  const showQualityRow = showQuality && !!renditionList;
+  const hasShortcuts = keyboard || !!shortcuts?.length;
+  const hasSettings = showSpeed || showQualityRow || hasCaptions || chapters.length > 0 || hasShortcuts;
   const playedMv = useTransform(time, (t) => (duration ? t / duration : 0));
   const currentChapter = useTransform(time, (t) => chapterAt(chapters, t)?.title ?? "");
 
@@ -699,16 +896,16 @@ export function VideoPlayer({
         tabIndex={0}
         role="region"
         aria-label={l.player(title)}
-        aria-keyshortcuts="Space K J L M C F T ?"
+        aria-keyshortcuts={keyboard ? ["Space K J L M C F T ?", ...(shortcuts ?? []).map((x) => x.keys.join("+"))].join(" ") : undefined}
         onKeyDown={onKey}
-        onPointerMove={(e) => e.pointerType === "mouse" && started && wake()}
+        onPointerMove={(e) => e.pointerType === "mouse" && live && wake()}
         onPointerLeave={() => playing && setActive(false)}
-        onFocus={() => started && wake()}
+        onFocus={() => live && wake()}
         className={cn(
           // The player is always dark inside: its controls sit on picture, whatever the page theme.
           "dark group/player relative isolate aspect-video w-full select-none overflow-hidden bg-black text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ground",
           fullscreen ? "rounded-none" : "rounded-[18px]",
-          started && !showControls && "cursor-none",
+          live && !showControls && "cursor-none",
           className,
         )}
       >
@@ -725,7 +922,7 @@ export function VideoPlayer({
           style={freeze ? { opacity: 0 } : undefined}
           aria-label={title}
         >
-          {captions && <track kind="captions" src={captions.src} srcLang={captions.lang} label={captions.label} default />}
+          {captionFile && <track kind="captions" src={captionFile.src} srcLang={captionFile.lang} label={captionFile.label} default />}
         </video>
         {freeze && <Still from={video} />}
 
@@ -776,7 +973,7 @@ export function VideoPlayer({
           transition={springSoft}
         >
           <AnimatePresence>
-            {cc && cue && !previewing && (
+            {hasCaptions && cc && cue && !previewing && (
               <motion.p
                 key={cue}
                 initial={{ opacity: 0 }}
@@ -795,26 +992,30 @@ export function VideoPlayer({
           {!started && (
             <motion.div key="poster" className="absolute inset-0" initial={false} exit={{ opacity: 0, transition: { duration: 0.3, ease: easeOut } }}>
               <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent" />
-              <motion.button
-                type="button"
-                aria-label={l.playTitle(title)}
-                onClick={() => {
-                  toggle();
-                  root.current?.focus({ preventScroll: true });
-                }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                transition={springSoft}
-                className="absolute left-1/2 top-1/2 -ml-8 -mt-8 grid size-16 place-items-center rounded-full bg-white text-black shadow-[0_8px_30px_rgba(0,0,0,0.35)] sm:-ml-10 sm:-mt-10 sm:size-20"
-              >
-                <span className="ml-1 grid"><PlayGlyph playing={false} size={30} /></span>
-              </motion.button>
+              {bigPlayButton && (
+                <motion.button
+                  type="button"
+                  aria-label={l.playTitle(title)}
+                  onClick={() => {
+                    toggle();
+                    root.current?.focus({ preventScroll: true });
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={springSoft}
+                  className="absolute left-1/2 top-1/2 -ml-8 -mt-8 grid size-16 place-items-center rounded-full bg-white text-black shadow-[0_8px_30px_rgba(0,0,0,0.35)] sm:-ml-10 sm:-mt-10 sm:size-20"
+                >
+                  <span className="ml-1 grid"><PlayGlyph playing={false} size={30} /></span>
+                </motion.button>
+              )}
               <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-4 text-white sm:p-6">
-                <div className="min-w-0">
-                  <p className="truncate text-lg font-semibold tracking-[-0.01em] sm:text-[26px] sm:leading-8">{title}</p>
-                  {subtitle && <p className="mt-0.5 truncate text-[13px] text-white/75 sm:text-[15px]">{subtitle}</p>}
-                </div>
-                <p className="shrink-0 text-[13px] font-medium tabular text-white/80">
+                {showTitle && (
+                  <div className="min-w-0">
+                    <p className="truncate text-lg font-semibold tracking-[-0.01em] sm:text-[26px] sm:leading-8">{title}</p>
+                    {subtitle && <p className="mt-0.5 truncate text-[13px] text-white/75 sm:text-[15px]">{subtitle}</p>}
+                  </div>
+                )}
+                <p className={cn("shrink-0 text-[13px] font-medium tabular text-white/80", !showTitle && "ml-auto")}>
                   {duration ? fmt(duration) : ""}
                   {chapters.length > 0 && <span className="hidden sm:inline"> · {l.chapterCount(chapters.length)}</span>}
                 </p>
@@ -897,21 +1098,23 @@ export function VideoPlayer({
           )}
         </AnimatePresence>
 
-        <motion.div
-          aria-hidden={!showControls}
-          initial={false}
-          animate={{ opacity: showControls && !ended ? 1 : 0 }}
-          transition={{ duration: showControls ? 0.18 : 0.45, ease: easeOut }}
-          className="pointer-events-none absolute inset-x-0 top-0"
-        >
-          <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
-          <div className="relative flex items-start gap-3 px-4 pt-3.5 text-white sm:px-5 sm:pt-4">
-            <div className="min-w-0">
-              <p className="truncate text-[15px] font-semibold sm:text-base">{title}</p>
-              {chapters.length > 0 && <motion.p className="truncate text-[13px] text-white/70">{currentChapter}</motion.p>}
+        {showTitle && (
+          <motion.div
+            aria-hidden={!showControls}
+            initial={false}
+            animate={{ opacity: showControls && !ended ? 1 : 0 }}
+            transition={{ duration: showControls ? 0.18 : 0.45, ease: easeOut }}
+            className="pointer-events-none absolute inset-x-0 top-0"
+          >
+            <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
+            <div className="relative flex items-start gap-3 px-4 pt-3.5 text-white sm:px-5 sm:pt-4">
+              <div className="min-w-0">
+                <p className="truncate text-[15px] font-semibold sm:text-base">{title}</p>
+                {chapters.length > 0 && !showChapterTitle && <motion.p className="truncate text-[13px] text-white/70">{currentChapter}</motion.p>}
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
 
         <motion.div
           initial={false}
@@ -929,6 +1132,8 @@ export function VideoPlayer({
                 buffered={buffered}
                 duration={duration}
                 chapters={chapters}
+                split={timelineSplit}
+                markers={markers}
                 previews={previews}
                 onSeek={seekTo}
                 onScrub={setScrubbing}
@@ -948,20 +1153,30 @@ export function VideoPlayer({
               <CtlButton label={playing ? l.pause : l.play} onClick={toggle}>
                 <PlayGlyph playing={playing} size={22} />
               </CtlButton>
-              <CtlButton label={l.back10} onClick={() => skip(-10)} className="hidden sm:grid [&>svg]:size-[22px]">
-                {ic.back10}
-              </CtlButton>
-              <CtlButton label={l.forward10} onClick={() => skip(10)} className="hidden sm:grid [&>svg]:size-[22px]">
-                {ic.forward10}
-              </CtlButton>
-              <VolumeControl volume={volume} level={volumeState} muted={muted} onToggle={toggleMute} onChange={setVol} l={l} />
-              <span className="flex-1" />
-              {speed !== 1 && (
+              {skipButtons !== false && (
+                <>
+                  <CtlButton label={skipSeconds === 10 ? l.back10 : l.skipBack(skipSeconds)} onClick={() => skip(-skipSeconds)} className="hidden sm:grid [&>svg]:size-[22px]">
+                    {skipSeconds !== 10 && ic.back10 === videoPlayerIcons.back10 ? skipIcon(-1, skipSeconds) : ic.back10}
+                  </CtlButton>
+                  <CtlButton label={skipSeconds === 10 ? l.forward10 : l.skipForward(skipSeconds)} onClick={() => skip(skipSeconds)} className="hidden sm:grid [&>svg]:size-[22px]">
+                    {skipSeconds !== 10 && ic.forward10 === videoPlayerIcons.forward10 ? skipIcon(1, skipSeconds) : ic.forward10}
+                  </CtlButton>
+                </>
+              )}
+              {showVolume && <VolumeControl volume={volume} level={volumeState} muted={muted} onToggle={toggleMute} onChange={setVol} l={l} />}
+              {controlsStart?.(handle)}
+              {showChapterTitle && chapters.length > 0 ? (
+                <motion.span className="mx-2 min-w-0 flex-1 truncate text-[13px] font-medium text-white/80">{currentChapter}</motion.span>
+              ) : (
+                <span className="flex-1" />
+              )}
+              {controlsEnd?.(handle)}
+              {showSpeed && speed !== 1 && (
                 <button type="button" onClick={() => setMenu("speed")} className="mr-1 hidden h-6 items-center rounded-full bg-white/15 px-2 text-[11.5px] font-semibold tabular text-white sm:flex">
                   {speed}×
                 </button>
               )}
-              {captions && (
+              {hasCaptions && (
                 <CtlButton label={l.captionsToggle} onClick={() => setCaptions(!cc)} pressed={cc}>
                   <span className="relative grid [&>svg]:size-[21px]">
                     {ic.captions}
@@ -969,38 +1184,49 @@ export function VideoPlayer({
                   </span>
                 </CtlButton>
               )}
-              <CtlButton label={l.settings} onClick={() => setMenu(menu ? null : "main")} pressed={menu !== null} dataMenuButton>
-                <motion.span initial={false} animate={{ rotate: menu ? 60 : 0 }} transition={springSoft} className="grid [&>svg]:size-[20px]">
-                  {ic.settings}
-                </motion.span>
-              </CtlButton>
-              <CtlButton label={l.pictureInPicture} onClick={togglePip} className="hidden sm:grid [&>svg]:size-[20px]">
-                {ic.pictureInPicture}
-              </CtlButton>
-              {onTheaterChange && !fullscreen && (
+              {hasSettings && (
+                <CtlButton label={l.settings} onClick={() => setMenu(menu ? null : "main")} pressed={menu !== null} dataMenuButton>
+                  <motion.span initial={false} animate={{ rotate: menu ? 60 : 0 }} transition={springSoft} className="grid [&>svg]:size-[20px]">
+                    {ic.settings}
+                  </motion.span>
+                </CtlButton>
+              )}
+              {showPip && (
+                <CtlButton label={l.pictureInPicture} onClick={togglePip} className="hidden sm:grid [&>svg]:size-[20px]">
+                  {ic.pictureInPicture}
+                </CtlButton>
+              )}
+              {onTheaterChange && theaterButton && !fullscreen && (
                 <CtlButton label={theater ? l.defaultView : l.theaterMode} onClick={() => onTheaterChange(!theater)} className="hidden md:grid" pressed={theater}>
                   <span className={cn("grid transition-transform duration-300 ease-out-soft [&>svg]:size-[21px]", theater ? "scale-x-[0.8]" : "scale-x-110")}>{ic.theater}</span>
                 </CtlButton>
               )}
-              <CtlButton label={fullscreen ? l.exitFullscreen : l.fullscreen} onClick={toggleFullscreen}>
-                <span className="grid [&>*]:[grid-area:1/1]">
-                  <motion.span initial={false} animate={{ opacity: fullscreen ? 0 : 1, scale: fullscreen ? 0.8 : 1 }} transition={springSnappy} className="grid [&>svg]:size-[19px]">{ic.fullscreen}</motion.span>
-                  <motion.span initial={false} animate={{ opacity: fullscreen ? 1 : 0, scale: fullscreen ? 1 : 0.8 }} transition={springSnappy} className="grid [&>svg]:size-[19px]">{ic.exitFullscreen}</motion.span>
-                </span>
-              </CtlButton>
+              {showFullscreen && (
+                <CtlButton label={fullscreen ? l.exitFullscreen : l.fullscreen} onClick={toggleFullscreen}>
+                  <span className="grid [&>*]:[grid-area:1/1]">
+                    <motion.span initial={false} animate={{ opacity: fullscreen ? 0 : 1, scale: fullscreen ? 0.8 : 1 }} transition={springSnappy} className="grid [&>svg]:size-[19px]">{ic.fullscreen}</motion.span>
+                    <motion.span initial={false} animate={{ opacity: fullscreen ? 1 : 0, scale: fullscreen ? 1 : 0.8 }} transition={springSnappy} className="grid [&>svg]:size-[19px]">{ic.exitFullscreen}</motion.span>
+                  </span>
+                </CtlButton>
+              )}
             </div>
           </div>
         </motion.div>
+
+        {overlay && <div className="pointer-events-none absolute inset-0 z-10">{overlay(handle)}</div>}
 
         <SettingsPanel
           page={menu}
           setPage={setMenu}
           speed={speed}
           onSpeed={changeSpeed}
+          showSpeed={showSpeed}
+          showQuality={showQualityRow}
+          showShortcuts={hasShortcuts}
           quality={quality}
           qualities={renditions}
           onQuality={changeQuality}
-          captions={captions}
+          captions={hasCaptions ? { label: captionFile?.label ?? l.captions } : undefined}
           cc={cc}
           onCc={setCaptions}
           ccSize={ccSize}
@@ -1063,7 +1289,7 @@ export function VideoPlayer({
                   </button>
                 </div>
                 <dl className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-[13px] sm:grid-cols-2">
-                  {l.shortcuts.map(([keys, what]) => (
+                  {sheetRows.map(([keys, what]) => (
                     <div key={what} className="flex items-center justify-between gap-3">
                       <dt className="text-white/75">{what}</dt>
                       <dd className="flex gap-1">
@@ -1083,11 +1309,29 @@ export function VideoPlayer({
   );
 }
 
+/**
+ * A control for the bar, in the player's own style: use it in `controlsStart` and `controlsEnd`.
+ * `label` is the accessible name and tooltip, `keyHint` is appended to the tooltip, `active` marks a
+ * toggle that is on (it gets the underline the captions button has).
+ */
+export function VideoPlayerControl({ label, keyHint, active, onClick, children, className }: { label: string; keyHint?: string; active?: boolean; onClick: () => void; children: ReactNode; className?: string }) {
+  return (
+    <CtlButton label={keyHint ? `${label} (${keyHint})` : label} onClick={onClick} pressed={active} className={className}>
+      <span className="relative grid [&>svg]:size-[21px]">
+        {children}
+        {active !== undefined && (
+          <motion.span aria-hidden initial={false} animate={{ opacity: active ? 1 : 0 }} transition={fade} className="absolute -bottom-1.5 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-white" />
+        )}
+      </span>
+    </CtlButton>
+  );
+}
+
 function CtlButton({ label, onClick, children, className, pressed, dataMenuButton }: { label: string; onClick: () => void; children: ReactNode; className?: string; pressed?: boolean; dataMenuButton?: boolean }) {
   return (
     <motion.button
       type="button"
-      aria-label={label.replace(/ \(.\)$/, "")}
+      aria-label={label.replace(/ \([^)]{1,12}\)$/, "")}
       title={label}
       aria-pressed={pressed}
       data-player-menu-button={dataMenuButton || undefined}
@@ -1176,6 +1420,8 @@ type ScrubberProps = {
   buffered: MotionValue<number>;
   duration: number;
   chapters: VideoChapter[];
+  split: boolean;
+  markers?: VideoMarker[];
   previews?: Previews;
   onSeek: (t: number) => void;
   onScrub: (v: boolean) => void;
@@ -1184,7 +1430,7 @@ type ScrubberProps = {
   l: VideoPlayerLabels;
 };
 
-function Scrubber({ time, played, buffered, duration, chapters, previews, onSeek, onScrub, onPreview, l }: ScrubberProps) {
+function Scrubber({ time, played, buffered, duration, chapters, split, markers, previews, onSeek, onScrub, onPreview, l }: ScrubberProps) {
   const track = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState(false);
   const [drag, setDrag] = useState(false);
@@ -1192,9 +1438,9 @@ function Scrubber({ time, played, buffered, duration, chapters, previews, onSeek
   const width = useMotionValue(1);
   const id = useId();
   const segments = useMemo(() => {
-    const starts = chapters.length ? chapters.map((c) => c.start) : [0];
+    const starts = split && chapters.length ? chapters.map((c) => c.start) : [0];
     return starts.map((s, i) => ({ start: s, end: i < starts.length - 1 ? starts[i + 1] : duration || 1, title: chapters[i]?.title }));
-  }, [chapters, duration]);
+  }, [chapters, duration, split]);
 
   const hoverTime = useTransform(hoverFrac, (f) => f * duration);
   const bubbleX = useTransform([hoverFrac, width], ([f, w]: number[]) => {
@@ -1258,7 +1504,9 @@ function Scrubber({ time, played, buffered, duration, chapters, previews, onSeek
         onScrub(true);
         const f = frac(e.clientX);
         hoverFrac.set(f);
-        onSeek(f * duration);
+        // A press within a few pixels of a marker lands on it.
+        const near = duration && markers?.length ? markers.reduce<VideoMarker | null>((best, m) => (Math.abs(m.time / duration - f) < Math.abs((best?.time ?? Infinity) / duration - f) ? m : best), null) : null;
+        onSeek(near && Math.abs(near.time / duration - f) * width.get() <= MARKER_REACH ? near.time : f * duration);
       }}
       onPointerUp={() => {
         setDrag(false);
@@ -1294,6 +1542,20 @@ function Scrubber({ time, played, buffered, duration, chapters, previews, onSeek
           <Segment key={s.start} start={s.start} end={s.end} duration={duration} time={time} buffered={buffered} hoverTime={hoverTime} hovering={lifted} />
         ))}
       </motion.div>
+
+      {duration > 0 && markers?.map((m, i) => (
+        <span
+          key={`${m.time}-${i}`}
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute top-1/2 grid size-[18px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full text-[10px] font-bold leading-none tabular",
+            MARKER_TONES[m.tone ?? "accent"],
+          )}
+          style={{ left: `${Math.min(1, m.time / duration) * 100}%` }}
+        >
+          {m.label ?? i + 1}
+        </span>
+      ))}
 
       <motion.span
         aria-hidden
@@ -1425,10 +1687,13 @@ type PanelProps = {
   setPage: (v: Page | null) => void;
   speed: number;
   onSpeed: (s: number) => void;
+  showSpeed: boolean;
+  showQuality: boolean;
+  showShortcuts: boolean;
   quality: string;
   qualities: VideoRendition[];
   onQuality: (q: string) => void;
-  captions?: VideoPlayerProps["captions"];
+  captions?: { label: string };
   cc: boolean;
   onCc: (on: boolean) => void;
   ccSize: CaptionSize;
@@ -1485,15 +1750,17 @@ function SettingsPanel(p: PanelProps) {
     [
       "main",
       <>
-        <MainRow label={l.playbackSpeed} value={p.speed === 1 ? l.normal : `${p.speed}×`} onClick={() => setPage("speed")} cls={row} />
-        <MainRow label={l.quality} value={p.quality} onClick={() => setPage("quality")} cls={row} />
+        {p.showSpeed && <MainRow label={l.playbackSpeed} value={p.speed === 1 ? l.normal : `${p.speed}×`} onClick={() => setPage("speed")} cls={row} />}
+        {p.showQuality && <MainRow label={l.quality} value={p.quality} onClick={() => setPage("quality")} cls={row} />}
         {p.captions && <MainRow label={l.captions} value={p.cc ? p.captions.label.replace(/ \(.*\)$/, "") : l.off} onClick={() => setPage("captions")} cls={row} />}
         {p.chapters.length > 0 && <MainRow label={l.chapters} value={String(p.chapters.length)} onClick={() => setPage("chapters")} cls={row} />}
-        <button type="button" role="menuitem" className={cn(row, "text-white/80")} onClick={p.onShortcuts}>
-          <span className="grid text-white/60 [&>svg]:size-4" aria-hidden>{ic.shortcuts}</span>
-          <span className="flex-1">{l.keyboardShortcuts}</span>
-          <kbd className="rounded-[5px] bg-white/10 px-1.5 text-[11px] leading-5 text-white/80">?</kbd>
-        </button>
+        {p.showShortcuts && (
+          <button type="button" role="menuitem" className={cn(row, "text-white/80")} onClick={p.onShortcuts}>
+            <span className="grid text-white/60 [&>svg]:size-4" aria-hidden>{ic.shortcuts}</span>
+            <span className="flex-1">{l.keyboardShortcuts}</span>
+            <kbd className="rounded-[5px] bg-white/10 px-1.5 text-[11px] leading-5 text-white/80">?</kbd>
+          </button>
+        )}
       </>,
     ],
     [
@@ -1682,4 +1949,32 @@ function Still({ from }: { from: RefObject<HTMLVideoElement | null> }) {
     try { c.getContext("2d")?.drawImage(v, 0, 0); } catch { /* not decodable yet: the canvas stays clear */ }
   }, [from]);
   return <canvas ref={canvas} aria-hidden className="pointer-events-none absolute inset-0 size-full object-contain" />;
+}
+
+/**
+ * The current time of a VideoPlayer, as a motion value. It follows the player's own frame loop, so
+ * a playhead or a highlighted row can move every frame without a React render. Pass the `ref` you
+ * gave the player.
+ */
+export function useVideoTime(player: RefObject<VideoPlayerHandle | null>): MotionValue<number> {
+  const out = useMotionValue(0);
+  useEffect(() => {
+    let off: (() => void) | undefined;
+    let raf = 0;
+    const attach = () => {
+      const h = player.current;
+      if (!h) {
+        raf = requestAnimationFrame(attach);
+        return;
+      }
+      out.set(h.time.get());
+      off = h.time.on("change", (t) => out.set(t));
+    };
+    attach();
+    return () => {
+      cancelAnimationFrame(raf);
+      off?.();
+    };
+  }, [player, out]);
+  return out;
 }
