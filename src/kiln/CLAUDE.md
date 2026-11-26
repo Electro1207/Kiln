@@ -50,6 +50,8 @@ import { ThemeProvider } from "./kiln/theme";
 </script>
 ```
 
+Accessibility (optional, recommended): wrap the app in `AccessibilityProvider` (from `kiln/a11y`, inside `MotionConfig`) and put an `<AccessibilityMenu />` in the header, so people can set text size, motion, contrast and more. Every component works without the provider; see section 10.
+
 Theme: `useTheme()` gives `{ mode, resolved, setMode, toggle, colorways, colorway, setColorway }`; `ThemeToggle` (primitives) is the ready-made switch. Dark mode is the `.dark` class on `<html>`.
 
 Colorways (whole colour themes from a few colours, switchable at runtime): pass `colorways` to `ThemeProvider` (each `{ id, name, light?: { ground, ink, accent, surface?, … }, dark?: {…}, radius? }`; `kilnColorways` in `colorway.ts` are examples) and `defaultColorway`; `ColorwayPicker` (primitives) shows them as swatches. A colorway with only `light` or only `dark` switches the page to that mode. `<Colorway colors={…}>` colorways one part of a page. Every other token is derived, with button text kept at 4.5:1. `tokens.css` still holds the defaults.
@@ -62,17 +64,26 @@ If `@electro1207/kiln` is in `package.json`, do not copy files. In your CSS: `@i
 
 ## 2. Find a component
 
-Look here first, then open the file for props. Imports use real paths, e.g. `import { Button } from "./kiln/components/buttons/Button"`. All paths below are under `kiln/components/`. Names in parentheses are the file's other exports.
+Look here first, then open the file for props. `a11y.tsx` (in `kiln/`, next to `cn.ts`) is the accessibility core; see section 10. Imports use real paths, e.g. `import { Button } from "./kiln/components/buttons/Button"`. All paths below are under `kiln/components/`. Names in parentheses are the file's other exports.
+
+### `accessibility/`
+- `AccessibilityMenu` — A popover or panel of profiles and fine-tune switches; saved on the device, applied page-wide. Needs `AccessibilityProvider`
+- `SkipLink` — Hidden until a keyboard user reaches it, then fades in and jumps past the navigation
+- `VisuallyHidden` — Text for screen readers only; `focusable` reveals it on focus
+- `announce` (announce, useAnnounce) — Say something to screen readers without moving focus; no provider needed
 
 ### `ai/`
 - `ChatMessage` (ChatMessage, AssistantMark) — One chat message, user or assistant, with avatar and name; AssistantMark is the logo
 - `Citation` (Citation, Sources) — Inline citation chips with a hover card, and the list of everything it read
 - `MessageActions` — Copy, rate up or down, and regenerate, under an answer
+- `ModelPicker` — A select-like listbox of models with a description and speed and cost badges
 - `PromptInput` — Assistant composer: grows with text, attachments, model picker, Send turns into Stop while streaming
 - `Reasoning` — The model’s thinking behind one line: open while it works, folded when it’s done
 - `StreamingText` — An answer that writes itself in token by token; earlier text never re-renders
 - `Suggestions` — Prompt starters as chips; they scroll sideways on a phone
 - `ToolCall` — A tool the assistant wants to run, with its arguments, waiting for Approve or Deny
+- `UsageMeter` — Tokens or credits against a limit: a bar and figures, with warning and over states in words and icons (`role="meter"`)
+- `VoiceInput` — A mic button with a live level meter (motion values, no state per frame), the recording and the transcript; copes with a blocked microphone
 
 ### `app-shells/`
 - `AppShell` — A tinted frame with a collapsible sidebar and a top bar around a sheet; a drawer on phones
@@ -113,6 +124,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `Sparkline` — A word-sized trend for running text and table cells
 - `TreemapChart` — Parts of a whole as tiles sized by value; hover reads out a tile without flicker across the gaps
 - `YearHeatmap` — A whole year of daily counts with weekday and month labels
+- `ChartA11y` (ChartShell, ChartDataTable, patterns and marker shapes) — Shared by every chart: the summary, the data table, colour-safe patterns and markers
 
 ### `choice-controls/`
 - `Checkbox` — A drawn tick, an indeterminate dash, and a group with select all
@@ -128,13 +140,15 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `CartDrawer` — Line items, steppers, rows that fold away, a free-shipping bar and totals that add up
 - `CategoryFilters` (CategoryFilters, FilterPanel) — Facets with counts, a price range and colours; chips for what's on; a drawer on phones
 - `CheckoutForm` — Contact, address, delivery and a demo payment step beside a summary that stays in view
+- `commerce` — Types and money maths (cents) shared by the commerce components; not a component
+- `CouponField` — A promo code box with async `onApply`; an applied code becomes a removable chip
 - `Invoice` — An invoice or receipt as a document, with totals computed from its lines
 - `OrderHistory` — Past orders with status, items, tracking that folds open and buy again
 - `ProductGallery` — Large picture, thumbnails, a magnifier under the pointer, swipe on phones, arrow keys
 - `ProductQuickView` — A product in a dialog: gallery, colour, size with sold-out sizes struck, quantity and add to cart
 - `ReviewsSummary` (Stars, ReviewsSummary) — Average, a distribution that grows in, sorting and helpful votes
+- `ShipmentTracker` — Ordered, shipped, out for delivery, delivered, with times; the line fills to the current step, vertical on phones
 - `SizePicker` — Product size chips with sold-out sizes struck through
-- `commerce` — Types and money maths (cents) shared by the commerce components; not a component
 
 ### `communication/`
 - `ChatThread` — Messages grouped by sender, a typing indicator, and a pill that takes you down to new messages
@@ -183,6 +197,8 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 ### `forms/`
 - `AuthForms` — One card for all three; fields come and go and the card eases to its new height
 - `AvatarUpload` — Upload, then drag and zoom inside a round frame; the result is a 512px PNG
+- `ErrorSummary` — Every error of a form in one alert that takes focus; each line links to its field
+- `Fieldset` — A real fieldset and legend with a description and a group error
 - `ImageCropper` — Pan and zoom a picture inside a round frame (used by AvatarUpload)
 - `InlineEdit` — Click or press Enter to edit text where it sits; Escape puts it back
 - `KeyValueEditor` — Environment-variable rows with validation and secrets that stay masked until revealed
@@ -221,22 +237,27 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `VideoPlayer` — Chapters and frame previews on the scrubber, speed and quality that keep your place, captions, picture-in-picture, theater and full screen; `autoPlay` plays it muted while it is on screen, `loop` repeats it, `freeze` holds the picture still (for a player inside a 3D turn) while playback continues; every control switches off (`volume`, `speed`, `quality`, `pip`, `fullscreen`, `skipButtons`, `showTitle`, `keyboard`, `bigPlayButton`, `autoHideControls`), `src` replaces `renditions`, a `ref` gives play/pause/seek/setRate/setVolume/fullscreen and `video`, `useVideoTime(ref)` is the time as a motion value, `timelineSplit`, `markers`, `cues`, `showChapterTitle`, `controlsStart`/`controlsEnd` (build them with `VideoPlayerControl`), `overlay` (stays in full screen), `onKeyDown` + `shortcuts`, and events
 
 ### `menus/`
+- `BottomTabBar` — Phone navigation along the bottom edge: three to five tabs, badges, 48px targets, safe-area padding
 - `CommandPalette` — A keyboard-first launcher with grouped results; the highlight fades between rows; `shortcut="k"` opens it with ⌘K / Ctrl+K
 - `ContextMenu` — The same menu, opened at the pointer with a right-click
 - `DocsNav` — The sidebar this gallery uses: labelled sections of collapsible groups, a filter field (with an optional shortcut key), counts, and an active row whose fill fades in place
 - `DropdownMenu` (MenuContent, DropdownMenu) — Actions with icons, shortcuts, ticks and a submenu
 - `FlyoutNav` — Navigation with wide panels of grouped links and a featured card; hover intent, keyboard, and an accordion on phones
+- `Menubar` — File, Edit, View: arrows move between menus, Down or Enter opens one
 - `Navbar` (MenuToggle, Navbar) — Wordmark, links and one action; on a phone the links fold into a menu with a morphing button, while a `utility` slot (theme switch, search) stays in the bar at every width
 - `SidebarNav` — Side navigation with nested groups that folds into an icon rail
 - `SpotlightSearch` — A search window with categories, recent searches and a live preview of the highlighted result
+- `Toolbar` — One Tab stop; arrows move between buttons and toggles, in groups with separators
 
 ### `notices/`
 - `Alert` — A calm inline card; the tone lives in the icon
 - `Banner` — A full-width announcement for the top of an app that slides down into the space it opens
+- `ConnectionStatus` — A pill that slides in from the top when the connection drops and says Back online when it returns
 - `CookieConsent` — A corner card with equal Accept and Reject; Choose opens the categories in place
 - `FieldMessage` — The hint or error under a field; it slides in and the space opens smoothly
 - `NotificationBell` — An unread count that rolls and bumps; the bell rings once when it goes up
 - `NotificationCenter` — A bell that opens an inbox with All, Unread and Mentions; opened notices fade to read
+- `SessionTimeout` — A warning before a session ends, with a countdown, Stay signed in and Sign out; speaks at 60 and 10 seconds
 - `Toast` (ToastProvider, useToast) — Stacked notifications (iOS style). Wrap the app in ToastProvider, then useToast()
 - `UndoBar` — “Removed X · Undo” with a ring counting down; it pauses while you hover
 
@@ -248,9 +269,11 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `Lightbox` — A picture grows from its thumbnail to the full screen and back
 - `Popover` — A small panel tied to its trigger that flips to stay on screen
 - `Tooltip` — A short label on hover or keyboard focus; once one is open, its neighbours open instantly
+- `TypeToConfirmDialog` — A danger confirmation whose button stays off until the person types the name of the thing
 
 ### `pickers/`
 - `BookingSlots` — Length, day and time in the visitor's time zone, then details and a confirmation
+- `Cascader` — Pick one leaf of a tree through side-by-side columns, with arrow keys across them
 - `ChipFilter` — Toggle chips for filtering, one or several at a time
 - `Combobox` (Highlight, Combobox) — Type to filter a long list; matches are marked and rows glide as the list narrows
 - `DatePicker` (Calendar, DatePicker, DateRangePicker) — A calendar that slides by month, for one date or a range with presets
@@ -259,6 +282,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `SignaturePad` — Smooth strokes that follow pressure and speed, with undo, clear and PNG export
 - `TagInput` — Several values in one field
 - `TimePicker` (TimeWheels, TimePicker) — Two scroll-snapping wheels, driven by native scrolling
+- `TransferList` — Two listboxes with move buttons, filters and multi-select
 
 ### `primitives/`
 - `AspectImage` — A picture that holds its space, shows a blurred preview, then fades in sharp
@@ -270,6 +294,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 
 ### `status/`
 - `Badge` — Short statuses and counts, and a presence dot that breathes when something is live
+- `Countdown` — Time left to a date in a grid; digits cross-fade in place, screen readers hear one label
 - `EmptyState` — What a page shows when it has nothing yet, and the one thing to do next
 - `Meter` — How much of a limit is used, split by kind, turning amber then red as it fills
 - `MultiStepLoader` — A checklist that completes itself, with a line filling down as it goes
@@ -294,7 +319,9 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `WordRotate` — One word swapping in place; the cell is as wide as the longest, so nothing reflows
 
 ### `text-input/`
+- `caret` — Caret-preserving helpers for inputs that reformat as you type; not a component
 - `CurrencyInput` — Money formatted for the locale as you type; stored in minor units
+- `MaskedInput` — Formats as you type (phone, plate, card) and keeps the caret in place
 - `MentionsTextarea` — Type @ to suggest people; picked names become tokens
 - `NumberField` — A stepper whose digits roll; hold a button to count quickly, or type a number
 - `OTPInput` — Six boxes on one real input, so paste and SMS autofill work
@@ -303,9 +330,8 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `PlaceholderInput` — Example questions cycle while empty; sent text drifts up and dissolves
 - `RichTextEditor` — A light editor with a toolbar, shortcuts, markdown shortcuts and clean HTML out
 - `SearchField` — A rounded search box with a shortcut hint at rest and a clear button once typed in
-- `TextField` — Label above, hint below; errors arrive with a small shake, and a clear button appears once there is text
 - `Textarea` — Grows smoothly with its text and counts characters against a limit
-- `caret` — Caret-preserving helpers for inputs that reformat as you type; not a component
+- `TextField` — Label above, hint below; errors arrive with a small shake, and a clear button appears once there is text
 
 ### `wayfinding/`
 - `Accordion` — Questions that open to their answers with a smooth change of height
@@ -316,6 +342,7 @@ Look here first, then open the file for props. Imports use real paths, e.g. `imp
 - `ScrollHint` — The invitation at the foot of a first screen: a line and a nudging arrow that scrolls on when pressed
 - `ScrollProgress` — How far down you have read: a thin bar, or `variant="ring"` with the percentage; smoothed so it never jumps
 - `Stepper` — Progress through a flow; the line fills as each step is finished
+- `TableOfContents` — The headings of a long article with the current one marked as you scroll (`aria-current`)
 - `Tabs` — A line or a fill fades onto the chosen tab; panels slide in from the side you moved towards
 
 ### `workspace/`
@@ -460,3 +487,55 @@ Only when nothing in section 2 fits, even composed.
 5. **Keyboard and a11y**: roles, labels, focus-visible, arrows/Enter/Esc as the pattern requires.
 6. **Motion**: follow section 5, `springSoft` by default.
 7. **Verify**: `npx tsc --noEmit` clean, look at it in a browser in light and dark, at 390px width, and keyboard through it.
+
+## 10. Accessibility
+
+Two layers, merged by union (booleans OR, `textScale` max). A developer can add support, never take away what a person chose.
+
+- **The person's choices**: `AccessibilityMenu` (profiles plus fine-tune switches), saved to localStorage (`kiln-a11y`) and applied page-wide. System settings (`prefers-reduced-motion`, `prefers-contrast: more`, `forced-colors`) are read too.
+- **The developer's choices**: the `accessibilityFeatures` prop on one component, or `<AccessibilityScope features=...>` round a subtree.
+
+**Setup.** `import { AccessibilityProvider } from "./kiln/a11y"`, inside `ThemeProvider`, around `MotionConfig` or replacing it (the provider renders its own `MotionConfig` with `reducedMotion` set from the features). It writes `data-k-*` attributes and `--k-text-scale` on `<html>`; one set of rules at the end of `kiln.css` answers them. Without a provider `useA11y()` falls back to system settings, so copied-in components never crash. `AccessibilityMenu` and `useA11ySettings` need the provider and throw a clear error without it.
+
+```tsx
+<AccessibilityProvider>            {/* storageKey="kiln-a11y" by default; false to not persist */}
+  <SkipLink />                      {/* first thing in the page; target id="main" */}
+  <header><AccessibilityMenu /></header>
+  <main id="main">...</main>
+</AccessibilityProvider>
+```
+
+**`accessibilityFeatures`** is on every component. Value: `"all"`, `"none"`, one profile (`"adhd"`), a list of profiles, or a partial feature object (`{ calm: true, textScale: 1.25 }`). `<AccessibilityScope features="vestibular">` applies the same to everything inside. Inside a component, read it with `useA11yProps(prop)`: `{ a11y, rootProps }`; spread `rootProps` on the root element.
+
+| Profile | Features it turns on |
+| --- | --- |
+| `low-vision` | highContrast, strongFocus, largeTargets, textScale 1.25 |
+| `colour-blind` | colourSafe |
+| `screen-reader` | screenReaderHints |
+| `vestibular` | reduceMotion |
+| `photosensitive` | noFlashing, reduceMotion |
+| `motor` | largeTargets, extendedTime |
+| `adhd` | calm, reduceMotion |
+| `dyslexia` | readableFont, textSpacing |
+| `cognitive` | calm, extendedTime, textSpacing |
+| `deaf` | captions |
+| `"all"` | every feature, textScale 1.25 |
+
+| Feature | Effect |
+| --- | --- |
+| `reduceMotion` | No parallax, tilt, magnetic or drift; Motion `reducedMotion="always"`; `motion-reduce:` utilities fire |
+| `noFlashing` | Nothing blinks or scrambles faster than 3 per second; scramble shows the final text |
+| `calm` | Nothing moves on its own: autoplay off, loops paused, rotating text holds, pulses and shimmer off |
+| `highContrast` | Muted text becomes ink, stronger lines, solid control borders |
+| `strongFocus` | 3px solid accent outline, 2px offset |
+| `textScale` | 1, 1.125, 1.25 or 1.5 |
+| `readableFont`, `textSpacing` | Atkinson Hyperlegible stack (no download); WCAG 1.4.12 spacing |
+| `largeTargets` | Every control at least 44px |
+| `colourSafe` | Never colour alone: chart patterns and marker shapes, Okabe-Ito palette, status icons |
+| `extendedTime` | No auto-dismiss, timers x3, hold-to-confirm becomes press then confirm |
+| `screenReaderHints` | Extra descriptions, chart data tables shown, fuller announcements |
+| `captions` | Media starts with captions on |
+
+**Helpers.** `announce(message, "polite" | "assertive")` (or `useAnnounce()`) speaks through a hidden live region, with no provider and no focus move. `SkipLink` (`href="#main"`) is hidden until focused. `VisuallyHidden` (`as`, `focusable`) hides text from the screen only. `usePrefersReducedMotion()` in `shared/useLoop.ts` already includes the in-app setting. `k-hit` grows a small control's hit area.
+
+**Rules when you build with Kiln.** Never hide meaning in colour alone; give anything that moves on its own a pause control and make it honour `calm`; give anything with a time limit a way to extend it (`extendedTime`); keep text sizes in rem so the text scale works.

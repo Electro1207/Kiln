@@ -10,7 +10,7 @@ export const category: Category = {
       id: "video-player",
       name: "Video player",
       summary: "Chapters and frame previews on the scrubber, speed and quality that keep your place, captions, picture-in-picture, theater and full screen. Every control switches on or off, and it takes a ref, events, markers, controls and a panel of your own.",
-      files: ["src/kiln/components/media/VideoPlayer.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts"],
+      files: ["src/kiln/components/media/VideoPlayer.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts", "src/kiln/a11y.tsx", "src/kiln/controllable.ts"],
       Demo: VideoDemo,
     },
   ],

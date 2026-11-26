@@ -29,6 +29,17 @@ Group id: `primitives` · Folder: `primitives/` · 6 entries
 | Separator | `separator` | `Separator.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Image | `aspect-image` | `AspectImage.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 
+### Accessibility
+Group id: `accessibility` · Folder: `accessibility/` · 5 entries
+
+| Entry | Id | Files |
+| --- | --- | --- |
+| Accessibility menu | `accessibility-menu` | `AccessibilityMenu.tsx`, `src/kiln/a11y.tsx`, `announce.ts`, `Button.tsx`, `IconButton.tsx`, `SegmentedControl.tsx`, `Switch.tsx`, `Popover.tsx`, `useOverlay.ts`, `src/kiln/controllable.ts`, `src/kiln/motion.ts`, `src/kiln/cn.ts` |
+| Accessibility scope and prop | `accessibility-scope` | `src/kiln/a11y.tsx`, `src/kiln/cn.ts`, `src/kiln/controllable.ts` |
+| Skip link | `skip-link` | `SkipLink.tsx`, `src/kiln/cn.ts` |
+| Visually hidden | `visually-hidden` | `VisuallyHidden.tsx`, `src/kiln/cn.ts` |
+| Live announcer | `live-announcer` | `announce.ts` |
+
 ## Actions & inputs
 
 Section id: `inputs`
@@ -49,7 +60,7 @@ Group id: `buttons` · Folder: `buttons/` · 9 entries
 | Link | `link` | `Link.tsx` |
 
 ### Text input
-Group id: `text-input` · Folder: `text-input/` · 11 entries
+Group id: `text-input` · Folder: `text-input/` · 12 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -63,6 +74,7 @@ Group id: `text-input` · Folder: `text-input/` · 11 entries
 | Currency input | `currency-input` | `CurrencyInput.tsx`, `src/kiln/components/caret.ts`, `Field.tsx`, `src/kiln/controllable.ts` |
 | Placeholder input | `placeholder-input` | `PlaceholderInput.tsx`, `src/kiln/components/useLoop.ts` |
 | Mentions | `mentions-textarea` | `MentionsTextarea.tsx`, `Anchored.tsx`, `Avatar.tsx` |
+| Masked input | `masked-input` | `MaskedInput.tsx`, `src/kiln/cn.ts`, `src/kiln/controllable.ts`, `src/kiln/a11y.tsx`, `TextField.tsx`, `src/kiln/motion.ts`, `Field.tsx` |
 | Rich text | `rich-text-editor` | `RichTextEditor.tsx`, `Anchored.tsx` |
 
 ### Choice controls
@@ -79,7 +91,7 @@ Group id: `choice` · Folder: `choice-controls/` · 7 entries
 | Colour picker | `color-picker` | `ColorPicker.tsx`, `Anchored.tsx`, `SegmentedControl.tsx`, `src/kiln/controllable.ts` |
 
 ### Pickers
-Group id: `pickers` · Folder: `pickers/` · 9 entries
+Group id: `pickers` · Folder: `pickers/` · 12 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -92,9 +104,12 @@ Group id: `pickers` · Folder: `pickers/` · 9 entries
 | Booking | `booking-slots` | `BookingSlots.tsx`, `DatePicker.tsx` |
 | File dropzone | `file-dropzone` | `FileDropzone.tsx` |
 | Signature pad | `signature-pad` | `SignaturePad.tsx` |
+| Transfer list | `transfer-list` | `TransferList.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/controllable.ts`, `src/kiln/a11y.tsx`, `announce.ts`, `IconButton.tsx`, `TextField.tsx`, `Field.tsx` |
+| Cascader | `cascader` | `Cascader.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/controllable.ts`, `src/kiln/a11y.tsx`, `Anchored.tsx` |
+| Time wheels | `time-wheels` | `TimePicker.tsx`, `src/kiln/cn.ts`, `Anchored.tsx`, `src/kiln/motion.ts`, `src/kiln/controllable.ts`, `Field.tsx` |
 
 ### Forms
-Group id: `forms` · Folder: `forms/` · 5 entries
+Group id: `forms` · Folder: `forms/` · 8 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -103,13 +118,16 @@ Group id: `forms` · Folder: `forms/` · 5 entries
 | Inline edit | `inline-edit` | `InlineEdit.tsx` |
 | Avatar upload and cropper | `avatar-upload` | `AvatarUpload.tsx`, `ImageCropper.tsx`, `Slider.tsx`, `src/kiln/controllable.ts` |
 | Key–value editor | `key-value-editor` | `KeyValueEditor.tsx` |
+| Fieldset | `fieldset` | `Fieldset.tsx`, `src/kiln/cn.ts`, `FieldMessage.tsx`, `src/kiln/motion.ts`, `src/kiln/a11y.tsx`, `src/kiln/controllable.ts` |
+| Error summary | `error-summary` | `ErrorSummary.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/a11y.tsx`, `src/kiln/controllable.ts` |
+| Image cropper | `image-cropper` | `ImageCropper.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/a11y.tsx`, `src/kiln/controllable.ts`, `Slider.tsx` |
 
 ## Navigation
 
 Section id: `navigation`
 
 ### Menus & bars
-Group id: `menus` · Folder: `menus/` · 8 entries
+Group id: `menus` · Folder: `menus/` · 11 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -121,9 +139,12 @@ Group id: `menus` · Folder: `menus/` · 8 entries
 | Context menu | `context-menu` | `ContextMenu.tsx`, `DropdownMenu.tsx`, `Anchored.tsx` |
 | Command palette | `command-palette` | `CommandPalette.tsx` |
 | Spotlight search | `spotlight-search` | `SpotlightSearch.tsx`, `src/kiln/components/useOverlay.ts`, `Combobox.tsx`, `src/kiln/controllable.ts` |
+| Menubar | `menubar` | `Menubar.tsx`, `src/kiln/cn.ts`, `src/kiln/controllable.ts`, `src/kiln/a11y.tsx`, `DropdownMenu.tsx`, `src/kiln/motion.ts`, `Anchored.tsx` |
+| Toolbar | `toolbar` | `Toolbar.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/controllable.ts`, `src/kiln/a11y.tsx` |
+| Bottom tab bar | `bottom-tab-bar` | `BottomTabBar.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/controllable.ts`, `src/kiln/a11y.tsx` |
 
 ### Wayfinding
-Group id: `wayfinding` · Folder: `wayfinding/` · 9 entries
+Group id: `wayfinding` · Folder: `wayfinding/` · 10 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -136,13 +157,14 @@ Group id: `wayfinding` · Folder: `wayfinding/` · 9 entries
 | Scroll progress | `scroll-progress` | `ScrollProgress.tsx` |
 | Scroll checkpoints | `scroll-checkpoints` | `ScrollCheckpoints.tsx`, `src/kiln/controllable.ts` |
 | Scroll hint | `scroll-hint` | `ScrollHint.tsx` |
+| Table of contents | `table-of-contents` | `TableOfContents.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/controllable.ts`, `src/kiln/a11y.tsx` |
 
 ## Overlays & feedback
 
 Section id: `feedback`
 
 ### Overlays
-Group id: `overlays` · Folder: `overlays/` · 7 entries
+Group id: `overlays` · Folder: `overlays/` · 8 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -153,9 +175,10 @@ Group id: `overlays` · Folder: `overlays/` · 7 entries
 | Tooltip | `tooltip` | `Tooltip.tsx`, `src/kiln/components/useOverlay.ts` |
 | Hover card | `hover-card` | `HoverCard.tsx`, `src/kiln/components/useOverlay.ts` |
 | Lightbox | `lightbox` | `Lightbox.tsx`, `src/kiln/components/useOverlay.ts` |
+| Type-to-confirm dialog | `type-to-confirm-dialog` | `TypeToConfirmDialog.tsx`, `src/kiln/cn.ts`, `src/kiln/a11y.tsx`, `src/kiln/controllable.ts`, `announce.ts`, `Button.tsx`, `src/kiln/motion.ts`, `TextField.tsx`, `Field.tsx`, `Dialog.tsx`, `useOverlay.ts` |
 
 ### Notices
-Group id: `notices` · Folder: `notices/` · 8 entries
+Group id: `notices` · Folder: `notices/` · 10 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -167,9 +190,11 @@ Group id: `notices` · Folder: `notices/` · 8 entries
 | Notification bell | `notification-bell` | `NotificationBell.tsx` |
 | Notification center | `notification-center` | `NotificationCenter.tsx`, `NotificationBell.tsx`, `Popover.tsx`, `Avatar.tsx`, `src/kiln/components/useOverlay.ts` |
 | Cookie consent | `cookie-consent` | `CookieConsent.tsx`, `Switch.tsx`, `Button.tsx`, `src/kiln/components/useOverlay.ts` |
+| Session timeout | `session-timeout` | `SessionTimeout.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/a11y.tsx`, `src/kiln/controllable.ts`, `announce.ts`, `Button.tsx`, `Dialog.tsx`, `useOverlay.ts` |
+| Connection status | `connection-status` | `ConnectionStatus.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/a11y.tsx`, `src/kiln/controllable.ts`, `announce.ts` |
 
 ### Status & loading
-Group id: `status` · Folder: `status/` · 8 entries
+Group id: `status` · Folder: `status/` · 9 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -180,6 +205,7 @@ Group id: `status` · Folder: `status/` · 8 entries
 | Spinner | `spinner` | `Spinner.tsx` |
 | Skeleton | `skeleton` | `Skeleton.tsx` |
 | Multi-step loader | `multi-step-loader` | `MultiStepLoader.tsx` |
+| Countdown | `countdown` | `Countdown.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/a11y.tsx`, `src/kiln/controllable.ts`, `announce.ts` |
 | Empty state | `empty-state` | `EmptyState.tsx` |
 
 ### Guidance
@@ -274,7 +300,7 @@ Group id: `media` · Folder: `media/` · 6 entries
 Section id: `patterns`
 
 ### App shells
-Group id: `shells` · Folder: `app-shells/` · 6 entries
+Group id: `shells` · Folder: `app-shells/` · 7 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -283,6 +309,7 @@ Group id: `shells` · Folder: `app-shells/` · 6 entries
 | Headings | `headings-layout` | `PageHeading.tsx`, `HeadingParts.tsx`, `Breadcrumbs.tsx`, `DropdownMenu.tsx`, `Button.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Grid lists | `grid-list` | `GridList.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Stacked list | `stacked-list` | `StackedList.tsx`, `Table.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
+| Heading tabs | `heading-tabs` | `PageHeading.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Dashboard screen | `dashboard` | `Stat.tsx`, `BarChart.tsx`, `Card.tsx`, `StackedList.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 
 ### Workspace
@@ -312,7 +339,7 @@ Group id: `communication` · Folder: `communication/` · 4 entries
 | Message composer | `message-composer` | `MessageComposer.tsx` |
 
 ### AI interfaces
-Group id: `ai` · Folder: `ai/` · 8 entries
+Group id: `ai` · Folder: `ai/` · 11 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -324,6 +351,9 @@ Group id: `ai` · Folder: `ai/` · 8 entries
 | Tool call | `tool-call` | `ToolCall.tsx`, `Button.tsx` |
 | Suggestions | `suggestions` | `Suggestions.tsx` |
 | Message actions | `message-actions` | `MessageActions.tsx`, `CopyButton.tsx`, `Tooltip.tsx` |
+| Model picker | `model-picker` | `ModelPicker.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/controllable.ts`, `src/kiln/a11y.tsx`, `Anchored.tsx` |
+| Usage meter | `usage-meter` | `UsageMeter.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/a11y.tsx`, `src/kiln/controllable.ts` |
+| Voice input | `voice-input` | `VoiceInput.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/controllable.ts`, `src/kiln/a11y.tsx`, `announce.ts` |
 
 ### Developer tools
 Group id: `devtools` · Folder: `dev-tools/` · 5 entries
@@ -337,7 +367,7 @@ Group id: `devtools` · Folder: `dev-tools/` · 5 entries
 | Log stream | `log-stream` | `LogStream.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 
 ### Commerce
-Group id: `commerce` · Folder: `commerce/` · 8 entries
+Group id: `commerce` · Folder: `commerce/` · 12 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -349,6 +379,10 @@ Group id: `commerce` · Folder: `commerce/` · 8 entries
 | Category filters | `category-filters` | `CategoryFilters.tsx`, `Slider.tsx`, `Checkbox.tsx`, `src/kiln/controllable.ts` |
 | Order history | `order-history` | `OrderHistory.tsx`, `Badge.tsx`, `src/kiln/components/commerce.ts`, `src/kiln/controllable.ts` |
 | Invoice | `invoice` | `Invoice.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
+| Size picker | `size-picker` | `SizePicker.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/controllable.ts` |
+| Stars | `stars` | `ReviewsSummary.tsx`, `src/kiln/cn.ts`, `src/kiln/controllable.ts`, `src/kiln/motion.ts`, `Button.tsx`, `SegmentedControl.tsx` |
+| Coupon field | `coupon-field` | `CouponField.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/controllable.ts`, `src/kiln/a11y.tsx`, `Button.tsx`, `Tag.tsx`, `TextField.tsx`, `Field.tsx`, `FieldMessage.tsx` |
+| Shipment tracker | `shipment-tracker` | `ShipmentTracker.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/a11y.tsx`, `src/kiln/controllable.ts`, `useOverlay.ts` |
 
 ### Marketing
 Group id: `marketing` · Folder: `marketing/` · 17 entries
@@ -389,7 +423,7 @@ Group id: `text-effects` · Folder: `text-effects/` · 5 entries
 | Scroll words | `scroll-words` | `ScrollWords.tsx`, `src/kiln/components/shared/useLoop.ts` |
 
 ### Effects
-Group id: `effects` · Folder: `effects/` · 16 entries
+Group id: `effects` · Folder: `effects/` · 17 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
@@ -416,7 +450,7 @@ Group id: `effects` · Folder: `effects/` · 16 entries
 - Each component file sits in its group's folder: `src/kiln/components/<folder>/<File>.tsx`. Entry file names in the tables above are relative to that folder, or to `src/kiln/components/` for the old flat names.
 - `Stat.tsx` is in `data-display/` and `PageHeading.tsx` is in `app-shells/`; the other group imports them.
 - Helpers used by more than one group live in **`src/kiln/components/shared/`**: `Anchored.tsx`, `Field.tsx`, `useLoop.ts`, `useOverlay.ts`.
-- `cn.ts`, `motion.ts`, `controllable.ts` and `theme.tsx` stay in `src/kiln/`, next to each other.
+- `cn.ts`, `motion.ts`, `controllable.ts`, `a11y.tsx` (the accessibility core) and `theme.tsx` stay in `src/kiln/`, next to each other.
 - A helper used by one group lives in that group's folder (`caret.ts` in `text-input/`, `commerce.ts` in `commerce/`, `SplitButton.tsx` in `buttons/`, and so on).
 - To copy one component, copy its file plus the helpers its demo entry lists under `files`; each entry's list is derived from the real imports, transitively. Keeping the folder layout (or fixing the relative imports) is all it takes.
 - `scripts/reorganise-components.mjs` did the move and is idempotent.

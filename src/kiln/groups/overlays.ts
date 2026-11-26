@@ -6,3 +6,4 @@ export { type HoverCardProps, HoverCard } from "../components/overlays/HoverCard
 export { type LightboxLabels, type LightboxIcons, lightboxIcons, lightboxLabels, type LightboxImage, type LightboxProps, Lightbox } from "../components/overlays/Lightbox";
 export { type PopoverProps, Popover } from "../components/overlays/Popover";
 export { type TooltipProps, Tooltip } from "../components/overlays/Tooltip";
+export { type TypeToConfirmDialogLabels, typeToConfirmDialogLabels, type TypeToConfirmDialogProps, TypeToConfirmDialog } from "../components/overlays/TypeToConfirmDialog";

@@ -61,6 +61,22 @@ The bar is **production grade**: no visible quirk, overlap, flicker, jump or 1px
 - Don't put `content-visibility: auto` on page sections: the estimated heights change as sections render, and the page jumps while scrolling.
 - Check by recording every frame while each demo is exercised, at normal speed and at 4× CPU slowdown, and fix anything that drops a frame.
 
+## Accessibility
+
+The system is in `src/kiln/a11y.tsx`; the guide is section 10 of `src/kiln/CLAUDE.md`. Rules every component follows:
+
+1. **Two layers, union only.** The person's choices (AccessibilityMenu, system media queries) and the developer's (`accessibilityFeatures`, `AccessibilityScope`) merge by OR (`textScale` by max). A developer can add support and can never remove a person's choice.
+2. **Components read features, never profiles.** Use `useA11yProps(accessibilityFeatures)` and spread `rootProps` on the root. Every component takes `accessibilityFeatures?: AccessibilityFeaturesProp`.
+3. **CSS does the page-wide work.** Styling for a feature goes in the a11y section of `kiln.css`, keyed on `data-k-*`; don't re-implement it per component. Colours come from tokens (`--k-cvd-*` for colour-safe series).
+4. **Works without a provider.** `useA11y()` falls back to system settings.
+5. **Time limits honour `extendedTime`:** no auto-dismiss, timers x3, hold-to-confirm becomes press then confirm. Anything with an action never auto-dismisses.
+6. **Self-moving things honour `calm`** (and `reduceMotion` for pointer-driven motion) and have a visible pause control that fades in on hover and focus-within, always visible under `calm` or `screenReaderHints` (WCAG 2.2.2). Nothing flashes more than 3 times a second (`noFlashing`).
+7. **Never colour alone.** State is also shown by an icon, a word, a pattern or a shape. Charts switch to patterns and marker shapes under `colourSafe` and always have a summary and a data table for screen readers.
+8. **Text sizes are rem.** No `text-[13px]`; write `text-[0.8125rem]`, so the text scale works. SVG font-size attributes are the exception.
+9. **Focus is always visible.** `outline-none` needs a `focus-visible` replacement (ring or outline) in the same class string, unless a wrapper shows it with `focus-within`.
+10. **Keyboard and announcements.** Every drag has a keyboard path; every moved or removed thing is announced with `announce()`; animated text is `aria-hidden` with the final text available once to screen readers.
+11. **Each component with accessibility behaviour has notes** in `src/gallery/a11y-meta/<pkg>.ts` for the gallery's accessibility view.
+
 ## Testing (mandatory before calling anything done)
 
 Capture animations frame by frame with a controlled clock: in Playwright, remove `Element.prototype.animate` in an init script so Motion runs on its JS path, then step `requestAnimationFrame` with a fake clock and screenshot each step. Also capture the real-time end state, and a full-page phone screenshot at 390px.

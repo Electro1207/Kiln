@@ -7,4 +7,5 @@ export { type Checkpoint, type ScrollCheckpointsLabels, scrollCheckpointsLabels,
 export { type ScrollHintLabels, scrollHintLabels, type ScrollHintIcons, scrollHintIcons, type ScrollHintProps, ScrollHint } from "../components/wayfinding/ScrollHint";
 export { type ScrollProgressLabels, scrollProgressLabels, type ScrollProgressProps, ScrollProgress } from "../components/wayfinding/ScrollProgress";
 export { type Step, type StepperLabels, type StepperIcons, stepperIcons, stepperLabels, type StepperProps, Stepper } from "../components/wayfinding/Stepper";
+export { type TocItem, type TableOfContentsLabels, tableOfContentsLabels, type TableOfContentsProps, TableOfContents } from "../components/wayfinding/TableOfContents";
 export { type TabItem, type TabsProps, Tabs } from "../components/wayfinding/Tabs";
