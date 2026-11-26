@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { cn } from "../../cn";
-import { usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { announce } from "../accessibility/announce";
 
 export type StreamingTextProps = {
   /** The full answer. While `streaming`, it is revealed a token at a time. */
@@ -13,6 +14,8 @@ export type StreamingTextProps = {
   /** Stop revealing (the Stop button); the text shown so far stays. */
   stopped?: boolean;
   className?: string;
+  /** Accessibility features to add here. `calm` and `reduceMotion` show the whole answer at once (still announced once, when it is finished). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Split into word-ish tokens that keep their trailing space. */
@@ -25,9 +28,10 @@ function tokenize(text: string) {
  * new token fades in on the compositor; the text before it never re-renders,
  * so long answers stay smooth. Paragraphs split on blank lines.
  */
-export function StreamingText({ text, streaming, rate = 32, onDone, stopped, className }: StreamingTextProps) {
+export function StreamingText({ text, streaming, rate = 32, onDone, stopped, className, accessibilityFeatures }: StreamingTextProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const tokens = useMemo(() => tokenize(text), [text]);
-  const reduce = usePrefersReducedMotion();
+  const reduce = a11y.reduceMotion || a11y.calm;
   const [shown, setShown] = useState(streaming && !reduce ? 0 : tokens.length);
   const done = useRef(false);
   const doneRef = useRef(onDone);
@@ -75,8 +79,19 @@ export function StreamingText({ text, streaming, rate = 32, onDone, stopped, cla
   }
   const live = streaming && !stopped && shown < tokens.length;
 
+  // Screen readers get the finished answer once, politely, not every token (the text is aria-busy until then).
+  const wasStreaming = useRef(streaming);
+  const latest = useRef(text);
+  useLayoutEffect(() => {
+    latest.current = text;
+  });
+  useEffect(() => {
+    if (wasStreaming.current && !streaming && !stopped && latest.current) announce(latest.current.replace(/\s+/g, " ").trim());
+    wasStreaming.current = streaming;
+  }, [streaming, stopped]);
+
   return (
-    <div className={cn("space-y-3 text-[15px] leading-[24px] text-ink", className)} aria-busy={live}>
+    <div {...rootProps} className={cn("space-y-3 text-[0.9375rem] leading-[24px] text-ink", className)} aria-busy={live}>
       {paras.map((p, k) => (
         <p key={k}>
           {p.map(({ t, i }) => (

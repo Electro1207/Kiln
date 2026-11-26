@@ -1,6 +1,7 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import type { Size } from "../../controllable";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type BadgeTone = "neutral" | "accent" | "positive" | "negative" | "warning" | "info";
 
@@ -12,12 +13,14 @@ export type BadgeProps = HTMLAttributes<HTMLSpanElement> & {
   dot?: boolean;
   size?: Size;
   children: ReactNode;
+  /** Accessibility features to add here. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const badgeSizes: Record<Size, string> = {
-  sm: "h-5 px-2 text-[11.5px]",
+  sm: "h-5 px-2 text-[0.7188rem]",
   md: "h-6 px-2.5 text-xs",
-  lg: "h-7 px-3 text-[13px]",
+  lg: "h-7 px-3 text-[0.8125rem]",
 };
 
 const soft: Record<BadgeTone, string> = {
@@ -50,10 +53,13 @@ const dotColour: Record<BadgeTone, string> = {
 };
 
 /** A short status or count. */
-export function Badge({ tone = "neutral", variant = "soft", dot, size = "md", children, className, ...rest }: BadgeProps) {
+export function Badge({ tone = "neutral", variant = "soft", dot, size = "md", children, className, accessibilityFeatures, style, ...rest }: BadgeProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   return (
     <span
       {...rest}
+      {...rootProps}
+      style={{ ...rootProps.style, ...style }}
       className={cn(
         "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full font-medium tabular",
         badgeSizes[size],

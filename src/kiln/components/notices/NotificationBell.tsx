@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useAnimate, type HTMLMotionProps } from "motio
 import { Bell } from "lucide-react";
 import { cn } from "../../cn";
 import { press, springSnappy, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Icons used by NotificationBell. Pass a partial via `icons` to swap any of them. */
 export interface NotificationBellIcons {
@@ -31,13 +32,17 @@ export type NotificationBellProps = Omit<HTMLMotionProps<"button">, "children"> 
   labels?: Partial<NotificationBellLabels>;
   /** Replace any built-in icon. Merged over `notificationBellIcons`. */
   icons?: Partial<NotificationBellIcons>;
+  /** Accessibility features to add here. `calm`, `reduceMotion` and `noFlashing` stop the bell from ringing and the count from bouncing. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A bell with an unread count. When the count goes up the bell rings once and the number rolls. */
 export const NotificationBell = forwardRef<HTMLButtonElement, NotificationBellProps>(function NotificationBell(
-  { count, max = 99, labels, icons, className, ...rest },
+  { count, max = 99, labels, icons, className, accessibilityFeatures, style, ...rest },
   ref,
 ) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const quiet = a11y.calm || a11y.reduceMotion || a11y.noFlashing;
   const [scope, animate] = useAnimate<HTMLSpanElement>();
   const [badge, animateBadge] = useAnimate<HTMLSpanElement>();
   const l = { ...notificationBellLabels, ...labels };
@@ -46,7 +51,7 @@ export const NotificationBell = forwardRef<HTMLButtonElement, NotificationBellPr
   const up = count > prev.current;
 
   useEffect(() => {
-    if (count > prev.current && scope.current) {
+    if (count > prev.current && scope.current && !quiet) {
       animate(
         scope.current,
         { rotate: [0, 16, -13, 9, -6, 3, 0] },
@@ -55,7 +60,7 @@ export const NotificationBell = forwardRef<HTMLButtonElement, NotificationBellPr
       if (prev.current > 0 && badge.current) animateBadge(badge.current, { scale: [1, 1.22, 1] }, { duration: 0.42, ease: [0.22, 1, 0.36, 1] });
     }
     prev.current = count;
-  }, [count, animate, scope, animateBadge, badge]);
+  }, [count, quiet, animate, scope, animateBadge, badge]);
 
   const text = count > max ? `${max}+` : String(count);
 
@@ -71,6 +76,8 @@ export const NotificationBell = forwardRef<HTMLButtonElement, NotificationBellPr
         className,
       )}
       {...rest}
+      {...rootProps}
+      style={{ ...rootProps.style, ...style }}
     >
       <span ref={scope} className="inline-flex [&>svg]:size-5" style={{ transformOrigin: "50% 2px" }}>
         {ic.bell}
@@ -84,7 +91,7 @@ export const NotificationBell = forwardRef<HTMLButtonElement, NotificationBellPr
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             transition={springSoft}
-            className="absolute right-0.5 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center overflow-hidden rounded-full bg-btn-danger px-1 text-[11px] font-semibold leading-none text-btn-danger-ink tabular ring-2 ring-surface"
+            className="absolute right-0.5 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center overflow-hidden rounded-full bg-btn-danger px-1 text-[0.6875rem] font-semibold leading-none text-btn-danger-ink tabular ring-2 ring-surface"
           >
             <AnimatePresence initial={false} mode="popLayout">
               <motion.span

@@ -1,8 +1,9 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import { animate, motion, useInView, useMotionValue, useReducedMotion, useTransform } from "motion/react";
+import { animate, motion, useInView, useMotionValue, useTransform } from "motion/react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { cn } from "../../cn";
 import { springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type StatProps = {
   label: string;
@@ -17,6 +18,8 @@ export type StatProps = {
   className?: string;
   /** Replace any built-in icon. Merged over `statIcons`. */
   icons?: Partial<StatIcons>;
+  /** Accessibility features to add here. `calm`, `reduceMotion` and `noFlashing` show the final figure at once. Screen readers get only the final value. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 export interface StatIcons {
@@ -28,11 +31,12 @@ export interface StatIcons {
 export const statIcons: StatIcons = { up: <ArrowUpRight />, down: <ArrowDownRight /> };
 
 /** A figure that counts up once when it scrolls into view. */
-export function Stat({ label, value, format, delta, invert, note, locale = "en-GB", className, icons }: StatProps) {
+export function Stat({ label, value, format, delta, invert, note, locale = "en-GB", className, icons, accessibilityFeatures }: StatProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const ic = { ...statIcons, ...icons };
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "0px 0px -10% 0px" });
-  const reduce = useReducedMotion();
+  const reduce = a11y.reduceMotion || a11y.calm || a11y.noFlashing;
   const mv = useMotionValue(0);
   const nf = new Intl.NumberFormat(locale, format);
   const text = useTransform(mv, (v) => nf.format(format?.maximumFractionDigits ? v : Math.round(v)));
@@ -49,11 +53,12 @@ export function Stat({ label, value, format, delta, invert, note, locale = "en-G
 
   const good = delta == null ? null : invert ? delta < 0 : delta > 0;
   return (
-    <div ref={ref} className={cn("flex min-w-0 flex-col gap-1", className)}>
-      <span className="text-[13px] font-medium text-muted">{label}</span>
-      <motion.span className="tabular text-[28px] leading-tight text-ink" aria-label={nf.format(value)}>
+    <div ref={ref} {...rootProps} className={cn("flex min-w-0 flex-col gap-1", className)}>
+      <span className="text-[0.8125rem] font-medium text-muted">{label}</span>
+      <motion.span aria-hidden className="tabular text-[1.75rem] leading-tight text-ink">
         {text}
       </motion.span>
+      <span className="sr-only">{nf.format(value)}</span>
       {(delta != null || note) && (
         <span className="flex items-center gap-1.5 text-xs">
           {delta != null && (

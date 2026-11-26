@@ -14,6 +14,7 @@ import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, fade, springFirm, springSoft } from "../../motion";
 import { Portal } from "../shared/useOverlay";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ToastVariant = "neutral" | "success" | "error" | "warning" | "info" | "loading";
 
@@ -23,7 +24,7 @@ export type ToastInput = {
   variant?: ToastVariant;
   /** A text action on the right, e.g. Undo. The toast closes after it runs. */
   action?: { label: string; onClick: () => void };
-  /** ms before it leaves on its own. Default 5000; loading toasts stay until updated. */
+  /** ms before it leaves on its own. Default 5000; loading toasts stay until updated. A toast with an `action` never leaves on its own, and none do under `extendedTime`. */
   duration?: number;
 };
 
@@ -100,14 +101,17 @@ export const toastIcons: ToastIcons = {
  * fans it out; leaving folds it back. Timers pause while it is open or the tab
  * is hidden. Swipe a toast to the right to dismiss it.
  */
-export function ToastProvider({ children, labels, icons }: {
+export function ToastProvider({ children, labels, icons, accessibilityFeatures }: {
   children: ReactNode;
+  /** Accessibility features to add for these toasts (`extendedTime` keeps every toast until dismissed). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
   /** Override any UI text. Merged over `toastLabels`. */
   labels?: Partial<ToastLabels>;
   /** Replace any built-in icon. Merged over `toastIcons`. */
   icons?: Partial<ToastIcons>;
 }) {
   const l = { ...toastLabels, ...labels };
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const ic = useMemo(() => ({ ...toastIcons, ...icons }), [icons]);
   const [toasts, setToasts] = useState<ToastRecord[]>([]);
   const [hovered, setHovered] = useState(false);
@@ -154,6 +158,7 @@ export function ToastProvider({ children, labels, icons }: {
       <Portal>
         <section
           aria-label={l.region}
+          {...rootProps}
           className="pointer-events-none fixed inset-x-0 bottom-0 z-[70] flex justify-center px-3 pb-3 sm:inset-x-auto sm:right-0 sm:px-5 sm:pb-5"
         >
           {/* The hover zone is the whole expanded stack, gaps included, so it never flickers. */}
@@ -181,6 +186,7 @@ export function ToastProvider({ children, labels, icons }: {
                   onDismiss={dismiss}
                   dismissLabel={l.dismiss}
                   icons={ic}
+                  stay={a11y.extendedTime}
                 />
               ))}
             </AnimatePresence>
@@ -241,11 +247,14 @@ type ItemProps = {
   onDismiss: (id: string) => void;
   dismissLabel: string;
   icons: ToastIcons;
+  /** Never leaves on its own (extendedTime). */
+  stay: boolean;
 };
 
-function ToastItem({ toast, index, expanded, frontH, offset, onHeight, onDismiss, dismissLabel, icons }: ItemProps) {
+function ToastItem({ toast, index, expanded, frontH, offset, onHeight, onDismiss, dismissLabel, icons, stay }: ItemProps) {
   const { id, title, description, variant = "neutral", action, version } = toast;
-  const duration = toast.duration ?? (variant === "loading" ? Infinity : 5000);
+  // Something to act on must not vanish while it is being read; extendedTime keeps everything.
+  const duration = stay || action ? Infinity : toast.duration ?? (variant === "loading" ? Infinity : 5000);
   const contentRef = useRef<HTMLDivElement>(null);
   const [natural, setNatural] = useState<number | null>(null);
   const x = useMotionValue(0);
@@ -344,7 +353,7 @@ function ToastItem({ toast, index, expanded, frontH, offset, onHeight, onDismiss
                 exit={{ opacity: 0, transition: { duration: 0.09 } }}
               >
                 <p className="text-sm font-semibold leading-5">{title}</p>
-                {description && <p className="mt-0.5 text-[13px] leading-[18px] text-muted">{description}</p>}
+                {description && <p className="mt-0.5 text-[0.8125rem] leading-[18px] text-muted">{description}</p>}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -355,7 +364,7 @@ function ToastItem({ toast, index, expanded, frontH, offset, onHeight, onDismiss
                 action.onClick();
                 onDismiss(id);
               }}
-              className="-my-0.5 h-6 shrink-0 rounded-[6px] px-1.5 text-[13px] font-semibold leading-6 text-accent transition-colors hover:bg-raised"
+              className="-my-0.5 h-6 shrink-0 rounded-[6px] px-1.5 text-[0.8125rem] font-semibold leading-6 text-accent transition-colors hover:bg-raised"
             >
               {action.label}
             </button>

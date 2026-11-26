@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { animate, AnimatePresence, motion, useMotionValue, useReducedMotion, type MotionValue } from "motion/react";
+import { animate, AnimatePresence, motion, useMotionValue, type MotionValue } from "motion/react";
 import { X } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, springFirm, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { Button } from "../buttons/Button";
 import { Portal, useMediaQuery, useModalLayer, type Side } from "../shared/useOverlay";
 
@@ -52,6 +53,8 @@ export type ProductTourProps = {
   labels?: Partial<ProductTourLabels>;
   /** Replace any built-in icon. Merged over `productTourIcons`. */
   icons?: Partial<ProductTourIcons>;
+  /** Accessibility features to add here. The tour only moves when the person presses Next or Back, so `extendedTime` needs no change; `calm` and `reduceMotion` make the spotlight and card jump instead of glide. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const GAP = 14;
@@ -100,10 +103,11 @@ export function ProductTour(props: ProductTourProps) {
   );
 }
 
-function TourLayer({ steps, onOpenChange, onFinish, labels, icons }: ProductTourProps) {
+function TourLayer({ steps, onOpenChange, onFinish, labels, icons, accessibilityFeatures }: ProductTourProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...productTourLabels, ...labels };
   const ic = { ...productTourIcons, ...icons };
-  const reduced = !!useReducedMotion();
+  const reduced = a11y.reduceMotion || a11y.calm;
   const narrow = useMediaQuery("(max-width: 639px)");
   const [index, setIndex] = useState(0);
   const [side, setSide] = useState<Place["side"]>("right");
@@ -307,7 +311,8 @@ function TourLayer({ steps, onOpenChange, onFinish, labels, icons }: ProductTour
         aria-describedby={bodyId}
         tabIndex={-1}
         onKeyDown={onKey}
-        style={{ width: docked ? `calc(100vw - ${EDGE * 2}px)` : `min(${CARD_W}px, calc(100vw - ${EDGE * 2}px))` }}
+        {...rootProps}
+        style={{ ...rootProps.style, width: docked ? `calc(100vw - ${EDGE * 2}px)` : `min(${CARD_W}px, calc(100vw - ${EDGE * 2}px))` }}
         className="fixed left-0 top-0 outline-none will-change-transform"
       >
         <motion.div
@@ -347,8 +352,8 @@ function TourLayer({ steps, onOpenChange, onFinish, labels, icons }: ProductTour
                 animate={{ opacity: 1, y: 0, transition: { duration: reduced ? 0.01 : 0.25, ease: easeOut } }}
                 exit={{ opacity: 0, transition: { duration: 0.08 } }}
               >
-                <h2 id={titleId} className="mt-1 text-[15px] font-semibold leading-snug">{step.title}</h2>
-                <p id={bodyId} className="mt-1.5 text-[13.5px] leading-5 text-muted">{step.body}</p>
+                <h2 id={titleId} className="mt-1 text-[0.9375rem] font-semibold leading-snug">{step.title}</h2>
+                <p id={bodyId} className="mt-1.5 text-[0.8438rem] leading-5 text-muted">{step.body}</p>
               </motion.div>
             </AnimatePresence>
           </div>

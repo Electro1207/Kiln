@@ -1,5 +1,6 @@
 import { useImperativeHandle, useRef, type HTMLAttributes, type Ref } from "react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { useLoop } from "../shared/useLoop";
 
 /** Text used by Spinner. Pass a partial via `labels` to translate or reword. */
@@ -18,6 +19,8 @@ export type SpinnerProps = Omit<HTMLAttributes<HTMLSpanElement>, "children"> & {
   label?: string;
   /** Override any UI text. Merged over `spinnerLabels`. */
   labels?: Partial<SpinnerLabels>;
+  /** Accessibility features to add here. `calm` and `reduceMotion` stop the turning and show a still mark (the name is still announced). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
   ref?: Ref<HTMLSpanElement>;
 };
 
@@ -25,13 +28,16 @@ export type SpinnerProps = Omit<HTMLAttributes<HTMLSpanElement>, "children"> & {
  * Shows that something is working. Colour follows the text colour. Every kind
  * is a compositor loop (transform and opacity only) that pauses off-screen.
  */
-export function Spinner({ kind = "ring", size = 20, label: labelProp, labels, className, style, ref, ...rest }: SpinnerProps) {
+export function Spinner({ kind = "ring", size = 20, label: labelProp, labels, className, style, ref, accessibilityFeatures, ...rest }: SpinnerProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const localStill = a11y.calm || a11y.reduceMotion;
   const label = labelProp ?? { ...spinnerLabels, ...labels }.loading;
   const root = useRef<HTMLSpanElement>(null);
   useImperativeHandle(ref, () => root.current!);
-  useLoop(
+  const { reduce } = useLoop(
     root,
     (el) => {
+      if (localStill) return [];
       const parts = Array.from(el.querySelectorAll<HTMLElement | SVGElement>("[data-part]"));
       const n = parts.length;
       if (kind === "ring") return parts.map((p) => p.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }], { duration: 900, iterations: Infinity, easing: "linear" }));
@@ -48,11 +54,12 @@ export function Spinner({ kind = "ring", size = 20, label: labelProp, labels, cl
         p.animate([{ transform: "scale(0)", opacity: 0.6 }, { transform: "scale(1)", opacity: 0 }], { duration: 1400, iterations: Infinity, easing: "cubic-bezier(0.22, 1, 0.36, 1)", delay: i * 700 }),
       );
     },
-    [kind],
+    [kind, localStill],
   );
+  const still = reduce || localStill;
 
   return (
-    <span ref={root} role="status" aria-label={label} {...rest} className={cn("inline-grid place-items-center text-accent", className)} style={{ width: size, height: size, ...style }}>
+    <span ref={root} role="status" aria-label={label} {...rest} {...rootProps} className={cn("inline-grid place-items-center text-accent", className)} style={{ ...rootProps.style, width: size, height: size, ...style }}>
       {kind === "ring" && (
         <svg data-part width={size} height={size} viewBox="0 0 24 24" aria-hidden>
           <circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" strokeOpacity="0.18" strokeWidth="2.5" />
@@ -75,7 +82,7 @@ export function Spinner({ kind = "ring", size = 20, label: labelProp, labels, cl
               className="absolute left-1/2 top-0"
               style={{ width: size * 0.1, height: size * 0.28, marginLeft: -size * 0.05, transformOrigin: `50% ${size / 2}px`, transform: `rotate(${45 * i}deg)` }}
             >
-              <span data-part className="block size-full rounded-full bg-current" />
+              <span data-part className="block size-full rounded-full bg-current" style={still ? { opacity: 0.25 + 0.75 * (1 - i / 8) } : undefined} />
             </span>
           ))}
         </span>
@@ -83,7 +90,7 @@ export function Spinner({ kind = "ring", size = 20, label: labelProp, labels, cl
       {kind === "pulse" && (
         <span className="relative block" style={{ width: size, height: size }} aria-hidden>
           {[0, 1].map((i) => (
-            <span key={i} data-part className="absolute inset-0 rounded-full bg-current" style={{ transform: "scale(0)" }} />
+            <span key={i} data-part className="absolute inset-0 rounded-full bg-current" style={still ? { transform: "scale(0.55)", opacity: 0.5 - i * 0.3 } : { transform: "scale(0)" }} />
           ))}
         </span>
       )}
