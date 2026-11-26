@@ -120,7 +120,7 @@ export function ProductQuickView({ product, open, onOpenChange, onAdd, labels, i
               )}
             </p>
             {product.rating && (
-              <p className="mt-1 text-[13px] text-muted">
+              <p className="mt-1 text-[0.8125rem] text-muted">
                 {l.rating(product.rating.average.toFixed(1), product.rating.count.toLocaleString())}
               </p>
             )}
@@ -130,7 +130,7 @@ export function ProductQuickView({ product, open, onOpenChange, onAdd, labels, i
           {product.sizes && (
             <div className="flex flex-col gap-2">
               <SizePicker sizes={product.sizes} value={size} onChange={(v) => { setSize(v); setMissingSize(false); }} />
-              <p className={cn("min-h-5 text-[13px] transition-opacity duration-200", missingSize ? "text-negative opacity-100" : "opacity-0")} role={missingSize ? "alert" : undefined}>
+              <p className={cn("min-h-5 text-[0.8125rem] transition-opacity duration-200", missingSize ? "text-negative opacity-100" : "opacity-0")} role={missingSize ? "alert" : undefined}>
                 {missingSize ? l.chooseSize : ""}
               </p>
             </div>

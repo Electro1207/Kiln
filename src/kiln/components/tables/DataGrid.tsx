@@ -380,7 +380,7 @@ export function DataGrid<T>({
             style={{ pointerEvents: selected.size > 0 ? "none" : "auto" }}
             aria-hidden={selected.size > 0 || undefined}
           >
-            <span className="tabular text-[13px] text-muted">
+            <span className="tabular text-[0.8125rem] text-muted">
               {sorted.length ? l.range(from, to, sorted.length, sorted.length === 1 ? noun[0] : noun[1]) : l.none(noun[1])}
             </span>
             {pageCount > 1 && <Pagination page={page} pageCount={pageCount} onChange={setPage} />}
@@ -397,7 +397,7 @@ export function DataGrid<T>({
                 transition={springSoft}
                 className="flex min-h-14 items-center gap-1 bg-surface px-2 py-2.5 sm:px-3"
               >
-                <span className="tabular mr-auto whitespace-nowrap pl-2 text-[13px] font-medium text-ink">
+                <span className="tabular mr-auto whitespace-nowrap pl-2 text-[0.8125rem] font-medium text-ink">
                   {l.selected(selected.size)}
                 </span>
                 {bulkActions.map((a) => (
@@ -411,7 +411,7 @@ export function DataGrid<T>({
                       setSelected(new Set());
                     }}
                     className={cn(
-                      "inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-control px-3 text-[13px] font-medium transition-colors duration-200 [&>svg]:size-4",
+                      "inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-control px-3 text-[0.8125rem] font-medium transition-colors duration-200 [&>svg]:size-4",
                       a.tone === "danger" ? "text-negative hover:bg-negative-soft" : "text-ink hover:bg-raised",
                     )}
                   >

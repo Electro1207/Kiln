@@ -158,12 +158,12 @@ export function CategoryFilters({ facets, value: valueProp, defaultValue, onChan
                     transition={springFirm}
                     onClick={() => onChange(c.clear(value))}
                     aria-label={l.removeFilter(c.label)}
-                    className="inline-flex h-8 items-center gap-1.5 rounded-full bg-btn-secondary pl-3 pr-2 text-[13px] font-medium text-btn-secondary-ink transition-colors hover:bg-btn-secondary-hover"
+                    className="inline-flex h-8 items-center gap-1.5 rounded-full bg-btn-secondary pl-3 pr-2 text-[0.8125rem] font-medium text-btn-secondary-ink transition-colors hover:bg-btn-secondary-hover"
                   >
                     {c.label} <span className="inline-flex opacity-70 [&>svg]:size-3.5" aria-hidden>{ic.remove}</span>
                   </motion.button>
                 ))}
-                <motion.button key="__clear" layout="position" transition={springFirm} type="button" onClick={clearAll} className="h-8 px-2 text-[13px] font-medium text-accent hover:underline">
+                <motion.button key="__clear" layout="position" transition={springFirm} type="button" onClick={clearAll} className="h-8 px-2 text-[0.8125rem] font-medium text-accent hover:underline">
                   {l.clearAll}
                 </motion.button>
               </AnimatePresence>
@@ -203,7 +203,7 @@ export function FilterPanel({ facets, value, onChange, labels, icons }: { facets
           {f.type === "checks" && f.options.map((o) => (
             <div key={o.value} className="flex items-center justify-between gap-3">
               <Checkbox checked={(value[f.id] as string[]).includes(o.value)} onCheckedChange={(on) => toggle(f.id, o.value, on)} label={o.label} />
-              <span className={cn("text-[13px] tabular", o.count ? "text-muted" : "text-faint")}>{o.count}</span>
+              <span className={cn("text-[0.8125rem] tabular", o.count ? "text-muted" : "text-faint")}>{o.count}</span>
             </div>
           ))}
           {f.type === "colours" && (
@@ -245,7 +245,7 @@ export function FilterPanel({ facets, value, onChange, labels, icons }: { facets
             />
           )}
           {f.type === "range" && (
-            <p className="flex justify-between text-[13px] text-muted tabular">
+            <p className="flex justify-between text-[0.8125rem] text-muted tabular">
               <span>{(f.format ?? String)((value[f.id] as number[])[0])}</span>
               <span>{(f.format ?? String)((value[f.id] as number[])[1])}</span>
             </p>

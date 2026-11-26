@@ -66,7 +66,7 @@ export function SectionHeading({ title, description, actions, tabs, align = "sta
           <Tag className={cn("font-semibold tracking-[-0.025em] text-ink text-balance", size === "lg" ? "text-3xl leading-[1.1] @2xl:text-[2.75rem]" : "text-2xl leading-tight @2xl:text-[1.75rem]")}>
             {title}
           </Tag>
-          {description && <p className="mt-3 text-[15px] leading-relaxed text-ink @2xl:text-base">{description}</p>}
+          {description && <p className="mt-3 text-[0.9375rem] leading-relaxed text-ink @2xl:text-base">{description}</p>}
         </div>
         {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
       </div>
@@ -107,7 +107,7 @@ export function PageHeading({ title, above, meta, actions, tabs, leading, classN
             {meta && meta.length > 0 && (
               <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1.5">
                 {meta.map((m, i) => (
-                  <li key={i} className="flex items-center gap-1.5 text-[13px] text-muted [&>svg]:size-4 [&>svg]:shrink-0">
+                  <li key={i} className="flex items-center gap-1.5 text-[0.8125rem] text-muted [&>svg]:size-4 [&>svg]:shrink-0">
                     {m.icon}
                     <span>{m.label}</span>
                   </li>

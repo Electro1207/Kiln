@@ -7,9 +7,9 @@ import { useControllable, type Size } from "../../controllable";
 export type CheckedState = boolean | "indeterminate";
 
 const boxes: Record<Size, { box: string; tick: string; text: string }> = {
-  sm: { box: "size-4 rounded-[4px]", tick: "[&>*>svg]:size-3", text: "text-[13px]" },
+  sm: { box: "size-4 rounded-[4px]", tick: "[&>*>svg]:size-3", text: "text-[0.8125rem]" },
   md: { box: "size-[18px] rounded-[5px]", tick: "[&>*>svg]:size-3.5", text: "text-sm" },
-  lg: { box: "size-[22px] rounded-[6px]", tick: "[&>*>svg]:size-4", text: "text-[15px]" },
+  lg: { box: "size-[22px] rounded-[6px]", tick: "[&>*>svg]:size-4", text: "text-[0.9375rem]" },
 };
 
 const CheckboxOn = createContext(false);
@@ -111,7 +111,7 @@ export const Checkbox = forwardRef<HTMLButtonElement, CheckboxProps>(function Ch
       {(label || description) && (
         <div className="min-w-0">
           {label && <label htmlFor={id} className={cn("block cursor-pointer select-none text-ink", sz.text)}>{label}</label>}
-          {description && <p id={`${id}-d`} className="text-[13px] text-muted">{description}</p>}
+          {description && <p id={`${id}-d`} className="text-[0.8125rem] text-muted">{description}</p>}
         </div>
       )}
     </div>

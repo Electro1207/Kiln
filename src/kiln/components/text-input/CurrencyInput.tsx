@@ -93,7 +93,7 @@ export function CurrencyInput({
           onBlur={() => setDraft(null)}
           className={cn("h-full min-w-0 flex-1 bg-transparent text-ink outline-none tabular placeholder:text-faint")}
         />
-        <span className="shrink-0 text-[13px] text-faint">{currency}</span>
+        <span className="shrink-0 text-[0.8125rem] text-faint">{currency}</span>
       </div>
     </Field>
   );

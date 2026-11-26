@@ -39,7 +39,7 @@ export function NotFound({ code = "404", title, body, actions, suggestions, labe
         <div>
           <p aria-hidden className="text-[5.5rem] font-semibold leading-none tracking-[-0.05em] text-ink @2xl:text-[8rem]">{code}</p>
           <h1 className="mt-4 text-2xl font-semibold tracking-[-0.02em] text-ink text-balance @2xl:text-3xl">{title}</h1>
-          {body && <p className="mt-3 max-w-md text-[15px] leading-relaxed text-ink">{body}</p>}
+          {body && <p className="mt-3 max-w-md text-[0.9375rem] leading-relaxed text-ink">{body}</p>}
           {actions && <div className="mt-6 flex flex-wrap gap-3">{actions}</div>}
         </div>
         {suggestions && suggestions.length > 0 && (
@@ -49,7 +49,7 @@ export function NotFound({ code = "404", title, body, actions, suggestions, labe
                 <li key={s.href}>
                   <a href={s.href} className="group/s flex items-center gap-4 rounded-card bg-surface p-4 transition-colors duration-200 hover:bg-active">
                     <span className="min-w-0 flex-1">
-                      <span className="block text-[15px] font-medium text-ink">{s.label}</span>
+                      <span className="block text-[0.9375rem] font-medium text-ink">{s.label}</span>
                       {s.description && <span className="mt-0.5 block text-sm text-muted">{s.description}</span>}
                     </span>
                     <span aria-hidden className="grid shrink-0 place-items-center text-muted transition-transform duration-300 ease-out-soft group-hover/s:translate-x-1 [&>svg]:size-4">{ic.arrow}</span>

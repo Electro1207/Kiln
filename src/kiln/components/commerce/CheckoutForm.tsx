@@ -274,7 +274,7 @@ function DemoCard({ l, ic }: { l: CheckoutFormLabels; ic: CheckoutFormIcons }) {
   const box = "flex h-10 items-center gap-2 rounded-control border border-line bg-raised px-3 text-sm text-muted tabular";
   return (
     <div className="flex flex-col gap-4 rounded-card bg-surface p-4">
-      <p className="flex items-center gap-2 rounded-control bg-warning-soft px-3 py-2 text-[13px] font-medium text-warning">
+      <p className="flex items-center gap-2 rounded-control bg-warning-soft px-3 py-2 text-[0.8125rem] font-medium text-warning">
         <span className="inline-flex shrink-0 [&>svg]:size-3.5" aria-hidden>{ic.secure}</span> {l.demoBanner}
       </p>
       <div className="flex flex-col gap-2" aria-label={l.demoCardGroup} role="group">
@@ -291,7 +291,7 @@ function DemoCard({ l, ic }: { l: CheckoutFormLabels; ic: CheckoutFormIcons }) {
           <div className={box} aria-readonly="true">•••</div>
         </div>
       </div>
-      <p className="text-[13px] text-muted">{l.demoNote}</p>
+      <p className="text-[0.8125rem] text-muted">{l.demoNote}</p>
     </div>
   );
 }
@@ -323,11 +323,11 @@ function Summary({ lines, t, money, promo, setPromo, checkPromo, shippingLabel, 
           <li key={ln.id} className="flex items-center gap-3">
             <span className="relative shrink-0">
               <img decoding="async" src={ln.image.src} alt="" className="size-14 rounded-[10px] bg-raised object-cover" />
-              <span className="absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-btn-secondary text-[11px] font-medium text-btn-secondary-ink tabular">{ln.quantity}</span>
+              <span className="absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-btn-secondary text-[0.6875rem] font-medium text-btn-secondary-ink tabular">{ln.quantity}</span>
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-medium text-ink">{ln.name}</span>
-              {ln.variant && <span className="block truncate text-[13px] text-muted">{ln.variant}</span>}
+              {ln.variant && <span className="block truncate text-[0.8125rem] text-muted">{ln.variant}</span>}
             </span>
             <span className="shrink-0 text-sm text-ink tabular">{money(ln.price * ln.quantity)}</span>
           </li>
@@ -353,7 +353,7 @@ function Summary({ lines, t, money, promo, setPromo, checkPromo, shippingLabel, 
             <motion.div key="promo" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={fade} className="flex items-baseline justify-between gap-4">
               <dt className="flex items-center gap-2 text-muted">
                 {promo.label}
-                <button type="button" onClick={() => setPromo(null)} className="text-[13px] text-accent hover:underline">{l.remove}</button>
+                <button type="button" onClick={() => setPromo(null)} className="text-[0.8125rem] text-accent hover:underline">{l.remove}</button>
               </dt>
               <dd className="text-positive tabular">−{money(t.discount)}</dd>
             </motion.div>

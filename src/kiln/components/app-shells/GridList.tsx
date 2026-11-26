@@ -34,8 +34,8 @@ export function PeopleGrid({ people, className }: { people: PersonCard[]; classN
         <motion.li key={p.id} variants={staggerChild} className="flex flex-col overflow-hidden rounded-card border border-line bg-surface">
           <div className="flex flex-1 flex-col items-center gap-1 px-5 pb-5 pt-7 text-center">
             <div className="mb-3">{p.avatar}</div>
-            <h3 className="text-[15px] font-semibold text-ink">{p.name}</h3>
-            <p className="text-[13px] text-muted">{p.role}</p>
+            <h3 className="text-[0.9375rem] font-semibold text-ink">{p.name}</h3>
+            <p className="text-[0.8125rem] text-muted">{p.role}</p>
             {p.badge && <div className="mt-2">{p.badge}</div>}
           </div>
           {p.actions && p.actions.length > 0 && (
@@ -110,7 +110,7 @@ export function ProjectGrid({ projects, className }: { projects: ProjectTile[]; 
               ) : (
                 <p className="truncate text-sm font-medium text-ink">{p.name}</p>
               )}
-              <p className="truncate text-[13px] text-muted">{p.meta}</p>
+              <p className="truncate text-[0.8125rem] text-muted">{p.meta}</p>
             </div>
             {p.menu}
           </div>

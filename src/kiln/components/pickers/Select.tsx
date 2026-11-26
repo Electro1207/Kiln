@@ -135,7 +135,7 @@ export function Select({
   return (
     <div className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
       {label && (
-        <span id={`${id}-label`} className="text-[13px] font-medium text-ink">
+        <span id={`${id}-label`} className="text-[0.8125rem] font-medium text-ink">
           {label}
         </span>
       )}

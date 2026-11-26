@@ -133,7 +133,7 @@ export function OnboardingWizard<V extends Record<string, unknown>>({
 
   return (
     <form noValidate onSubmit={next} className={cn("@container w-full rounded-sheet bg-surface p-5 @xl:p-8", className)}>
-      <div className="flex items-center justify-between gap-4 text-[13px] text-muted">
+      <div className="flex items-center justify-between gap-4 text-[0.8125rem] text-muted">
         <span className="tabular">{finished ? l.done : l.stepOf(at + 1, total)}</span>
         <span className="truncate">{finished ? "" : onSummary ? l.summary : steps[at + 1]?.title ? l.next(steps[at + 1].title) : l.nextSummary}</span>
       </div>

@@ -79,7 +79,7 @@ export function ComparisonTable({
                 <th
                   scope="colgroup"
                   colSpan={plans.length + 1}
-                  className="border-b border-line bg-raised px-4 py-2 text-left text-[13px] font-semibold text-ink"
+                  className="border-b border-line bg-raised px-4 py-2 text-left text-[0.8125rem] font-semibold text-ink"
                 >
                   <span className="sticky left-4">{g.title}</span>
                 </th>

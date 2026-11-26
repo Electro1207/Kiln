@@ -59,7 +59,7 @@ export function BlogList({ title, description, posts, labels, className }: BlogL
   return (
     <section className={cn("@container w-full", className)}>
       <h2 className="text-2xl font-semibold tracking-[-0.02em] text-ink text-balance @2xl:text-[1.75rem]">{title}</h2>
-      {description && <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-ink">{description}</p>}
+      {description && <p className="mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-ink">{description}</p>}
       <div className="mt-8 grid gap-x-6 gap-y-10 @2xl:grid-cols-2 @4xl:grid-cols-3">
         {posts.map((p) => (
           <article key={p.id} className="group/post relative flex flex-col">
@@ -70,7 +70,7 @@ export function BlogList({ title, description, posts, labels, className }: BlogL
                 <div className="size-full transition-transform duration-500 ease-out-soft group-hover/post:scale-[1.03]">{p.art}</div>
               </div>
             ) : null}
-            <p className={cn("flex items-center gap-2 text-[13px] text-muted", !!(p.cover || p.art) && "mt-4")}>
+            <p className={cn("flex items-center gap-2 text-[0.8125rem] text-muted", !!(p.cover || p.art) && "mt-4")}>
               <span className="text-accent">{p.category}</span>
               <span aria-hidden>·</span>
               <time className="tabular">{p.date}</time>

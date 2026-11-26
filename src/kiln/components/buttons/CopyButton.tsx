@@ -81,7 +81,7 @@ export function CopyButton({
       transition={springSnappy}
       aria-label={showLabel ? undefined : copied ? copiedLabel : label}
       className={cn(
-        "inline-flex h-8 items-center gap-1.5 rounded-control px-2 text-[13px] font-medium transition-colors duration-200",
+        "inline-flex h-8 items-center gap-1.5 rounded-control px-2 text-[0.8125rem] font-medium transition-colors duration-200",
         copied ? "text-positive" : "text-muted hover:bg-raised hover:text-ink",
         className,
       )}

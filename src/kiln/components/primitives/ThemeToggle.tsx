@@ -110,7 +110,7 @@ export function ThemeSwitcher({ className, labels }: {
             aria-checked={on}
             onClick={(e) => setMode(m, e.currentTarget)}
             className={cn(
-              "relative h-8 rounded-full px-4 text-[13px] font-medium transition-colors duration-200",
+              "relative h-8 rounded-full px-4 text-[0.8125rem] font-medium transition-colors duration-200",
               on ? "text-ink" : "text-muted hover:text-ink",
             )}
           >

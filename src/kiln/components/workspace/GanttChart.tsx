@@ -120,7 +120,7 @@ export function GanttChart({ tasks, from, to, today, dayWidth = 18, rowHeight = 
       onPointerLeave={() => setFocus(null)}
     >
       <div className="w-40 shrink-0 border-r border-line sm:w-56">
-        <div className="flex h-12 items-end border-b border-line px-4 pb-2 text-[13px] font-medium text-muted">{lb.task}</div>
+        <div className="flex h-12 items-end border-b border-line px-4 pb-2 text-[0.8125rem] font-medium text-muted">{lb.task}</div>
         <ul>
           {tasks.map((t) => (
             <li
@@ -139,12 +139,12 @@ export function GanttChart({ tasks, from, to, today, dayWidth = 18, rowHeight = 
         <div className="relative" style={{ width }}>
           <div className="relative h-12 border-b border-line" aria-hidden>
             {months.map((m) => (
-              <span key={m.at} className="absolute top-2 whitespace-nowrap pl-1.5 text-[13px] font-medium text-ink" style={{ left: m.at * dayWidth }}>
+              <span key={m.at} className="absolute top-2 whitespace-nowrap pl-1.5 text-[0.8125rem] font-medium text-ink" style={{ left: m.at * dayWidth }}>
                 {m.label}
               </span>
             ))}
             {weeks.map((w) => (
-              <span key={w} className="tabular absolute bottom-2 pl-1.5 text-[11px] text-muted" style={{ left: w * dayWidth }}>
+              <span key={w} className="tabular absolute bottom-2 pl-1.5 text-[0.6875rem] text-muted" style={{ left: w * dayWidth }}>
                 {fromDay(d0 + w).getUTCDate()}
               </span>
             ))}
@@ -221,7 +221,7 @@ export function GanttChart({ tasks, from, to, today, dayWidth = 18, rowHeight = 
                   {t.progress != null && (
                     <span
                       aria-hidden
-                      className={cn("tabular absolute left-full top-0 whitespace-nowrap pl-2 text-[11px] leading-6 text-muted transition-opacity duration-200", dim && "opacity-40")}
+                      className={cn("tabular absolute left-full top-0 whitespace-nowrap pl-2 text-[0.6875rem] leading-6 text-muted transition-opacity duration-200", dim && "opacity-40")}
                     >
                       {Math.round(t.progress * 100)}%
                     </span>
@@ -237,7 +237,7 @@ export function GanttChart({ tasks, from, to, today, dayWidth = 18, rowHeight = 
             )}
           </div>
           {todayX != null && todayX >= 0 && todayX <= width && (
-            <span className="tabular pointer-events-none absolute top-1 z-10 -translate-x-1/2 rounded-full bg-btn-primary px-1.5 text-[10px] font-medium leading-4 text-btn-primary-ink" style={{ left: todayX }}>
+            <span className="tabular pointer-events-none absolute top-1 z-10 -translate-x-1/2 rounded-full bg-btn-primary px-1.5 text-[0.625rem] font-medium leading-4 text-btn-primary-ink" style={{ left: todayX }}>
               {lb.today}
             </span>
           )}

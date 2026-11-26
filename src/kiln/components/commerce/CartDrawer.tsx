@@ -145,7 +145,7 @@ export function CartDrawer({
       <div className="flex min-h-full flex-col">
         {pricing.freeShippingAt != null && lines.length > 0 && (
           <div className="mb-2 rounded-card bg-raised p-3.5">
-            <p className="flex items-center gap-2 text-[13px] text-ink">
+            <p className="flex items-center gap-2 text-[0.8125rem] text-ink">
               <span className="inline-flex shrink-0 text-muted [&>svg]:size-4" aria-hidden>{ic.shipping}</span>
               <span className="grid [&>*]:[grid-area:1/1]">
                 <motion.span initial={false} animate={{ opacity: t.toFreeShipping > 0 ? 1 : 0 }} transition={textSwap(t.toFreeShipping > 0)} aria-hidden={t.toFreeShipping === 0}>
@@ -186,14 +186,14 @@ export function CartDrawer({
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className="truncate text-sm font-medium text-ink">{ln.name}</p>
-                            {ln.variant && <p className="truncate text-[13px] text-muted">{ln.variant}</p>}
+                            {ln.variant && <p className="truncate text-[0.8125rem] text-muted">{ln.variant}</p>}
                           </div>
                           <p className="shrink-0 text-sm font-medium text-ink tabular">{money(ln.price * ln.quantity)}</p>
                         </div>
                         <div className="mt-auto flex items-center justify-between gap-3 pt-2">
                           <Stepper value={ln.quantity} max={ln.max ?? 9} name={ln.name} labels={l} icons={ic} onChange={(q) => setQty(ln.id, q)} />
                           <button type="button" onClick={() => remove(ln.id)} aria-label={l.removeItem(ln.name)}
-                            className="inline-flex h-8 items-center gap-1 rounded-control px-2 text-[13px] text-muted transition-colors hover:bg-raised hover:text-ink">
+                            className="inline-flex h-8 items-center gap-1 rounded-control px-2 text-[0.8125rem] text-muted transition-colors hover:bg-raised hover:text-ink">
                             <span className="inline-flex [&>svg]:size-3.5" aria-hidden>{ic.remove}</span> {l.remove}
                           </button>
                         </div>

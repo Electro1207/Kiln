@@ -6,9 +6,9 @@ import { Field } from "../shared/Field";
 import type { Size } from "../../controllable";
 
 const textareaSizes: Record<Size, string> = {
-  sm: "px-2.5 py-2 text-[13px] leading-5",
+  sm: "px-2.5 py-2 text-[0.8125rem] leading-5",
   md: "px-3 py-2.5 text-sm leading-5",
-  lg: "px-4 py-3 text-[15px] leading-6",
+  lg: "px-4 py-3 text-[0.9375rem] leading-6",
 };
 
 /** Grows with its text, eased rather than jumping line by line. */
@@ -59,7 +59,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
       hint={hint}
       error={error}
       aside={showCount && maxLength ? (
-        <span className={cn("text-[13px] tabular transition-colors", over ? "text-negative" : "text-muted")}>{text.length} / {maxLength}</span>
+        <span className={cn("text-[0.8125rem] tabular transition-colors", over ? "text-negative" : "text-muted")}>{text.length} / {maxLength}</span>
       ) : undefined}
     >
       <motion.textarea

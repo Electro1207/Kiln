@@ -24,7 +24,7 @@ export function Suggestions({ items, onPick, className }: { items: Suggestion[];
             onClick={() => onPick(s.prompt ?? s.label)}
             whileTap={{ scale: 0.96 }}
             transition={springSoft}
-            className="inline-flex h-9 items-center gap-2 whitespace-nowrap rounded-full border border-line bg-surface px-3.5 text-[13.5px] text-ink transition-colors hover:border-line-strong hover:bg-raised [&_svg]:size-4 [&_svg]:text-muted"
+            className="inline-flex h-9 items-center gap-2 whitespace-nowrap rounded-full border border-line bg-surface px-3.5 text-[0.84375rem] text-ink transition-colors hover:border-line-strong hover:bg-raised [&_svg]:size-4 [&_svg]:text-muted"
           >
             {s.icon}
             {s.label}

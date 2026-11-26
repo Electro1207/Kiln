@@ -40,7 +40,7 @@ export function ChatMessage({ role, name = "Assistant", avatar, children, classN
         className={cn("flex justify-end", className)}
         aria-label={l.youSaid}
       >
-        <div className="max-w-[80%] whitespace-pre-wrap rounded-[18px] rounded-br-[6px] bg-raised px-4 py-2.5 text-[15px] leading-[22px] text-ink [overflow-wrap:anywhere]">
+        <div className="max-w-[80%] whitespace-pre-wrap rounded-[18px] rounded-br-[6px] bg-raised px-4 py-2.5 text-[0.9375rem] leading-[22px] text-ink [overflow-wrap:anywhere]">
           {children}
         </div>
       </motion.div>

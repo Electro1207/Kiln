@@ -256,7 +256,7 @@ export function JSONViewer({
             if (btn) { e.preventDefault(); btn.focus(); }
           }
         }}
-        className="relative max-h-[420px] overflow-auto p-2 font-mono text-[12.5px] leading-6"
+        className="relative max-h-[420px] overflow-auto p-2 font-mono text-[0.78125rem] leading-6"
         initial={false}
         animate={{ opacity: 1 }}
         transition={fade}
@@ -298,7 +298,7 @@ function RowCopy({ what, text, l }: { what: string; text: string; l: JSONViewerL
         t.current = window.setTimeout(() => setDone(false), 1400);
       }}
       aria-label={done ? l.copiedWhat(what) : l.copy(what)}
-      className="grid h-6 place-items-center rounded-[5px] bg-surface px-1.5 font-sans text-[11px] font-medium text-muted transition-colors duration-150 hover:bg-active hover:text-ink [&>*]:[grid-area:1/1]"
+      className="grid h-6 place-items-center rounded-[5px] bg-surface px-1.5 font-sans text-[0.6875rem] font-medium text-muted transition-colors duration-150 hover:bg-active hover:text-ink [&>*]:[grid-area:1/1]"
     >
       <span className={cn("transition-opacity duration-150", done ? "opacity-0" : "opacity-100")}>{what}</span>
       <span aria-hidden className={cn("text-positive transition-opacity duration-150", done ? "opacity-100" : "opacity-0")}>{l.copied}</span>

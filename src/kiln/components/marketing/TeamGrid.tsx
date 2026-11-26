@@ -21,7 +21,7 @@ export function TeamGrid({ title, description, people, className }: TeamGridProp
   return (
     <section className={cn("@container w-full", className)}>
       <h2 className="text-2xl font-semibold tracking-[-0.02em] text-ink text-balance @2xl:text-[1.75rem]">{title}</h2>
-      {description && <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-ink">{description}</p>}
+      {description && <p className="mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-ink">{description}</p>}
       <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 @2xl:grid-cols-3 @4xl:grid-cols-4">
         {people.map((p) => {
           const hue = hueFor(p.name);
@@ -62,7 +62,7 @@ export function TeamGrid({ title, description, people, className }: TeamGridProp
                   </ul>
                 )}
               </div>
-              <p className="mt-3 truncate text-[15px] font-medium text-ink">{p.name}</p>
+              <p className="mt-3 truncate text-[0.9375rem] font-medium text-ink">{p.name}</p>
               <p className="truncate text-sm text-muted">{p.role}</p>
               {p.bio && <p className="mt-2 hidden text-sm leading-relaxed text-ink @2xl:block">{p.bio}</p>}
             </li>

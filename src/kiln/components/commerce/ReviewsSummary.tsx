@@ -145,19 +145,19 @@ export function ReviewsSummary({ reviews, sort: sortProp, defaultSort = "helpful
       <div className="flex flex-col gap-5">
         <div>
           <p className="flex items-baseline gap-2">
-            <span className="text-[40px] font-semibold leading-none tracking-[-0.02em] text-ink tabular">{average.toFixed(1)}</span>
+            <span className="text-[2.5rem] font-semibold leading-none tracking-[-0.02em] text-ink tabular">{average.toFixed(1)}</span>
             <span className="text-sm text-muted">{l.outOf}</span>
           </p>
           <div className="mt-2 flex items-center gap-2">
             <Stars value={average} size={18} icons={ic} />
-            <span className="text-[13px] text-muted">{l.reviews(total.toLocaleString())}</span>
+            <span className="text-[0.8125rem] text-muted">{l.reviews(total.toLocaleString())}</span>
           </div>
         </div>
         <motion.ul className="flex flex-col gap-2" initial="hidden" whileInView="shown" viewport={{ once: true, amount: 0.6 }} aria-label={l.ratingsByStars}>
           {[5, 4, 3, 2, 1].map((n, i) => {
             const share = total ? counts[i] / total : 0;
             return (
-              <li key={n} className="grid grid-cols-[44px_minmax(0,1fr)_36px] items-center gap-3 text-[13px]">
+              <li key={n} className="grid grid-cols-[44px_minmax(0,1fr)_36px] items-center gap-3 text-[0.8125rem]">
                 <span className="text-muted tabular">{l.star(n)}</span>
                 <span className="h-2 overflow-hidden rounded-full bg-active" aria-hidden>
                   <motion.span
@@ -191,7 +191,7 @@ export function ReviewsSummary({ reviews, sort: sortProp, defaultSort = "helpful
                   <span className="text-sm font-medium text-ink">{r.title}</span>
                 </div>
                 <p className="mt-2 text-sm text-ink">{r.body}</p>
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[13px] text-muted">
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[0.8125rem] text-muted">
                   <span>{r.author}{r.verified && <span className="text-positive">{l.verified}</span>} · {fmt(r.date)}</span>
                   <button
                     type="button"

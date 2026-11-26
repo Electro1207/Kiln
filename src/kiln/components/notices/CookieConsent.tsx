@@ -101,8 +101,8 @@ export function CookieConsent({
             transition={springSoft}
             className="fixed inset-x-3 bottom-3 z-[65] rounded-[14px] border border-line bg-surface p-4 text-ink shadow-float sm:inset-x-auto sm:bottom-5 sm:left-5 sm:w-[380px] sm:p-5"
           >
-            <h2 className="text-[15px] font-semibold leading-6">{title ?? l.title}</h2>
-            {children && <div className="mt-1 text-[13.5px] leading-5 text-muted">{children}</div>}
+            <h2 className="text-[0.9375rem] font-semibold leading-6">{title ?? l.title}</h2>
+            {children && <div className="mt-1 text-[0.84375rem] leading-5 text-muted">{children}</div>}
 
             <AnimatePresence initial={false}>
               {manage && (
@@ -147,7 +147,7 @@ export function CookieConsent({
               <Button size="sm" variant="ghost" onClick={() => setManage((m) => !m)} aria-expanded={manage}>
                 {manage ? l.back : l.choose}
               </Button>
-              {policy && <span className="ml-auto text-[13px]">{policy}</span>}
+              {policy && <span className="ml-auto text-[0.8125rem]">{policy}</span>}
             </div>
           </motion.section>
         )}

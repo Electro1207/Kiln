@@ -105,7 +105,7 @@ export function KeyboardShortcutsSheet({ groups, open, onOpenChange, listen = tr
           <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
             {shown.map((g) => (
               <section key={g.title}>
-                <h3 className="mb-2 text-[13px] font-medium text-muted">{g.title}</h3>
+                <h3 className="mb-2 text-[0.8125rem] font-medium text-muted">{g.title}</h3>
                 <dl className="flex flex-col">
                   {g.shortcuts.map((s) => (
                     <div key={s.label} className="flex items-center justify-between gap-4 py-1.5">

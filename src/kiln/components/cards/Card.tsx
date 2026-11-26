@@ -130,7 +130,7 @@ export const InteractiveCard = forwardRef<HTMLButtonElement, InteractiveCardProp
       {leading && <span className="grid size-9 shrink-0 place-items-center rounded-control bg-active text-ink [&>svg]:size-4">{leading}</span>}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="font-medium text-ink">{title}</span>
-        {description && <span className="text-[13px] text-muted">{description}</span>}
+        {description && <span className="text-[0.8125rem] text-muted">{description}</span>}
       </span>
       <motion.span
         aria-hidden

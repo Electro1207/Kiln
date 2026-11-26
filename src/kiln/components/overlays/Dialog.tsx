@@ -132,7 +132,7 @@ function DialogLayer({
         )}
         <div className={cn("flex items-start gap-4 px-5 sm:px-6", phone ? "pt-1" : "pt-6")}>
           <div className="min-w-0 flex-1">
-            <h2 id={titleId} className="text-[17px] font-semibold leading-snug">
+            <h2 id={titleId} className="text-[1.0625rem] font-semibold leading-snug">
               {title}
             </h2>
             {description && (

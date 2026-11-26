@@ -74,7 +74,7 @@ function Dot({ index, state, check }: { index: number; state: "done" | "current"
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={fade}
-            className={cn("grid place-items-center text-[13px] font-medium tabular transition-colors duration-300", state === "current" ? "text-ink" : "text-muted")}
+            className={cn("grid place-items-center text-[0.8125rem] font-medium tabular transition-colors duration-300", state === "current" ? "text-ink" : "text-muted")}
           >
             {index + 1}
           </motion.span>

@@ -33,7 +33,7 @@ export function Hero({ title, lead, actions, image, aside, headingLevel = 1, cla
         <Heading variants={child} className="text-[clamp(2.25rem,6vw,4.25rem)] font-semibold leading-[0.98] tracking-[-0.035em] text-ink">
           {title}
         </Heading>
-        <motion.p variants={child} className="mt-6 max-w-[34ch] text-[17px] leading-relaxed text-ink">
+        <motion.p variants={child} className="mt-6 max-w-[34ch] text-[1.0625rem] leading-relaxed text-ink">
           {lead}
         </motion.p>
         {actions && (

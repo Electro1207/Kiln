@@ -180,7 +180,7 @@ export function WeekCalendar({
             const d = days[i];
             const today = i === todayIndex;
             return (
-              <div key={i} className="flex items-center justify-center gap-1.5 py-2.5 text-[13px]">
+              <div key={i} className="flex items-center justify-center gap-1.5 py-2.5 text-[0.8125rem]">
                 <span className="text-muted">{dayName(d, "short")}</span>
                 <span
                   className={cn(
@@ -200,7 +200,7 @@ export function WeekCalendar({
         <div className="relative grid" style={{ gridTemplateColumns: `56px repeat(${shown.length}, minmax(0, 1fr))`, height: span * hourHeight }}>
           <div className="relative" aria-hidden>
             {Array.from({ length: span }, (_, h) => (
-              <span key={h} className="tabular absolute right-2 -translate-y-1/2 text-[11px] text-muted" style={{ top: h * hourHeight }}>
+              <span key={h} className="tabular absolute right-2 -translate-y-1/2 text-[0.6875rem] text-muted" style={{ top: h * hourHeight }}>
                 {h === 0 ? "" : new Date(2000, 0, 1, startHour + h).toLocaleTimeString(locale, { hour: "numeric" })}
               </span>
             ))}
@@ -259,7 +259,7 @@ export function WeekCalendar({
                           <span aria-hidden className={cn("w-[3px] shrink-0", t.edge)} />
                           <span className={cn("flex min-w-0 flex-1 gap-x-1.5 px-1.5", short ? "items-center" : "flex-col py-1")}>
                             <span className="truncate text-xs font-medium text-ink">{e.title}</span>
-                            <span className={cn("tabular truncate text-[11px]", t.ink)}>
+                            <span className={cn("tabular truncate text-[0.6875rem]", t.ink)}>
                               {time(e.start)}
                               {!short && e.location ? ` · ${e.location}` : ""}
                             </span>

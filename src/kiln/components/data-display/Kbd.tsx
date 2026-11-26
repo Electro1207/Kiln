@@ -12,9 +12,9 @@ export type KbdProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
 };
 
 const kbdSizes: Record<Size, string> = {
-  sm: "h-5 min-w-5 px-1 text-[11px]",
+  sm: "h-5 min-w-5 px-1 text-[0.6875rem]",
   md: "h-6 min-w-6 px-1.5 text-xs",
-  lg: "h-7 min-w-7 px-2 text-[13px]",
+  lg: "h-7 min-w-7 px-2 text-[0.8125rem]",
 };
 
 /** A keyboard key. With `listen`, it presses down when you press the real key. Other props go to the `<kbd>`. */

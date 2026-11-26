@@ -32,9 +32,9 @@ export function DescriptionList({ items, className, title, labels }: { items: De
           key={it.term}
           className="grid min-h-12 grid-cols-1 gap-x-6 gap-y-0.5 border-b border-line px-4 py-3 last:border-b-0 sm:grid-cols-[minmax(0,200px)_1fr] sm:items-center sm:py-0"
         >
-          <dt className="text-[13px] text-muted sm:py-3">{it.term}</dt>
+          <dt className="text-[0.8125rem] text-muted sm:py-3">{it.term}</dt>
           <dd className="flex min-w-0 items-center justify-between gap-2 text-sm text-ink">
-            <span className={cn("min-w-0 break-words", it.mono && "font-mono text-[13px]")}>{it.value}</span>
+            <span className={cn("min-w-0 break-words", it.mono && "font-mono text-[0.8125rem]")}>{it.value}</span>
             {it.copy != null && <CopyButton value={it.copy} label={l.copy(it.term)} className="-my-1 -mr-2 shrink-0" />}
           </dd>
         </div>

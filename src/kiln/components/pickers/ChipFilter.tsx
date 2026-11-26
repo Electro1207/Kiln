@@ -79,7 +79,7 @@ export function ChipFilter(props: ChipFilterProps) {
               className={cn(
                 // The fill cross-fades over 160ms; the text colour switches in one step once the
                 // fill is three-quarters there, so the label never passes through grey-on-grey.
-                "inline-flex h-8 items-center rounded-full px-3 text-[13px] transition-[background-color,color] [transition-delay:0ms,100ms] [transition-duration:160ms,0ms] ease-in-out-soft",
+                "inline-flex h-8 items-center rounded-full px-3 text-[0.8125rem] transition-[background-color,color] [transition-delay:0ms,100ms] [transition-duration:160ms,0ms] ease-in-out-soft",
                 on ? "bg-btn-primary text-btn-primary-ink hover:bg-btn-primary-hover" : "bg-surface text-ink hover:bg-active",
               )}
             >

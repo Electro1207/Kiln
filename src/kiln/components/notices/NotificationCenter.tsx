@@ -144,12 +144,12 @@ function Inboxes({ items, onItemsChange, onOpen, l, ic }: Pick<NotificationCente
   return (
     <div className="flex w-[380px] max-w-[calc(100vw-16px)] flex-col">
       <div className="flex items-center justify-between px-4 pb-1 pt-3.5">
-        <h2 className="text-[15px] font-semibold leading-6">{l.notifications}</h2>
+        <h2 className="text-[0.9375rem] font-semibold leading-6">{l.notifications}</h2>
         <button
           type="button"
           disabled={unread === 0}
           onClick={() => onItemsChange(items.map((n) => ({ ...n, unread: false })))}
-          className="h-7 rounded-[6px] px-2 text-[13px] font-medium text-accent transition-[color,background-color,opacity] hover:bg-raised disabled:pointer-events-none disabled:opacity-40"
+          className="h-7 rounded-[6px] px-2 text-[0.8125rem] font-medium text-accent transition-[color,background-color,opacity] hover:bg-raised disabled:pointer-events-none disabled:opacity-40"
         >
           {l.markAllRead}
         </button>
@@ -175,7 +175,7 @@ function Inboxes({ items, onItemsChange, onOpen, l, ic }: Pick<NotificationCente
                 (e.currentTarget.parentElement?.children[tabs.indexOf(next)] as HTMLElement | undefined)?.focus();
               }}
               className={cn(
-                "relative h-10 px-1.5 text-[13px] font-medium outline-offset-[-2px] transition-colors duration-200",
+                "relative h-10 px-1.5 text-[0.8125rem] font-medium outline-offset-[-2px] transition-colors duration-200",
                 selected ? "text-ink" : "text-muted hover:text-ink",
               )}
             >
@@ -191,7 +191,7 @@ function Inboxes({ items, onItemsChange, onOpen, l, ic }: Pick<NotificationCente
                 {t.count !== undefined && (
                   <span
                     className={cn(
-                      "tabular inline-grid h-[18px] min-w-[18px] place-items-center rounded-full px-1 text-[11px] leading-none transition-[opacity,background-color,color] duration-300",
+                      "tabular inline-grid h-[18px] min-w-[18px] place-items-center rounded-full px-1 text-[0.6875rem] leading-none transition-[opacity,background-color,color] duration-300",
                       t.count === 0 && "opacity-0",
                       selected ? "bg-btn-primary text-btn-primary-ink" : "bg-raised text-muted",
                     )}
@@ -224,7 +224,7 @@ function Inboxes({ items, onItemsChange, onOpen, l, ic }: Pick<NotificationCente
                 >
                   <Avatar name={n.actor} size="md" />
                   <span className="min-w-0 flex-1">
-                    <span className={cn("block text-[13.5px] leading-5 transition-colors duration-300", n.unread ? "text-ink" : "text-muted")}>
+                    <span className={cn("block text-[0.84375rem] leading-5 transition-colors duration-300", n.unread ? "text-ink" : "text-muted")}>
                       <span className={cn("font-semibold transition-colors duration-300", n.unread ? "text-ink" : "text-ink/80")}>{n.actor}</span> {n.text}
                     </span>
                     <span className="mt-0.5 flex items-center gap-1.5 text-xs leading-4 text-faint">
@@ -259,7 +259,7 @@ function Inboxes({ items, onItemsChange, onOpen, l, ic }: Pick<NotificationCente
                 {tab === "mentions" ? ic.emptyMentions : tab === "unread" ? ic.emptyUnread : ic.emptyAll}
               </span>
               <p className="text-sm font-semibold">{tab === "mentions" ? l.emptyMentions : tab === "unread" ? l.emptyUnread : l.emptyAll}</p>
-              <p className="mt-1 text-[13px] text-muted">
+              <p className="mt-1 text-[0.8125rem] text-muted">
                 {tab === "unread" ? l.emptyUnreadBody : l.emptyBody}
               </p>
             </motion.div>

@@ -128,7 +128,7 @@ export function StackedLayout({ brand, links, value, onNavigate, actions, header
                         setOpen(false);
                       }}
                       className={cn(
-                        "flex h-11 items-center rounded-control px-3 text-left text-[15px] transition-colors duration-200",
+                        "flex h-11 items-center rounded-control px-3 text-left text-[0.9375rem] transition-colors duration-200",
                         on ? "bg-active font-medium text-ink" : "text-muted hover:bg-raised hover:text-ink",
                       )}
                     >

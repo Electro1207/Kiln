@@ -87,9 +87,9 @@ export function PlaceholderInput({ placeholders, value: valueProp, defaultValue 
         value={value}
         onChange={(e) => setValue(e.target.value)}
         autoComplete="off"
-        className="h-12 w-full rounded-full border border-line-strong bg-surface pl-5 pr-14 text-[15px] text-ink outline-none transition-[border-color,box-shadow] focus:border-accent focus:ring-2 focus:ring-accent-soft"
+        className="h-12 w-full rounded-full border border-line-strong bg-surface pl-5 pr-14 text-[0.9375rem] text-ink outline-none transition-[border-color,box-shadow] focus:border-accent focus:ring-2 focus:ring-accent-soft"
       />
-      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-5 right-14 grid items-center overflow-hidden text-[15px] text-faint [&>*]:[grid-area:1/1]">
+      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-5 right-14 grid items-center overflow-hidden text-[0.9375rem] text-faint [&>*]:[grid-area:1/1]">
         <AnimatePresence initial={false}>
           {empty && (
             <motion.span
@@ -105,7 +105,7 @@ export function PlaceholderInput({ placeholders, value: valueProp, defaultValue 
           )}
         </AnimatePresence>
       </div>
-      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-5 right-14 flex items-center overflow-visible whitespace-pre text-[15px] text-ink">
+      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-5 right-14 flex items-center overflow-visible whitespace-pre text-[0.9375rem] text-ink">
         {dust && (
           <span key={dust.id}>
             {dust.chars.map((d, k) => (

@@ -5,9 +5,9 @@ import { fade, spring, springSoft } from "../../motion";
 import type { Size } from "../../controllable";
 
 const tabSizes: Record<Size, { underline: string; pill: string; text: string }> = {
-  sm: { underline: "h-8 px-0.5", pill: "h-7 px-2.5", text: "text-[13px]" },
+  sm: { underline: "h-8 px-0.5", pill: "h-7 px-2.5", text: "text-[0.8125rem]" },
   md: { underline: "h-10 px-0.5", pill: "h-8 px-3", text: "text-sm" },
-  lg: { underline: "h-12 px-1", pill: "h-10 px-4", text: "text-[15px]" },
+  lg: { underline: "h-12 px-1", pill: "h-10 px-4", text: "text-[0.9375rem]" },
 };
 
 export type TabItem = { id: string; label: string; content: ReactNode; count?: number; disabled?: boolean };
@@ -139,7 +139,7 @@ export function Tabs({ items, value, defaultValue, onChange, variant = "underlin
               initial="enter"
               animate="center"
               exit="exit"
-              className="w-full pt-5 outline-none"
+              className="w-full pt-5 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               {active.content}
             </motion.div>

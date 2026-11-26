@@ -87,7 +87,7 @@ export function Invoice({
       <div className="flex flex-col gap-8 p-5 sm:p-8">
         <header className="flex flex-wrap items-start justify-between gap-6">
           <div>
-            <h3 className="text-[22px] font-semibold tracking-tight">{lb.title}</h3>
+            <h3 className="text-[1.375rem] font-semibold tracking-tight">{lb.title}</h3>
             <p className="tabular mt-1 text-sm text-muted">{number}</p>
           </div>
           <dl className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm">
@@ -124,7 +124,7 @@ export function Invoice({
               <tr key={i.description} className="max-sm:grid max-sm:grid-cols-[1fr_auto] max-sm:border-b max-sm:border-line max-sm:py-3">
                 <td className="py-3 align-top max-sm:col-span-2 max-sm:py-0 sm:border-b sm:border-line sm:pr-4">
                   <span className="block font-medium">{i.description}</span>
-                  {i.detail && <span className="block text-[13px] text-muted">{i.detail}</span>}
+                  {i.detail && <span className="block text-[0.8125rem] text-muted">{i.detail}</span>}
                 </td>
                 <td className="tabular py-3 text-right align-top max-sm:hidden sm:border-b sm:border-line">{i.qty}</td>
                 <td className="tabular py-3 text-right align-top max-sm:col-start-1 max-sm:py-0 max-sm:text-left max-sm:text-muted sm:border-b sm:border-line">
@@ -140,7 +140,7 @@ export function Invoice({
         </table>
 
         <div className="flex flex-col-reverse gap-8 sm:flex-row sm:items-end sm:justify-between">
-          <div className="max-w-sm text-[13px] text-muted">{notes}</div>
+          <div className="max-w-sm text-[0.8125rem] text-muted">{notes}</div>
           <dl className="tabular grid min-w-60 grid-cols-[1fr_auto] gap-x-8 gap-y-1.5 text-sm">
             <dt className="text-muted">{lb.subtotal}</dt>
             <dd className="text-right">{money.format(subtotal)}</dd>

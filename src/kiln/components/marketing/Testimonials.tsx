@@ -18,7 +18,7 @@ function Person({ t, size = "md" }: { t: Testimonial; size?: "md" | "lg" }) {
       <Avatar name={t.name} size={size} />
       <span className="min-w-0">
         <span className="block text-sm font-medium text-ink">{t.name}</span>
-        <span className="block text-[13px] text-muted">{t.role}</span>
+        <span className="block text-[0.8125rem] text-muted">{t.role}</span>
       </span>
     </figcaption>
   );
@@ -52,7 +52,7 @@ export function Testimonials({ title, description, items, className }: Testimoni
   return (
     <section className={cn("@container w-full", className)}>
       <h2 className="text-2xl font-semibold tracking-[-0.02em] text-ink text-balance @2xl:text-[1.75rem]">{title}</h2>
-      {description && <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-ink">{description}</p>}
+      {description && <p className="mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-ink">{description}</p>}
       {lead && (
         <figure className="mt-8 rounded-sheet bg-surface p-6 @2xl:p-10">
           <blockquote className="max-w-3xl text-xl leading-snug tracking-[-0.01em] text-ink @2xl:text-[1.625rem]">“{lead.quote}”</blockquote>
@@ -67,7 +67,7 @@ export function Testimonials({ title, description, items, className }: Testimoni
             <div key={i} className="flex min-w-0 flex-1 flex-col gap-4">
               {col.map((t) => (
                 <figure key={t.name} className="rounded-card bg-surface p-5">
-                  <blockquote className="text-[15px] leading-relaxed text-ink">“{t.quote}”</blockquote>
+                  <blockquote className="text-[0.9375rem] leading-relaxed text-ink">“{t.quote}”</blockquote>
                   <div className="mt-4">
                     <Person t={t} />
                   </div>

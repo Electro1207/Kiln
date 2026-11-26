@@ -176,7 +176,7 @@ export function BookingSlots({
         <Avatar name={host.name} src={host.avatar} size="md" />
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-ink">{host.name}</p>
-          {host.role && <p className="truncate text-[13px] text-muted">{host.role}</p>}
+          {host.role && <p className="truncate text-[0.8125rem] text-muted">{host.role}</p>}
         </div>
       </div>
       <h3 className="text-xl font-semibold tracking-[-0.01em] text-ink">{title}</h3>
@@ -217,8 +217,8 @@ export function BookingSlots({
               <AnimatePresence initial={false} mode="wait">
                 <motion.div key={(day?.toDateString() ?? "none") + minutes} initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { duration: 0.2 } }} exit={{ opacity: 0, transition: { duration: 0.1 } }}
                   className="flex max-h-[296px] flex-col gap-2 overflow-y-auto pr-1">
-                  {!day && <p className="rounded-card bg-raised px-4 py-6 text-center text-[13px] text-muted">{l.chooseDay}</p>}
-                  {day && slots.length === 0 && <p className="rounded-card bg-raised px-4 py-6 text-center text-[13px] text-muted">{l.noSlots}</p>}
+                  {!day && <p className="rounded-card bg-raised px-4 py-6 text-center text-[0.8125rem] text-muted">{l.chooseDay}</p>}
+                  {day && slots.length === 0 && <p className="rounded-card bg-raised px-4 py-6 text-center text-[0.8125rem] text-muted">{l.noSlots}</p>}
                   {slots.map((s) => {
                     const on = slot?.getTime() === s.getTime();
                     return (

@@ -53,7 +53,7 @@ export function BillingToggle({ value: valueProp, defaultValue = "monthly", onCh
               if (e.key === "ArrowRight" || e.key === "ArrowLeft") onChange(value === "monthly" ? "yearly" : "monthly");
             }}
             tabIndex={on ? 0 : -1}
-            className={cn("relative h-8 rounded-full px-4 text-[13px] font-medium transition-colors", on ? "text-ink" : "text-muted hover:text-ink")}
+            className={cn("relative h-8 rounded-full px-4 text-[0.8125rem] font-medium transition-colors", on ? "text-ink" : "text-muted hover:text-ink")}
           >
             {/* The thumb has no z-index; every label sits on z-[1], so the thumb never covers a label it passes. */}
             <motion.span aria-hidden initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className="pointer-events-none absolute inset-0 bg-elevated" style={{ borderRadius: 999 }} />
@@ -131,7 +131,7 @@ export function PricingCard({ name, description, price, billing, currency = "EUR
           value={price[billing]}
           locale={locale}
           format={{ style: "currency", currency, maximumFractionDigits: 0 }}
-          className="text-[40px] font-medium tracking-tight text-ink"
+          className="text-[2.5rem] font-medium tracking-tight text-ink"
         />
         <span className="text-sm text-muted">{l.perMonth(price[billing] > 0 && billing === "yearly")}</span>
       </div>

@@ -11,9 +11,9 @@ export type RadioOption<T extends string> = { value: T; label: ReactNode; descri
  * tile; a ring slides between them.
  */
 const radioSizes: Record<Size, { ring: string; dot: string; text: string; pad: string }> = {
-  sm: { ring: "size-4", dot: "size-2", text: "text-[13px]", pad: "p-3" },
+  sm: { ring: "size-4", dot: "size-2", text: "text-[0.8125rem]", pad: "p-3" },
   md: { ring: "size-[18px]", dot: "size-2.5", text: "text-sm", pad: "p-4" },
-  lg: { ring: "size-[22px]", dot: "size-3", text: "text-[15px]", pad: "p-5" },
+  lg: { ring: "size-[22px]", dot: "size-3", text: "text-[0.9375rem]", pad: "p-5" },
 };
 
 export type RadioGroupProps<T extends string> = {
@@ -115,7 +115,7 @@ export function RadioGroup<T extends string>({
                   <span className={cn("font-medium text-ink", sz.text)}>{o.label}</span>
                   {o.aside && <span className={cn("text-ink tabular", sz.text)}>{o.aside}</span>}
                 </span>
-                {o.description && <span className="mt-0.5 block text-[13px] text-muted">{o.description}</span>}
+                {o.description && <span className="mt-0.5 block text-[0.8125rem] text-muted">{o.description}</span>}
               </span>
               </span>
             </button>

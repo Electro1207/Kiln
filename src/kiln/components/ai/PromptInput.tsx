@@ -178,8 +178,8 @@ export function PromptInput({
                   >
                     <span className="grid size-7 place-items-center rounded-[8px] bg-surface text-muted"><span className="grid [&>svg]:size-4" aria-hidden>{ic.file}</span></span>
                     <span className="min-w-0">
-                      <span className="block max-w-40 truncate text-[13px] font-medium leading-4">{a.name}</span>
-                      <span className="block text-[11.5px] leading-4 text-muted">{a.size}</span>
+                      <span className="block max-w-40 truncate text-[0.8125rem] font-medium leading-4">{a.name}</span>
+                      <span className="block text-[0.71875rem] leading-4 text-muted">{a.size}</span>
                     </span>
                     <button
                       type="button"
@@ -207,7 +207,7 @@ export function PromptInput({
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={onKey}
         style={{ height }}
-        className="block w-full resize-none bg-transparent px-4 pt-3.5 text-[15px] leading-[22px] text-ink outline-none placeholder:text-faint"
+        className="block w-full resize-none bg-transparent px-4 pt-3.5 text-[0.9375rem] leading-[22px] text-ink outline-none placeholder:text-faint"
       />
 
       <div className="flex items-center gap-1.5 p-2 pl-2.5">
@@ -254,7 +254,7 @@ export function PromptInput({
                 {...p}
                 type="button"
                 className={cn(
-                  "inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-muted transition-colors hover:bg-raised hover:text-ink",
+                  "inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium text-muted transition-colors hover:bg-raised hover:text-ink",
                   open && "bg-raised text-ink",
                 )}
               >

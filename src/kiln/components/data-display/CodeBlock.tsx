@@ -57,12 +57,12 @@ export function CodeBlock({ code, filename, language, showLineNumbers = true, cl
   return (
     <div className={cn("w-full overflow-hidden rounded-card border border-line bg-surface", className)}>
       <div className="flex h-11 items-center justify-between gap-3 border-b border-line pl-4 pr-1.5">
-        <span className="truncate text-[13px] text-muted">
+        <span className="truncate text-[0.8125rem] text-muted">
           {filename ?? language ?? l.code}
         </span>
         <CopyButton value={code} label={l.copy} />
       </div>
-      <pre className="overflow-x-auto py-3 font-mono text-[13px] leading-6">
+      <pre className="overflow-x-auto py-3 font-mono text-[0.8125rem] leading-6">
         <code>
           {lines.map((line, i) => (
             <span key={i} className="flex px-4">

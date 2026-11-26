@@ -130,7 +130,7 @@ export function MessageComposer({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.94, transition: { duration: 0.12 } }}
                   transition={spring}
-                  className="flex h-9 max-w-full items-center gap-2 rounded-control bg-raised pl-2.5 pr-1 text-[13px]"
+                  className="flex h-9 max-w-full items-center gap-2 rounded-control bg-raised pl-2.5 pr-1 text-[0.8125rem]"
                 >
                   <span className="inline-flex shrink-0 text-muted [&>svg]:size-4" aria-hidden>{f.kind === "image" ? ic.image : ic.file}</span>
                   <span className="min-w-0 truncate text-ink">{f.name}</span>

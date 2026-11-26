@@ -106,7 +106,7 @@ export function NewsletterSignup({
               {ic.success}
             </span>
             <span>
-              <span className="block text-[15px] font-medium text-ink">{success?.title ?? l.successTitle}</span>
+              <span className="block text-[0.9375rem] font-medium text-ink">{success?.title ?? l.successTitle}</span>
               <span className="mt-0.5 block text-sm text-muted">{success?.body ?? l.successBody(email.trim())}</span>
             </span>
           </motion.div>
@@ -134,7 +134,7 @@ export function NewsletterSignup({
                   setServerError(null);
                 }}
                 className={cn(
-                  "h-11 min-w-0 @md:flex-1 rounded-control border bg-surface px-3.5 text-[15px] text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-muted focus:ring-[3px]",
+                  "h-11 min-w-0 @md:flex-1 rounded-control border bg-surface px-3.5 text-[0.9375rem] text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-muted focus:ring-[3px]",
                   error ? "border-negative focus:ring-negative/20" : "border-line-strong focus:border-accent focus:ring-accent/20",
                 )}
               />
@@ -145,11 +145,11 @@ export function NewsletterSignup({
             <div id={`${id}-msg`} className="grid min-h-5 [&>*]:[grid-area:1/1]">
               <AnimatePresence initial={false}>
                 {error ? (
-                  <motion.p key="e" role="alert" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={fade} className="text-[13px] text-negative">
+                  <motion.p key="e" role="alert" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={fade} className="text-[0.8125rem] text-negative">
                     {error}
                   </motion.p>
                 ) : fineprint ? (
-                  <motion.p key="f" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={fade} className="text-[13px] text-muted">
+                  <motion.p key="f" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={fade} className="text-[0.8125rem] text-muted">
                     {fineprint}
                   </motion.p>
                 ) : null}
@@ -166,7 +166,7 @@ export function NewsletterSignup({
       <div className={cn("grid gap-6", variant === "inline" && "@3xl:grid-cols-2 @3xl:items-center @3xl:gap-10")}>
         <div>
           <h2 className="text-2xl font-semibold tracking-[-0.02em] text-ink text-balance @2xl:text-[1.75rem]">{title}</h2>
-          {description && <p className="mt-2 text-[15px] leading-relaxed text-ink">{description}</p>}
+          {description && <p className="mt-2 text-[0.9375rem] leading-relaxed text-ink">{description}</p>}
         </div>
         {form}
       </div>

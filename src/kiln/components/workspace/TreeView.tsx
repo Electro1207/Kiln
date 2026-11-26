@@ -182,7 +182,7 @@ export function TreeView({
               if (isFolder) toggle(node.id);
             }}
             className={cn(
-              "flex h-8 cursor-default select-none items-center gap-1.5 rounded-[6px] pr-2 text-[13px] outline-offset-[-2px] transition-colors duration-150",
+              "flex h-8 cursor-default select-none items-center gap-1.5 rounded-[6px] pr-2 text-[0.8125rem] outline-offset-[-2px] transition-colors duration-150",
               isSel ? "bg-accent-soft text-ink" : "text-ink hover:bg-raised",
             )}
             style={{ paddingLeft: 6 + (level - 1) * 16 }}

@@ -218,7 +218,7 @@ function Window({ onOpenChange, items, categories, onPick, placeholder, labels, 
                 aria-selected={on}
                 tabIndex={-1}
                 onClick={() => setCat(t)}
-                className={cn("relative h-7 shrink-0 rounded-full px-3 text-[13px] transition-[color] duration-0 [transition-delay:80ms]", on ? "text-btn-primary-ink" : "text-muted hover:text-ink")}
+                className={cn("relative h-7 shrink-0 rounded-full px-3 text-[0.8125rem] transition-[color] duration-0 [transition-delay:80ms]", on ? "text-btn-primary-ink" : "text-muted hover:text-ink")}
               >
                 <motion.span aria-hidden initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className="pointer-events-none absolute inset-0 rounded-full bg-btn-primary" />
                 <span className="relative z-[1]">{t}</span>

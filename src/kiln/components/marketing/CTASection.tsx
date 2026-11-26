@@ -24,12 +24,12 @@ export function CTASection({ title, body, primary, secondary, variant = "field",
         <div className="mt-8 flex flex-col items-center justify-center gap-3 @md:flex-row">
           <a
             href={primary.href}
-            className="inline-flex h-11 w-full items-center justify-center rounded-control bg-btn-primary-ink px-6 text-[15px] font-medium text-btn-primary transition-opacity duration-200 hover:opacity-90 @md:w-auto"
+            className="inline-flex h-11 w-full items-center justify-center rounded-control bg-btn-primary-ink px-6 text-[0.9375rem] font-medium text-btn-primary transition-opacity duration-200 hover:opacity-90 @md:w-auto"
           >
             {primary.label}
           </a>
           {secondary && (
-            <a href={secondary.href} className="inline-flex h-11 items-center px-4 text-[15px] font-medium underline-offset-4 hover:underline">
+            <a href={secondary.href} className="inline-flex h-11 items-center px-4 text-[0.9375rem] font-medium underline-offset-4 hover:underline">
               {secondary.label} <span aria-hidden className="ml-1.5">→</span>
             </a>
           )}
@@ -46,11 +46,11 @@ export function CTASection({ title, body, primary, secondary, variant = "field",
             {body && <p className="mt-4 max-w-xl text-base leading-relaxed text-ink">{body}</p>}
           </div>
           <div className="flex flex-col gap-3 @md:flex-row @md:items-center">
-            <a href={primary.href} className="inline-flex h-11 items-center justify-center rounded-control bg-btn-primary px-6 text-[15px] font-medium text-btn-primary-ink transition-colors duration-200 hover:bg-btn-primary-hover">
+            <a href={primary.href} className="inline-flex h-11 items-center justify-center rounded-control bg-btn-primary px-6 text-[0.9375rem] font-medium text-btn-primary-ink transition-colors duration-200 hover:bg-btn-primary-hover">
               {primary.label}
             </a>
             {secondary && (
-              <a href={secondary.href} className="inline-flex h-11 items-center justify-center rounded-control bg-btn-secondary px-5 text-[15px] font-medium text-btn-secondary-ink transition-colors duration-200 hover:bg-btn-secondary-hover">
+              <a href={secondary.href} className="inline-flex h-11 items-center justify-center rounded-control bg-btn-secondary px-5 text-[0.9375rem] font-medium text-btn-secondary-ink transition-colors duration-200 hover:bg-btn-secondary-hover">
                 {secondary.label}
               </a>
             )}

@@ -81,8 +81,8 @@ export function CardHeading({ title, meta, leading, action, className }: { title
     <div className={cn("flex min-w-0 items-center gap-3", className)}>
       {leading && <div className="shrink-0">{leading}</div>}
       <div className="min-w-0 flex-1">
-        <h3 className="truncate text-[15px] font-semibold text-ink">{title}</h3>
-        {meta && <p className="truncate text-[13px] text-muted">{meta}</p>}
+        <h3 className="truncate text-[0.9375rem] font-semibold text-ink">{title}</h3>
+        {meta && <p className="truncate text-[0.8125rem] text-muted">{meta}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
     </div>

@@ -62,7 +62,7 @@ export function StatsSection({ title, description, stats, locale, className }: S
             <dd className="order-1 text-4xl font-semibold tracking-[-0.03em] text-ink @2xl:text-5xl">
               <CountUp item={s} locale={locale} />
             </dd>
-            {s.note && <dd className="order-3 text-[13px] text-muted">{s.note}</dd>}
+            {s.note && <dd className="order-3 text-[0.8125rem] text-muted">{s.note}</dd>}
           </div>
         ))}
       </dl>

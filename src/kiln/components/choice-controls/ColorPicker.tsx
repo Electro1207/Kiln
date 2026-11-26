@@ -245,7 +245,7 @@ export function ColorPickerPanel({
 
       {swatches && (
         <div className="flex flex-col gap-2">
-          <span className="text-[13px] font-medium text-muted">{l.saved}</span>
+          <span className="text-[0.8125rem] font-medium text-muted">{l.saved}</span>
           <div className="flex flex-wrap gap-2">
             {swatches.map((c) => (
               <button key={c} type="button" aria-label={l.useColour(c)} title={c}
@@ -464,9 +464,9 @@ function Fields({ t, format, h, s, v, a, alpha, read, setAll, commit }: {
             spellCheck={false}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); apply(); } }}
             onBlur={apply}
-            className="h-8 w-full min-w-0 rounded-control border border-line-strong bg-surface px-2 text-center text-[13px] text-ink tabular outline-none transition-[border-color,box-shadow] focus:border-accent focus:ring-[3px] focus:ring-accent/20"
+            className="h-8 w-full min-w-0 rounded-control border border-line-strong bg-surface px-2 text-center text-[0.8125rem] text-ink tabular outline-none transition-[border-color,box-shadow] focus:border-accent focus:ring-[3px] focus:ring-accent/20"
           />
-          <span className="text-center text-[11.5px] text-muted">{l === "A" ? t.alpha : l === "Hex" ? t.hex : l}</span>
+          <span className="text-center text-[0.71875rem] text-muted">{l === "A" ? t.alpha : l === "Hex" ? t.hex : l}</span>
         </label>
       ))}
     </motion.div>

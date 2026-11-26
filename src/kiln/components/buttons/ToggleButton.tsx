@@ -40,7 +40,7 @@ export function ToggleButton({
       transition={springSnappy}
       className={cn(
         "inline-flex items-center justify-center gap-2 rounded-control font-medium transition-[background-color,color] duration-200 ease-out-soft disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4",
-        size === "sm" ? "h-8 min-w-8 px-2.5 text-[13px]" : size === "lg" ? "h-12 min-w-12 px-4 text-[15px]" : "h-10 min-w-10 px-3.5 text-sm",
+        size === "sm" ? "h-8 min-w-8 px-2.5 text-[0.8125rem]" : size === "lg" ? "h-12 min-w-12 px-4 text-[0.9375rem]" : "h-10 min-w-10 px-3.5 text-sm",
         pressed ? "bg-btn-secondary text-btn-secondary-ink" : "bg-transparent text-muted hover:bg-raised hover:text-ink",
         className,
       )}
