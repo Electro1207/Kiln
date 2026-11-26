@@ -5,6 +5,18 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* motion-reduce: and motion-safe: answer the system setting AND the in-app one
+   ([data-k-reduce-motion] on the element or an ancestor; see the accessibility section below). */
+@custom-variant motion-reduce {
+  @media (prefers-reduced-motion: reduce) { @slot; }
+  &:where([data-k-reduce-motion], [data-k-reduce-motion] *) { @slot; }
+}
+@custom-variant motion-safe {
+  @media (prefers-reduced-motion: no-preference) {
+    &:where(:not([data-k-reduce-motion], [data-k-reduce-motion] *)) { @slot; }
+  }
+}
+
 @theme inline {
   --font-sans: "IBM Plex Sans", Inter, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -48,6 +60,15 @@
   --radius-card: var(--k-radius-card);
   --radius-sheet: var(--k-radius-sheet);
 
+  --color-cvd-1: var(--k-cvd-1);
+  --color-cvd-2: var(--k-cvd-2);
+  --color-cvd-3: var(--k-cvd-3);
+  --color-cvd-4: var(--k-cvd-4);
+  --color-cvd-5: var(--k-cvd-5);
+  --color-cvd-6: var(--k-cvd-6);
+  --color-cvd-7: var(--k-cvd-7);
+  --color-cvd-8: var(--k-cvd-8);
+
   --shadow-float: var(--k-float-shadow);
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
@@ -67,13 +88,15 @@
   }
   /* The shared control scale (Size in controllable.ts): height and text size of buttons,
      inputs, selects and search boxes. Tune it here; a height utility in className still wins. */
-  .k-ctl-sm { height: 2rem; font-size: 13px; }
+  .k-ctl-sm { height: 2rem; font-size: 0.8125rem; }
   .k-ctl-md { height: 2.5rem; font-size: 0.875rem; line-height: 1.25rem; }
-  .k-ctl-lg { height: 3rem; font-size: 15px; }
+  .k-ctl-lg { height: 3rem; font-size: 0.9375rem; }
 }
 
 @layer base {
   html {
+    /* The person's text size (AccessibilityMenu) scales every rem, so type and spacing grow together. */
+    font-size: calc(100% * var(--k-text-scale, 1));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -82,7 +105,7 @@
     background: var(--k-ground);
     color: var(--k-ink);
     font-family: var(--font-sans);
-    font-size: 14px;
+    font-size: 0.875rem;
     line-height: 1.5;
   }
   :focus-visible {
@@ -130,6 +153,7 @@
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-new(root) { animation: none; }
 }
+:root[data-k-reduce-motion]::view-transition-new(root) { animation: none; }
 
 .tabular { font-variant-numeric: tabular-nums; }
 
@@ -141,6 +165,7 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-caret { animation: none; }
 }
+[data-k-reduce-motion] .animate-caret, .animate-caret[data-k-reduce-motion] { animation: none; }
 
 /* ScrollHint's arrow: a small push down, then a rest. */
 @keyframes kiln-nudge {
@@ -151,6 +176,7 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-nudge { animation: none; }
 }
+[data-k-reduce-motion] .animate-nudge, .animate-nudge[data-k-reduce-motion] { animation: none; }
 
 /* Briefly set while a whole palette changes, so colours cross-fade instead of snapping. */
 .k-tinting,
@@ -160,4 +186,110 @@
   transition-property: background-color, color, border-color, fill, stroke, outline-color !important;
   transition-duration: 420ms !important;
   transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* ==========================================================================
+   Accessibility (src/kiln/a11y.tsx)
+
+   AccessibilityProvider writes the person's choices as data-k-* attributes (and --k-text-scale)
+   on <html>; AccessibilityScope and components with `accessibilityFeatures` write the same on
+   their own root. Every rule below therefore reads "on this element or inside it".
+   ========================================================================== */
+
+/* Hit areas. k-hit grows a small control's clickable area without changing how it looks. */
+@layer components {
+  .k-hit { position: relative; }
+  .k-hit::after { content: ""; position: absolute; inset: -6px; }
+}
+[data-k-large-targets] .k-hit::after { inset: -12px; }
+
+/* Reduce motion: looping CSS animations settle on their first frame; scrolling is instant. */
+[data-k-reduce-motion],
+[data-k-reduce-motion] *,
+[data-k-reduce-motion] *::before,
+[data-k-reduce-motion] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  animation-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+
+/* Calm: nothing moves on its own. Pulses, shimmer, bounces and blinks stop; spinners stay, because
+   a loading state has to be seen. */
+[data-k-calm] [class*="animate-"]:not(.animate-spin),
+[data-k-calm][class*="animate-"]:not(.animate-spin) {
+  animation: none !important;
+}
+
+/* Strong focus: a thicker, solid ring that no component style can thin out. */
+[data-k-strong-focus]:focus-visible,
+[data-k-strong-focus] :focus-visible {
+  outline: 3px solid var(--k-accent) !important;
+  outline-offset: 2px !important;
+}
+
+/* High contrast: secondary text becomes ink, lines become firm. Selectors are heavier than a
+   colorway's own :root rules so they win on <html> too. */
+html:root[data-k-high-contrast],
+[data-k-high-contrast]:not(:root) {
+  --k-muted: var(--k-ink);
+  --k-faint: color-mix(in srgb, var(--k-ink) 78%, var(--k-ground));
+  --k-line: color-mix(in srgb, var(--k-ink) 62%, var(--k-ground));
+  --k-line-strong: color-mix(in srgb, var(--k-ink) 88%, var(--k-ground));
+}
+[data-k-high-contrast] :is([role="switch"], [role="checkbox"], [role="radio"], [role="slider"]) {
+  box-shadow: inset 0 0 0 1px var(--k-ink);
+}
+[data-k-high-contrast] :is(input, select, textarea):not([type="checkbox"], [type="radio"], [type="range"]) {
+  border: 1px solid var(--k-ink);
+}
+
+/* Readable font: Atkinson Hyperlegible if the device has it, then the clearest system faces. No download. */
+[data-k-readable-font] {
+  font-family: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", Verdana, Tahoma, system-ui, sans-serif;
+}
+[data-k-readable-font] :is(button, input, select, textarea) { font-family: inherit; }
+
+/* Text spacing (WCAG 1.4.12). */
+[data-k-text-spacing],
+[data-k-text-spacing] * {
+  line-height: 1.5 !important;
+  letter-spacing: 0.12em !important;
+  word-spacing: 0.16em !important;
+}
+[data-k-text-spacing] p:not(:last-child) { margin-bottom: 2em; }
+
+/* A text size set on a scope or a single component (never on <html>) is a zoom by the extra
+   amount over what the page already has. */
+:not(html)[style*="--k-text-scale"] { zoom: var(--k-text-scale); }
+
+/* Large targets: controls reach 44px. Things that must keep their look (switch, checkbox, radio,
+   slider thumb) get an invisible hit area instead. */
+[data-k-large-targets] .k-ctl-sm,
+[data-k-large-targets] .k-ctl-md,
+[data-k-large-targets] .k-ctl-lg { min-height: 44px; }
+[data-k-large-targets] :is(button, [role="button"], [role="tab"], [role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"], [role="option"], [role="treeitem"], summary, select, input:not([type="checkbox"], [type="radio"], [type="range"], [type="hidden"])):not([role="switch"], [role="checkbox"], [role="radio"], [role="slider"]) {
+  min-height: 44px;
+}
+[data-k-large-targets] :is(button, [role="button"]):has(> svg:only-child):not([role="switch"], [role="checkbox"], [role="radio"]) {
+  min-width: 44px;
+}
+@layer base {
+  [data-k-large-targets] :is([role="switch"], [role="checkbox"], [role="radio"], [role="slider"]) { position: relative; }
+}
+[data-k-large-targets] :is([role="switch"], [role="checkbox"], [role="radio"], [role="slider"])::after {
+  content: "";
+  position: absolute;
+  inset: -12px;
+}
+
+/* Windows high contrast and other forced-colour modes: outlines and borders in system colours. */
+@media (forced-colors: active) {
+  :focus-visible { outline: 3px solid CanvasText !important; outline-offset: 2px !important; }
+  [role="switch"], [role="checkbox"], [role="radio"], [role="slider"] { border: 1px solid CanvasText; }
+  [role="switch"][aria-checked="true"], [role="checkbox"][aria-checked="true"], [role="radio"][aria-checked="true"] {
+    background-color: Highlight;
+    border-color: Highlight;
+    forced-color-adjust: none;
+  }
 }
