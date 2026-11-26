@@ -4,6 +4,27 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+### Added
+
+- `AccessibilityProvider`, `useA11y`, `useA11yProps`, `useA11ySettings`, `AccessibilityScope` and `resolveA11y` in `kiln/a11y`: ten profiles made of thirteen features (reduced motion, no flashing, calm, high contrast, strong focus, text size, readable font, text spacing, large targets, colour-safe, extended time, screen-reader hints, captions), merged from system settings, the person's choices, the nearest scope and the component's prop.
+- `AccessibilityMenu`: a popover or panel of profiles and switches, saved on the device. The gallery header has one, and an accessibility view (`?a11y=1`) that shows each entry's keyboard map, ARIA pattern and supported features.
+- Every component takes `accessibilityFeatures`. Charts also take `tableToggle`, get a summary, a data table, patterns and marker shapes under colour-safe, and arrow-key navigation (bar, line, area, donut).
+- `SkipLink`, `VisuallyHidden`, `announce` and `useAnnounce`.
+- New components: `ErrorSummary`, `Fieldset`, `MaskedInput`, `TransferList`, `Cascader`, `TypeToConfirmDialog`, `Toolbar`, `Menubar`, `BottomTabBar`, `TableOfContents`, `SessionTimeout`, `ConnectionStatus`, `Countdown`, `ModelPicker`, `UsageMeter`, `VoiceInput`, `CouponField`, `ShipmentTracker`.
+- Demo entries for `ImageCropper`, `SizePicker`, `TimeWheels`, `HeadingTabs` and `Stars`.
+- `Carousel` takes `autoPlay` (ms), with a pause button; the gallery shows it. `MenuContent` takes `initialFocus`.
+- Tailwind `motion-reduce:` and `motion-safe:` also follow the in-app reduced-motion setting; `k-hit` enlarges small hit areas.
+
+### Changed
+
+- Toasts with an action never auto-dismiss; `HoldButton` becomes press-then-confirm under extended time; `Tooltip` follows WCAG 1.4.13; `Marquee` and `Carousel` have a pause control.
+- `KanbanBoard` and `SortableList` can be moved with the keyboard and announce moves; `SignaturePad` has a "Type instead" mode; `ImageCropper`, `ResizablePanels`, `OTPInput` and `AuthForms` have the keyboard and autofill behaviour a screen-reader or phone user expects.
+- Fixed pixel text sizes became rem so the text size setting applies; every `outline-none` has a visible focus replacement.
+
+### Fixed
+
+- DocsNav: opening or closing a group no longer scrolls the list back to the active row.
+
 ## [0.7.1] - 2026-11-26
 
 VideoPlayer fixes: controls you can bring back on a phone, and a cleaner poster line.

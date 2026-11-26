@@ -2,8 +2,11 @@
 export { type ChatMessageLabels, chatMessageLabels, type ChatMessageProps, ChatMessage, AssistantMark } from "../components/ai/ChatMessage";
 export { type Source, type CitationLabels, citationLabels, type CitationIcons, citationIcons, Citation, Sources } from "../components/ai/Citation";
 export { type MessageActionsLabels, messageActionsLabels, type MessageActionsIcons, messageActionsIcons, type MessageActionsProps, MessageActions } from "../components/ai/MessageActions";
+export { type ModelSpeed, type ModelOption, type ModelPickerLabels, modelPickerLabels, type ModelPickerIcons, modelPickerIcons, type ModelPickerProps, ModelPicker } from "../components/ai/ModelPicker";
 export { type PromptAttachment, type PromptModel, type PromptInputLabels, promptInputLabels, type PromptInputProps, type PromptInputIcons, promptInputIcons, PromptInput } from "../components/ai/PromptInput";
 export { type ReasoningLabels, reasoningLabels, type ReasoningIcons, reasoningIcons, type ReasoningProps, Reasoning } from "../components/ai/Reasoning";
 export { type StreamingTextProps, StreamingText } from "../components/ai/StreamingText";
 export { type Suggestion, Suggestions } from "../components/ai/Suggestions";
 export { type ToolCallState, type ToolCallLabels, toolCallLabels, type ToolCallIcons, toolCallIcons, type ToolCallProps, ToolCall } from "../components/ai/ToolCall";
+export { type UsageState, type UsageMeterLabels, usageMeterLabels, type UsageMeterIcons, usageMeterIcons, type UsageMeterProps, UsageMeter } from "../components/ai/UsageMeter";
+export { type VoiceStatus, type VoiceInputLabels, voiceInputLabels, type VoiceInputIcons, voiceInputIcons, type VoiceInputProps, VoiceInput } from "../components/ai/VoiceInput";

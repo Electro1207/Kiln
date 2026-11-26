@@ -19,6 +19,7 @@ export const TAXONOMY: SectionSpec[] = [
     groups: [
       { id: "tokens", name: "Tokens", summary: "The colours, type and springs every component is made from. Change them once and the whole library follows.", entries: ["colour-tokens", "type-scale", "motion-presets"] },
       { id: "primitives", name: "Primitives", summary: "The small pieces underneath everything else: the theme switch, colorways, scrolling, rules and images.", entries: ["theme-toggle", "colorway-picker", "colorway", "scroll-area", "separator", "aspect-image"] },
+      { id: "accessibility", name: "Accessibility", summary: "Let people tune the page to themselves: a menu of profiles, a scope and a prop for developers, a skip link, hidden text and a live announcer.", entries: ["accessibility-menu", "accessibility-scope", "skip-link", "visually-hidden", "live-announcer"] },
     ],
   },
   {
@@ -26,27 +27,27 @@ export const TAXONOMY: SectionSpec[] = [
     name: "Actions & inputs",
     groups: [
       { id: "buttons", name: "Buttons & links", summary: "Everything you press: buttons, toggles, groups, copy, hold to confirm and links.", entries: ["button", "icon-button", "button-group", "toggle-button", "segmented-control", "copy-button", "hold-button", "magnetic-button", "link"] },
-      { id: "text-input", name: "Text input", summary: "Fields you type into, from a single line to rich text, with codes, phone numbers, money and mentions.", entries: ["text-field", "textarea", "password-field", "search-field", "number-field", "otp-input", "phone-input", "currency-input", "placeholder-input", "mentions-textarea", "rich-text-editor"] },
+      { id: "text-input", name: "Text input", summary: "Fields you type into, from a single line to rich text, with codes, phone numbers, money and mentions.", entries: ["text-field", "textarea", "password-field", "search-field", "number-field", "otp-input", "phone-input", "currency-input", "placeholder-input", "mentions-textarea", "masked-input", "rich-text-editor"] },
       { id: "choice", name: "Choice controls", summary: "Checkboxes, radios, switches, sliders, stars and colours: picking from what is on screen.", entries: ["checkbox", "radio-group", "switch", "slider", "rating", "color-swatches", "color-picker"] },
-      { id: "pickers", name: "Pickers", summary: "Choosing from a list that opens: selects, comboboxes, tags, dates, times, slots and files.", entries: ["select", "combobox", "tag-input", "chip-filter", "date-picker", "time-picker", "booking-slots", "file-dropzone", "signature-pad"] },
-      { id: "forms", name: "Forms", summary: "Whole forms and the patterns inside them: sign-in, settings, editing in place, uploads and key–value lists.", entries: ["auth-forms", "settings-section", "inline-edit", "avatar-upload", "key-value-editor"] },
+      { id: "pickers", name: "Pickers", summary: "Choosing from a list that opens: selects, comboboxes, tags, dates, times, slots and files.", entries: ["select", "combobox", "tag-input", "chip-filter", "date-picker", "time-picker", "booking-slots", "file-dropzone", "signature-pad", "transfer-list", "cascader", "time-wheels"] },
+      { id: "forms", name: "Forms", summary: "Whole forms and the patterns inside them: sign-in, settings, editing in place, uploads and key–value lists.", entries: ["auth-forms", "settings-section", "inline-edit", "avatar-upload", "key-value-editor", "fieldset", "error-summary", "image-cropper"] },
     ],
   },
   {
     id: "navigation",
     name: "Navigation",
     groups: [
-      { id: "menus", name: "Menus & bars", summary: "Getting around an app: bars, sidebars, menus, mega menus and the command palette.", entries: ["navbar", "flyout-nav", "sidebar-nav", "docs-nav", "dropdown-menu", "context-menu", "command-palette", "spotlight-search"] },
-      { id: "wayfinding", name: "Wayfinding", summary: "Finding your place inside a page or a flow: tabs, accordions, breadcrumbs, pages and steps.", entries: ["tabs", "accordion", "breadcrumbs", "pagination", "stepper", "back-to-top", "scroll-progress", "scroll-checkpoints", "scroll-hint"] },
+      { id: "menus", name: "Menus & bars", summary: "Getting around an app: bars, sidebars, menus, mega menus and the command palette.", entries: ["navbar", "flyout-nav", "sidebar-nav", "docs-nav", "dropdown-menu", "context-menu", "command-palette", "spotlight-search", "menubar", "toolbar", "bottom-tab-bar"] },
+      { id: "wayfinding", name: "Wayfinding", summary: "Finding your place inside a page or a flow: tabs, accordions, breadcrumbs, pages and steps.", entries: ["tabs", "accordion", "breadcrumbs", "pagination", "stepper", "back-to-top", "scroll-progress", "scroll-checkpoints", "scroll-hint", "table-of-contents"] },
     ],
   },
   {
     id: "feedback",
     name: "Overlays & feedback",
     groups: [
-      { id: "overlays", name: "Overlays", summary: "Things that float above the page: dialogs, drawers, popovers, tooltips, hover cards and the lightbox.", entries: ["dialog", "alert-dialog", "drawer", "popover", "tooltip", "hover-card", "lightbox"] },
-      { id: "notices", name: "Notices", summary: "Telling people what happened: toasts, alerts, banners, field messages, undo and notifications.", entries: ["toast", "alert", "banner", "field-message", "undo-bar", "notification-bell", "notification-center", "cookie-consent"] },
-      { id: "status", name: "Status & loading", summary: "Badges, progress, spinners, skeletons and empty states: what is going on, and what to do when nothing is.", entries: ["badge", "progress", "progress-ring", "meter", "spinner", "skeleton", "multi-step-loader", "empty-state"] },
+      { id: "overlays", name: "Overlays", summary: "Things that float above the page: dialogs, drawers, popovers, tooltips, hover cards and the lightbox.", entries: ["dialog", "alert-dialog", "drawer", "popover", "tooltip", "hover-card", "lightbox", "type-to-confirm-dialog"] },
+      { id: "notices", name: "Notices", summary: "Telling people what happened: toasts, alerts, banners, field messages, undo and notifications.", entries: ["toast", "alert", "banner", "field-message", "undo-bar", "notification-bell", "notification-center", "cookie-consent", "session-timeout", "connection-status"] },
+      { id: "status", name: "Status & loading", summary: "Badges, progress, spinners, skeletons and empty states: what is going on, and what to do when nothing is.", entries: ["badge", "progress", "progress-ring", "meter", "spinner", "skeleton", "multi-step-loader", "countdown", "empty-state"] },
       { id: "guidance", name: "Guidance", summary: "Showing people around: tours, onboarding and the shortcut sheet.", entries: ["product-tour", "onboarding-wizard", "keyboard-shortcuts"] },
     ],
   },
@@ -71,12 +72,12 @@ export const TAXONOMY: SectionSpec[] = [
     id: "patterns",
     name: "Layouts & patterns",
     groups: [
-      { id: "shells", name: "App shells", summary: "Whole-screen layouts: sidebars, stacked pages, headings, grid and stacked lists, a dashboard.", entries: ["app-shell", "stacked-layout", "headings-layout", "grid-list", "stacked-list", "dashboard"] },
+      { id: "shells", name: "App shells", summary: "Whole-screen layouts: sidebars, stacked pages, headings, grid and stacked lists, a dashboard.", entries: ["app-shell", "stacked-layout", "headings-layout", "grid-list", "stacked-list", "heading-tabs", "dashboard"] },
       { id: "workspace", name: "Workspace", summary: "Tools people work in all day: trees, boards, sortable lists, panels, calendars, files and filters.", entries: ["tree-view", "kanban-board", "sortable-list", "resizable-panels", "filter-bar", "file-manager", "calendar-month", "week-calendar", "gantt", "notification-preferences"] },
       { id: "communication", name: "Communication", summary: "Talking to people: chat, comments, a feed and the composer.", entries: ["chat-thread", "comment-thread", "comment-feed", "message-composer"] },
-      { id: "ai", name: "AI interfaces", summary: "Conversations with a model: prompts, streaming, reasoning, sources, tool calls and suggestions.", entries: ["conversation", "prompt-input", "streaming-message", "reasoning", "sources", "tool-call", "suggestions", "message-actions"] },
+      { id: "ai", name: "AI interfaces", summary: "Conversations with a model: prompts, streaming, reasoning, sources, tool calls and suggestions.", entries: ["conversation", "prompt-input", "streaming-message", "reasoning", "sources", "tool-call", "suggestions", "message-actions", "model-picker", "usage-meter", "voice-input"] },
       { id: "devtools", name: "Developer tools", summary: "For people who read code: diffs, JSON, a terminal and a live log.", entries: ["diff-viewer", "json-viewer", "terminal", "terminal-script", "log-stream"] },
-      { id: "commerce", name: "Commerce", summary: "Selling things: galleries, quick view, the cart, checkout, reviews, filters, orders and invoices.", entries: ["product-gallery", "product-quick-view", "cart-drawer", "checkout-form", "reviews-summary", "category-filters", "order-history", "invoice"] },
+      { id: "commerce", name: "Commerce", summary: "Selling things: galleries, quick view, the cart, checkout, reviews, filters, orders and invoices.", entries: ["product-gallery", "product-quick-view", "cart-drawer", "checkout-form", "reviews-summary", "category-filters", "order-history", "invoice", "size-picker", "stars", "coupon-field", "shipment-tracker"] },
       { id: "marketing", name: "Marketing", summary: "Sections for a public site: heroes, features, stats, pricing calls, FAQs, testimonials, blogs and footers.", entries: ["hero", "feature-split", "bento-grid", "feature-tabs", "stats-section", "cta-section", "newsletter", "contact-section", "team-grid", "faq-section", "testimonials", "blog-list", "changelog", "headings", "not-found", "footer", "powered-by-kiln"] },
     ],
   },
@@ -95,6 +96,7 @@ const FALLBACK: Record<string, string> = {
   pickers: "pickers", navigation: "menus", workspace: "workspace", apps: "workspace", overlays: "overlays",
   feedback: "status", communication: "communication", ai: "ai", data: "display", devtools: "devtools", charts: "charts",
   media: "media", surfaces: "cards", layouts: "shells", marketing: "marketing", commerce: "commerce", effects: "effects",
+  accessibility: "accessibility", "additions-a": "forms", "additions-b": "commerce",
 };
 
 const modules = import.meta.glob<{ category: Category }>("./demos/*.tsx", { eager: true });

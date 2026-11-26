@@ -13,6 +13,6 @@ export const category: Category = {
     { id: "toggle-button", name: "Toggle button", summary: "A button that stays on, with its icon swapping as it does.", files: ["src/kiln/components/buttons/ToggleButton.tsx", "src/kiln/controllable.ts", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: ToggleDemo },
     { id: "copy-button", name: "Copy button", summary: "Copies text and confirms with a drawn tick.", files: ["src/kiln/components/buttons/CopyButton.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: CopyDemo },
     { id: "link", name: "Link", summary: "Inline text link with an underline that draws in from the left.", files: ["src/kiln/components/buttons/Link.tsx", "src/kiln/cn.ts"], Demo: LinkDemo },
-    { id: "hold-button", name: "Hold to confirm", summary: "For actions that cannot be undone: fills while held, rewinds when released early.", files: ["src/kiln/components/buttons/HoldButton.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts"], Demo: HoldDemo },
+    { id: "hold-button", name: "Hold to confirm", summary: "For actions that cannot be undone: fills while held, rewinds when released early.", files: ["src/kiln/components/buttons/HoldButton.tsx", "src/kiln/motion.ts", "src/kiln/cn.ts", "src/kiln/a11y.tsx", "src/kiln/controllable.ts"], Demo: HoldDemo },
   ],
 };

@@ -36,23 +36,23 @@ Components use the shared hook `useControllable(value, defaultValue, onChange)` 
 
 | Kind of state | Value | Start value | Change handler | Components |
 | --- | --- | --- | --- | --- |
-| A chosen value | `value` | `defaultValue` | `onChange(value)` | Select, Combobox, RadioGroup, SegmentedControl, CheckboxGroup, ColorSwatches, Slider (`number[]`), NumberField, TagInput, OTPInput, Tabs, Accordion (open ids; start with `defaultOpen`), ChipFilter (`string[]`, or `string \| null` with `multiple={false}`), PhoneInput (`{ country, national }`), CurrencyInput (cents or `null`), DatePicker (`Date \| null`), Calendar (`Date | null`, or `{ start, end }` with `mode="range"`; also `defaultMonth`), DateRangePicker (`{ start, end }`), TimePicker (`{ hours, minutes }`), InlineEdit, SizePicker, SidebarNav (active id), DocsNav (active id; change handler is `onSelect(id, groupId)`), CategoryFilters, Rating (number, 0 for none), ColorPicker and ColorPickerPanel (hex string), AvatarUpload (URL or `null`), ProductGallery (index), BillingToggle (`"monthly" \| "yearly"`), CompareSlider (0 to 100), Carousel (index), FeatureTabs (index), ExpandableCards (open id or `null`), AppShell (active nav id; change handler is `onNavigate(id)`), MessageActions (`"up" \| "down" \| null`; handler is `onFeedback`), CalendarMonth (`Date`), RichTextEditor (HTML), MessageComposer, ChatThread, CommentFeed, PlaceholderInput (draft text; the box clears after a send), NotificationPreferences (`{ [eventId]: { [channelId]: boolean } }`), TreeView (selected id or `null`; handler is `onSelect(id, node)`) |
+| A chosen value | `value` | `defaultValue` | `onChange(value)` | Select, Combobox, RadioGroup, SegmentedControl, CheckboxGroup, ColorSwatches, Slider (`number[]`), NumberField, TagInput, OTPInput, Tabs, Accordion (open ids; start with `defaultOpen`), ChipFilter (`string[]`, or `string \| null` with `multiple={false}`), PhoneInput (`{ country, national }`), CurrencyInput (cents or `null`), DatePicker (`Date \| null`), Calendar (`Date | null`, or `{ start, end }` with `mode="range"`; also `defaultMonth`), DateRangePicker (`{ start, end }`), TimePicker (`{ hours, minutes }`), InlineEdit, SizePicker, ModelPicker, Cascader (path of ids), TransferList (chosen ids), BottomTabBar, TableOfContents (active id), SidebarNav (active id), DocsNav (active id; change handler is `onSelect(id, groupId)`), CategoryFilters, Rating (number, 0 for none), ColorPicker and ColorPickerPanel (hex string), AvatarUpload (URL or `null`), ProductGallery (index), BillingToggle (`"monthly" \| "yearly"`), CompareSlider (0 to 100), Carousel (index), FeatureTabs (index), ExpandableCards (open id or `null`), AppShell (active nav id; change handler is `onNavigate(id)`), MessageActions (`"up" \| "down" \| null`; handler is `onFeedback`), CalendarMonth (`Date`), RichTextEditor (HTML), MessageComposer, ChatThread, CommentFeed, PlaceholderInput (draft text; the box clears after a send), NotificationPreferences (`{ [eventId]: { [channelId]: boolean } }`), TreeView (selected id or `null`; handler is `onSelect(id, node)`) |
 | Several values at once | `filters` / `query` / `sort` | `defaultFilters` / `defaultQuery` / `defaultSort` | `onFiltersChange` / `onQueryChange` / `onSortChange` | FilterBar. DataGrid also takes `query`, `sort`, `page` and `selected` (`defaultQuery` and so on; `onQueryChange`, `onSortChange`, `onPageChange`, `onSelectedChange`), Table takes `selected` and `sort`, ReviewsSummary takes `sort`, JSONViewer takes `expanded` (a set of paths such as `$.crew[0]`) and `query`, TreeView takes `expanded` (folder ids), and PromptInput takes `model` (`defaultModel`, `onModelChange`) and `attachments` (`defaultAttachments`, `onAttachmentsChange`) next to its `value` |
 | A list of rows or ids | `rows` / `selected` | `defaultRows` / `defaultSelected` | `onChange(rows)` / `onSelectedChange(set)` | KeyValueEditor, StackedList (passing any of the three turns its checkboxes on), Table and DataGrid (`selected`), CommentThread (`comments` / `defaultComments` / `onChange`), CartDrawer (`lines` / `defaultLines` / `onChange`), KanbanBoard (`columns` / `defaultColumns` / `onChange`), SortableList (`items` / `defaultItems` / `onReorder`) |
 | A page | `page` | `defaultPage` | `onChange(page)` | Pagination |
 | On/off | `checked` | `defaultChecked` | `onCheckedChange(bool)` | Switch, Checkbox (also accepts `"indeterminate"`) |
 | Pressed | `pressed` | `defaultPressed` | `onPressedChange(bool)` | ToggleButton |
 | Open/closed | `open` | `defaultOpen` | `onOpenChange(bool)` | Select, Popover, Reasoning (opens and folds with `thinking`), CookieConsent (shows itself and hides after a decision; its `value` / `defaultValue` / `onChange` hold the category choices). Overlays are always controlled; see below. |
-| Text in a native input | `value` | `defaultValue` | `onChange(event)` **and** `onValueChange(text)` | TextField, Textarea, PasswordField, SearchField |
+| Text in a native input | `value` | `defaultValue` | `onChange(event)` **and** `onValueChange(text)` | MaskedInput (`value` is the raw text without the mask), TextField, Textarea, PasswordField, SearchField |
 | Text with mentions | `value` (`@[Name](id)` tokens) | `defaultValue` | `onValueChange(text)`; `onChange({ text, mentions })` is unchanged | MentionsTextarea |
 | A view mode | `view` | `defaultView` | `onViewChange(view)` | DiffViewer (`"split" \| "unified"`) |
 | Playback | `playing` / `volume` (0 to 100) / `muted` / `currentTime` (seconds) | `defaultPlaying` / `defaultVolume` / `defaultMuted` / `defaultCurrentTime` | `onPlayingChange` / `onVolumeChange` / `onMutedChange` / `onTimeChange` | MediaPlayer |
 
-**Always controlled.** These overlays and notices are shown or hidden by your code, so they take `open` (and `onOpenChange` where they can close themselves) with no `defaultOpen`: Dialog, Drawer, AlertDialog, CommandPalette, SpotlightSearch, KeyboardShortcutsSheet, ProductTour, CartDrawer (its cart `lines` still work both ways), ProductQuickView and Banner.
+**Always controlled.** These overlays and notices are shown or hidden by your code, so they take `open` (and `onOpenChange` where they can close themselves) with no `defaultOpen`: TypeToConfirmDialog, SessionTimeout, Dialog, Drawer, AlertDialog, CommandPalette, SpotlightSearch, KeyboardShortcutsSheet, ProductTour, CartDrawer (its cart `lines` still work both ways), ProductQuickView and Banner.
 
 **Keeps its own state.** These whole flows and widgets hold their state inside and report through a callback such as `onSubmit`, `onSend`, `onChange` or `onOpenFile`, so there is no value prop to pass: AuthForms, CheckoutForm, OnboardingWizard, BookingSlots, FileManager, FileDropzone, SignaturePad, ImageCropper, Lightbox, ResizablePanels (`defaultSize`, `onResize`), LogStream, Terminal, WeekCalendar, NotificationCenter, OrderHistory and SplitButton.
 
-**Display only.** A `value` here is data to show, not something the user edits: Progress, ProgressRing, Meter, Stat, GaugeChart, NumberTicker, DescriptionList, CopyButton (`value` is the text it copies), PricingCard (`billing` picks the price shown; change it with BillingToggle), Stepper (`current`), Navbar (`current`), MultiStepLoader and the charts.
+**Display only.** A `value` here is data to show, not something the user edits: UsageMeter, Countdown (`target`), ShipmentTracker (`current`), Progress, ProgressRing, Meter, Stat, GaugeChart, NumberTicker, DescriptionList, CopyButton (`value` is the text it copies), PricingCard (`billing` picks the price shown; change it with BillingToggle), Stepper (`current`), Navbar (`current`), MultiStepLoader and the charts.
 
 Components that wrap a native `<input>` or `<textarea>` also take every native attribute: `name`, `required`, `autoComplete`, `onKeyDown`, `aria-*` and so on. Their `onChange` keeps the native signature, so form libraries work unchanged. `onValueChange` gives you the plain string.
 
@@ -126,6 +126,19 @@ A component with many built-in parts lets you switch each one with a boolean pro
 - RadioGroup has `hideLabel` to keep the name but hide the text.
 - `disabled` works the same everywhere: dimmed, not focusable, no hover.
 - `error` on a field shows the message in place of the hint, sets `aria-invalid` and gives the field one shake.
+
+### `accessibilityFeatures`
+
+Every component takes `accessibilityFeatures?: AccessibilityFeaturesProp` (type in `src/kiln/a11y.tsx`). It adds support for that component only, on top of what the person set in `AccessibilityMenu` and the system settings; it can never switch a person's choice off.
+
+| Value | Meaning |
+| --- | --- |
+| `"all"` / `"none"` | Every feature on (text 125%) / nothing added |
+| a profile | `"low-vision"`, `"colour-blind"`, `"screen-reader"`, `"vestibular"`, `"photosensitive"`, `"motor"`, `"adhd"`, `"dyslexia"`, `"cognitive"`, `"deaf"` |
+| a list | `["adhd", "dyslexia"]`, merged |
+| partial features | `{ calm: true, extendedTime: true, textScale: 1.25 }`; keys: `reduceMotion`, `noFlashing`, `calm`, `highContrast`, `strongFocus`, `textScale`, `readableFont`, `textSpacing`, `largeTargets`, `colourSafe`, `extendedTime`, `screenReaderHints`, `captions` |
+
+`<AccessibilityScope features=...>` applies the same value to a whole subtree. Charts also take `tableToggle` (a "View as table" switch).
 
 ## 6. One example per family
 

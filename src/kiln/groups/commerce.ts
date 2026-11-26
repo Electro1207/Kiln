@@ -2,10 +2,12 @@
 export { type CartDrawerLabels, cartDrawerLabels, type CartDrawerIcons, cartDrawerIcons, CartDrawer } from "../components/commerce/CartDrawer";
 export { type CategoryFiltersLabels, categoryFiltersLabels, type FacetOption, type Facet, type FilterValue, emptyFilters, activeChips, type CategoryFiltersIcons, categoryFiltersIcons, CategoryFilters, FilterPanel } from "../components/commerce/CategoryFilters";
 export { type DeliveryOption, type Promo, type CheckoutDetails, type CheckoutFormLabels, checkoutFormLabels, type CheckoutFormIcons, checkoutFormIcons, CheckoutForm } from "../components/commerce/CheckoutForm";
+export { type CouponResult, type CouponFieldLabels, couponFieldLabels, type CouponFieldIcons, couponFieldIcons, type CouponFieldProps, CouponField } from "../components/commerce/CouponField";
 export { type InvoiceLabels, invoiceLabels, type InvoiceLine, type InvoiceParty, type InvoiceProps, Invoice } from "../components/commerce/Invoice";
 export { type OrderStatus, type Order, type OrderHistoryLabels, orderHistoryLabels, type OrderHistoryIcons, orderHistoryIcons, OrderHistory } from "../components/commerce/OrderHistory";
 export { type ProductGalleryLabels, productGalleryLabels, ProductGallery } from "../components/commerce/ProductGallery";
 export { type QuickViewProduct, type AddToCart, type ProductQuickViewLabels, productQuickViewLabels, type ProductQuickViewIcons, productQuickViewIcons, ProductQuickView } from "../components/commerce/ProductQuickView";
 export { type Review, type StarsLabels, starsLabels, type StarsIcons, starsIcons, Stars, type ReviewsSummaryLabels, reviewsSummaryLabels, type ReviewsSummaryIcons, reviewsSummaryIcons, ReviewsSummary } from "../components/commerce/ReviewsSummary";
+export { type ShipmentStep, shipmentSteps, type ShipmentTrackerLabels, shipmentTrackerLabels, type ShipmentTrackerIcons, shipmentTrackerIcons, type ShipmentTrackerProps, ShipmentTracker } from "../components/commerce/ShipmentTracker";
 export { type SizeOption, type SizePickerLabels, sizePickerLabels, SizePicker } from "../components/commerce/SizePicker";
 export { type ProductImage, type CartLine, type Totals, type TotalsOptions, cartTotals, formatMoney } from "../components/commerce/commerce";
