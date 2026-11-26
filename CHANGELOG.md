@@ -4,6 +4,10 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-11-26
+
+VideoPlayer fixes: controls you can bring back on a phone, and a cleaner poster line.
+
 ### Fixed
 
 - `VideoPlayer` no longer starts the line on its poster with a stray "·" before the chapter count when the video's length is not known yet.
@@ -166,7 +170,8 @@ The first release on npm, published with provenance.
 
 - `Switch` and `HeatStrip` fixes, and zero lint warnings.
 
-[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/Electro1207/Kiln/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/Electro1207/Kiln/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/Electro1207/Kiln/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/Electro1207/Kiln/compare/v0.5.0...v0.6.0
