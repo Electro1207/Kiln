@@ -36,7 +36,12 @@ export function BorderBeam({ children, radius = 16, duration = 7, length = 0.12,
   useEffect(() => {
     const el = box.current;
     if (!el) return;
-    const ro = new ResizeObserver(() => setSize({ w: el.offsetWidth, h: el.offsetHeight }));
+    // The border box to the fraction of a pixel (offsetWidth/Height round, so the outline could miss the edge by up to
+    // half a pixel); borderBoxSize also ignores transforms, so an entrance scale never distorts it.
+    const ro = new ResizeObserver(([entry]) => {
+      const b = entry?.borderBoxSize?.[0];
+      setSize(b ? { w: b.inlineSize, h: b.blockSize } : { w: el.offsetWidth, h: el.offsetHeight });
+    });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
@@ -63,13 +68,14 @@ export function BorderBeam({ children, radius = 16, duration = 7, length = 0.12,
             <rect
               key={i}
               data-beam
-              x={0.75}
-              y={0.75}
-              width={size.w - 1.5}
-              height={size.h - 1.5}
-              rx={radius - 0.75}
+              // Exactly the 1px border: centred on it, so it never spills onto the fill or doubles the edge.
+              x={0.5}
+              y={0.5}
+              width={size.w - 1}
+              height={size.h - 1}
+              rx={radius - 0.5}
               pathLength={1}
-              strokeWidth={1.5}
+              strokeWidth={1}
               strokeLinecap="round"
               strokeDasharray={`${length} ${1 - length}`}
               strokeDashoffset={-i * 0.5}
