@@ -1,4 +1,4 @@
-import { memo, useEffect, useState, type RefObject } from "react";
+import { memo, useEffect, useRef, useState, type RefObject } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, Copy } from "lucide-react";
 import type { Category, Entry } from "./types";
@@ -6,6 +6,9 @@ import { cn } from "../kiln/cn";
 import { ToastProvider } from "../kiln/components/notices/Toast";
 import { easeOut, springSnappy, fade } from "../kiln/motion";
 import { KILN_PACKAGE, KILN_SITE } from "./site";
+import { a11yMetaFor } from "./a11y-meta";
+import { A11yPlainNote, A11yTab } from "./a11yView";
+import { useA11yView } from "./a11yViewStore";
 
 /* Source of every library file, loaded only when someone opens the Code tab. */
 const sources = import.meta.glob<string>("../kiln/**/*.{ts,tsx,css}", { query: "?raw", import: "default" });
@@ -76,7 +79,17 @@ export const CategoryPage = memo(function CategoryPage({ category, root, onActiv
 });
 
 function EntryBlock({ entry }: { entry: Entry }) {
-  const [tab, setTab] = useState<"preview" | "code">("preview");
+  const view = useA11yView();
+  const meta = a11yMetaFor(entry.id);
+  const [tab, setTab] = useState<"preview" | "code" | "accessibility">(view && meta ? "accessibility" : "preview");
+  /* Turning the view on selects the Accessibility tab; turning it off leaves it. */
+  const seen = useRef(view);
+  useEffect(() => {
+    if (seen.current === view) return;
+    seen.current = view;
+    setTab((t) => (view ? (meta ? "accessibility" : t) : t === "accessibility" ? "preview" : t));
+  }, [view, meta]);
+  const tabs = view && meta ? (["preview", "code", "accessibility"] as const) : (["preview", "code"] as const);
   return (
     <section id={entry.id} aria-labelledby={`${entry.id}-title`} className="scroll-mt-6">
       {/* Only the small heading block rises in: fading a whole demo section would ask the browser to
@@ -93,7 +106,7 @@ function EntryBlock({ entry }: { entry: Entry }) {
           <p className="mt-1 text-muted">{entry.summary}</p>
         </div>
         <div role="tablist" aria-label={`${entry.name} view`} className="inline-flex shrink-0 self-start rounded-full bg-raised p-1 sm:self-auto">
-          {(["preview", "code"] as const).map((t) => (
+          {tabs.map((t) => (
             <button
               key={t}
               role="tab"
@@ -109,8 +122,14 @@ function EntryBlock({ entry }: { entry: Entry }) {
         </div>
       </motion.div>
 
+      {view && !meta && <A11yPlainNote />}
+
       <AnimatePresence mode="wait" initial={false}>
-        {tab === "preview" ? (
+        {tab === "accessibility" && meta ? (
+          <motion.div key="accessibility" initial={{ opacity: 0, scale: 0.995 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.995 }} transition={{ duration: 0.18, ease: easeOut }}>
+            <A11yTab entry={entry} meta={meta} />
+          </motion.div>
+        ) : tab === "preview" || (tab === "accessibility" && !meta) ? (
           <motion.div key="preview" initial={{ opacity: 0, scale: 0.995 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.995 }} transition={{ duration: 0.18, ease: easeOut }}>
             <ToastProvider><entry.Demo /></ToastProvider>
           </motion.div>

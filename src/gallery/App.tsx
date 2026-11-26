@@ -23,6 +23,10 @@ import { Kbd } from "../kiln/components/data-display/Kbd";
 import { CommandPalette, useCommandShortcut, type CommandItem } from "../kiln/components/menus/CommandPalette";
 import { useThemeActions } from "../kiln/theme";
 import { easeOut } from "../kiln/motion";
+import { AccessibilityMenu } from "../kiln/components/accessibility/AccessibilityMenu";
+import { SkipLink } from "../kiln/components/accessibility/SkipLink";
+import { A11yViewToggle } from "./a11yView";
+import { useA11yView } from "./a11yViewStore";
 
 const CREDITS = [
   { text: "“Medalta Potteries kilns” by Grapher78, CC BY 3.0", page: "https://commons.wikimedia.org/w/index.php?curid=17302609" },
@@ -48,7 +52,8 @@ const subscribeSpy = (l: () => void) => { spyListeners.add(l); return () => void
 
 const NavWithSpy = memo(function NavWithSpy({ route, onNavigate, brand }: { route: Route; onNavigate: (r: Route) => void; brand?: boolean }) {
   const activeEntry = useSyncExternalStore(subscribeSpy, () => spyEntry);
-  return <Sidebar route={route} activeEntry={activeEntry} onNavigate={onNavigate} brand={brand} />;
+  const a11yView = useA11yView();
+  return <Sidebar route={route} activeEntry={activeEntry} onNavigate={onNavigate} brand={brand} a11yView={a11yView} />;
 });
 
 export default function App() {
@@ -146,6 +151,7 @@ function Shell() {
 
   return (
     <div className="flex h-dvh bg-ground text-ink">
+      <SkipLink href="#main" />
       <aside className="hidden w-[260px] shrink-0 lg:flex">{nav}</aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -190,12 +196,16 @@ function Shell() {
               <GitHubMark className="size-[18px]" />
             </a>
           </Tooltip>
+          <A11yViewToggle />
+          <AccessibilityMenu />
           <ThemeToggle />
         </header>
 
         <div
           ref={sheet}
-          className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain border-line bg-surface lg:mb-2 lg:mr-2 lg:rounded-[16px] lg:border"
+          id="main"
+          tabIndex={-1}
+          className="relative outline-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain border-line bg-surface lg:mb-2 lg:mr-2 lg:rounded-[16px] lg:border"
           style={{ scrollbarGutter: "stable" }}
         >
           <AnimatePresence mode="wait" initial={false} onExitComplete={() => sheet.current?.scrollTo({ top: 0 })}>
