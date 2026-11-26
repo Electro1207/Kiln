@@ -4,6 +4,10 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+### Fixed
+
+- `VideoPlayer` no longer starts the line on its poster with a stray "·" before the chapter count when the video's length is not known yet.
+
 ## [0.7.0] - 2026-11-26
 
 A video player you can drive from outside and shape to your product: switch any control off, add your own, mark moments on the timeline.
