@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { animate, motion, useMotionValue } from "motion/react";
 import { ArrowDown, ArrowUp, ArrowUpToLine, MoreHorizontal, MoveRight } from "lucide-react";
@@ -7,6 +7,8 @@ import { useControllable } from "../../controllable";
 import { springFirm, springSoft } from "../../motion";
 import { SwapText } from "../shared/Anchored";
 import { DropdownMenu, type MenuEntry } from "../menus/DropdownMenu";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { announce } from "../accessibility/announce";
 
 export type KanbanTone = "neutral" | "info" | "positive" | "warning" | "negative";
 export type KanbanCard = { id: string; title: string; tag?: { label: string; tone?: KanbanTone }; assignee?: string; meta?: string };
@@ -26,6 +28,8 @@ export type KanbanBoardProps = {
   /** Replace any built-in icon. Merged over `kanbanBoardIcons`. */
   icons?: Partial<KanbanBoardIcons>;
   className?: string;
+  /** Accessibility features to add for this board only (adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Text used by KanbanBoard. Pass a partial via `labels` to translate or reword. */
@@ -42,6 +46,16 @@ export interface KanbanBoardLabels {
   moveCard: (title: string) => string;
   /** Text of an empty column. */
   empty: string;
+  /** Read out on a card to explain the keyboard way to move it. */
+  instructions: string;
+  /** Announced when a card is picked up with Space: "Picked up “Title”, position 2 of 5 in Done." */
+  pickedUp: (title: string, position: number, count: number, column: string) => string;
+  /** Announced after each keyboard move or menu move. */
+  moved: (title: string, position: number, count: number, column: string) => string;
+  /** Announced when a card is dropped with Space. */
+  dropped: (title: string, position: number, count: number, column: string) => string;
+  /** Announced when Esc puts a card back. */
+  cancelled: (title: string) => string;
 }
 /** Icons used by KanbanBoard. Pass a partial via `icons` to swap any of them. */
 export interface KanbanBoardIcons {
@@ -70,6 +84,11 @@ export const kanbanBoardLabels: KanbanBoardLabels = {
   moveDown: "Move down",
   moveCard: (t) => `Move “${t}”`,
   empty: "Nothing here yet",
+  instructions: "Press Space to pick up. Arrow keys move it, Space drops it, Escape cancels.",
+  pickedUp: (t, p, n, c) => `Picked up “${t}”, position ${p} of ${n} in ${c}. Arrow keys to move, Space to drop, Escape to cancel.`,
+  moved: (t, p, n, c) => `“${t}” moved to ${c}, position ${p} of ${n}.`,
+  dropped: (t, p, n, c) => `Dropped “${t}” in ${c}, position ${p} of ${n}.`,
+  cancelled: (t) => `Move cancelled. “${t}” is back where it was.`,
 };
 
 type Drag = {
@@ -124,7 +143,7 @@ function DefaultCard({ card }: { card: KanbanCard }) {
           {card.assignee && (
             <span
               title={card.assignee}
-              className="ml-auto grid size-6 place-items-center rounded-full bg-accent-soft text-[11px] font-medium text-ink"
+              className="ml-auto grid size-6 place-items-center rounded-full bg-accent-soft text-[0.6875rem] font-medium text-ink"
             >
               {card.assignee.split(" ").map((w) => w[0]).slice(0, 2).join("")}
             </span>
@@ -139,7 +158,9 @@ function DefaultCard({ card }: { card: KanbanCard }) {
  * Columns of cards. Drag a card within or between columns (a long press
  * starts the drag on touch), or use its menu to move it from the keyboard.
  */
-export function KanbanBoard({ columns: columnsProp, defaultColumns, onChange: onChangeProp, renderCard, labels, icons, className }: KanbanBoardProps) {
+export function KanbanBoard({ columns: columnsProp, defaultColumns, onChange: onChangeProp, renderCard, labels, icons, className, accessibilityFeatures }: KanbanBoardProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
+  const helpId = useId();
   const [columns, onChange] = useControllable<KanbanColumn[]>(columnsProp, defaultColumns ?? [], onChangeProp);
   const l = { ...kanbanBoardLabels, ...labels };
   const ic = { ...kanbanBoardIcons, ...icons };
@@ -161,6 +182,74 @@ export function KanbanBoard({ columns: columnsProp, defaultColumns, onChange: on
   useEffect(() => {
     columnsRef.current = columns;
   });
+
+  // Keyboard pick-up: moves apply at once; Escape restores the board as it was when picked up.
+  const held = useRef<{ id: string; before: KanbanColumn[] } | null>(null);
+  const [heldId, setHeldId] = useState<string | null>(null);
+  const focusCard = (cardId: string) =>
+    requestAnimationFrame(() => boardRef.current?.querySelector<HTMLElement>(`[data-card="${CSS.escape(cardId)}"]`)?.focus());
+  const place = (cols: KanbanColumn[], cardId: string) => {
+    const col = cols.find((c) => c.cards.some((k) => k.id === cardId))!;
+    const index = col.cards.findIndex((k) => k.id === cardId);
+    return { col, index, card: col.cards[index] };
+  };
+  const onCardKey = (e: ReactKeyboardEvent<HTMLDivElement>, card: KanbanCard) => {
+    if (e.target !== e.currentTarget) return;
+    const cols = columnsRef.current;
+    const cur = place(cols, card.id);
+    if (!held.current) {
+      if (e.key !== " " && e.key !== "Enter") return;
+      e.preventDefault();
+      held.current = { id: card.id, before: cols };
+      setHeldId(card.id);
+      announce(l.pickedUp(card.title, cur.index + 1, cur.col.cards.length, cur.col.title), "assertive");
+      return;
+    }
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      held.current = null;
+      setHeldId(null);
+      announce(l.dropped(card.title, cur.index + 1, cur.col.cards.length, cur.col.title), "assertive");
+      return;
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      const before = held.current.before;
+      held.current = null;
+      setHeldId(null);
+      onChange(before);
+      announce(l.cancelled(card.title), "assertive");
+      focusCard(card.id);
+      return;
+    }
+    const colIndex = cols.indexOf(cur.col);
+    let to: { col: KanbanColumn; index: number } | null = null;
+    if (e.key === "ArrowUp") to = { col: cur.col, index: cur.index - 1 };
+    else if (e.key === "ArrowDown") to = { col: cur.col, index: cur.index + 1 };
+    else if (e.key === "ArrowLeft" && colIndex > 0) to = { col: cols[colIndex - 1], index: cur.index };
+    else if (e.key === "ArrowRight" && colIndex < cols.length - 1) to = { col: cols[colIndex + 1], index: cur.index };
+    else if (e.key === "Home") to = { col: cur.col, index: 0 };
+    else if (e.key === "End") to = { col: cur.col, index: cur.col.cards.length - 1 };
+    else if (e.key === "Tab") {
+      // Leaving the card drops it where it is.
+      held.current = null;
+      setHeldId(null);
+      return;
+    }
+    if (!to) return;
+    e.preventDefault();
+    const size = to.col.id === cur.col.id ? to.col.cards.length : to.col.cards.length + 1;
+    const index = Math.max(0, Math.min(to.index, size - 1));
+    if (to.col.id === cur.col.id && index === cur.index) return;
+    onChange(moveCard(cols, card.id, to.col.id, index));
+    announce(l.moved(card.title, index + 1, size, to.col.title), "assertive");
+    focusCard(card.id);
+  };
+  const menuMove = (card: KanbanCard, toCol: KanbanColumn, index: number, count: number) => {
+    onChange(moveCard(columns, card.id, toCol.id, index));
+    announce(l.moved(card.title, Math.min(index, count - 1) + 1, count, toCol.title), "assertive");
+    focusMenu(card.id);
+  };
 
   const focusMenu = (cardId: string) =>
     requestAnimationFrame(() => boardRef.current?.querySelector<HTMLElement>(`[data-card-menu="${CSS.escape(cardId)}"]`)?.focus());
@@ -282,19 +371,17 @@ export function KanbanBoard({ columns: columnsProp, defaultColumns, onChange: on
       .map((c) => ({
         label: l.moveToColumn(c.title),
         icon: ic.moveToColumn,
-        onSelect: () => {
-          onChange(moveCard(columns, card.id, c.id, c.cards.length));
-          focusMenu(card.id);
-        },
+        onSelect: () => menuMove(card, c, c.cards.length, c.cards.length + 1),
       })),
     { type: "separator" },
-    { label: l.moveToTop, icon: ic.moveToTop, disabled: index === 0, onSelect: () => { onChange(moveCard(columns, card.id, col.id, 0)); focusMenu(card.id); } },
-    { label: l.moveUp, icon: ic.moveUp, disabled: index === 0, onSelect: () => { onChange(moveCard(columns, card.id, col.id, index - 1)); focusMenu(card.id); } },
-    { label: l.moveDown, icon: ic.moveDown, disabled: index === col.cards.length - 1, onSelect: () => { onChange(moveCard(columns, card.id, col.id, index + 1)); focusMenu(card.id); } },
+    { label: l.moveToTop, icon: ic.moveToTop, disabled: index === 0, onSelect: () => menuMove(card, col, 0, col.cards.length) },
+    { label: l.moveUp, icon: ic.moveUp, disabled: index === 0, onSelect: () => menuMove(card, col, index - 1, col.cards.length) },
+    { label: l.moveDown, icon: ic.moveDown, disabled: index === col.cards.length - 1, onSelect: () => menuMove(card, col, index + 1, col.cards.length) },
   ];
 
   return (
-    <div ref={boardRef} className={cn("flex w-full gap-3 overflow-x-auto pb-2", drag && "select-none", className)}>
+    <div {...rootProps} ref={boardRef} className={cn("flex w-full gap-3 overflow-x-auto pb-2", drag && "select-none", className)}>
+      <span id={helpId} className="sr-only">{l.instructions}</span>
       {columns.map((col) => {
         const shown = col.cards.filter((c) => c.id !== drag?.card.id);
         const count = col.cards.length + (drag && drag.to === col.id && drag.from !== col.id ? 1 : 0) - (drag && drag.from === col.id && drag.to !== col.id ? 1 : 0);
@@ -335,7 +422,13 @@ export function KanbanBoard({ columns: columnsProp, defaultColumns, onChange: on
                     layout="position"
                     transition={springFirm}
                     onPointerDown={(e) => startPress(e, it, col.id, col.cards.indexOf(it))}
-                    className="group relative cursor-grab rounded-card bg-elevated p-3 active:cursor-grabbing"
+                    onKeyDown={(e) => onCardKey(e, it)}
+                    tabIndex={0}
+                    data-card={it.id}
+                    aria-roledescription="draggable card"
+                    aria-describedby={helpId}
+                    aria-grabbed={heldId === it.id || undefined}
+                    className={cn("group relative cursor-grab rounded-card bg-elevated p-3 active:cursor-grabbing", heldId === it.id && "ring-2 ring-accent")}
                     style={{ touchAction: "pan-x pan-y" }}
                   >
                     {renderCard ? renderCard(it) : <DefaultCard card={it} />}
@@ -364,7 +457,7 @@ export function KanbanBoard({ columns: columnsProp, defaultColumns, onChange: on
                 ),
               )}
               {items.length === 0 && (
-                <p className="grid flex-1 place-items-center rounded-card px-3 py-6 text-center text-[13px] text-muted">{l.empty}</p>
+                <p className="grid flex-1 place-items-center rounded-card px-3 py-6 text-center text-[0.8125rem] text-muted">{l.empty}</p>
               )}
             </div>
           </section>

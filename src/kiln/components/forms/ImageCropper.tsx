@@ -1,7 +1,8 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { animate, motion, useMotionValue } from "motion/react";
+import { animate, motion, useMotionValue, useMotionValueEvent } from "motion/react";
 import { cn } from "../../cn";
 import { springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { Slider } from "../choice-controls/Slider";
 
 /** Text used by ImageCropper. Pass a partial via `labels` to translate or reword. */
@@ -10,10 +11,14 @@ export interface ImageCropperLabels {
   crop: string;
   /** Label of the zoom slider. */
   zoom: string;
+  /** aria-valuetext of the crop area: "Zoom 150%, 20% left, 0% up". */
+  valueText: (zoomPercent: number, panX: number, panY: number) => string;
 }
 export const imageCropperLabels: ImageCropperLabels = {
   crop: "Crop picture. Drag or use the arrow keys to move it, plus and minus to zoom.",
   zoom: "Zoom",
+  valueText: (z, px, py) =>
+    `Zoom ${z}%, ${px === 0 ? "centred across" : `${Math.abs(px)}% ${px < 0 ? "left" : "right"}`}, ${py === 0 ? "centred down" : `${Math.abs(py)}% ${py < 0 ? "up" : "down"}`}`,
 };
 
 export type ImageCropperHandle = {
@@ -34,7 +39,11 @@ export const ImageCropper = forwardRef<ImageCropperHandle, {
   className?: string;
   /** Override any UI text. Merged over `imageCropperLabels`. */
   labels?: Partial<ImageCropperLabels>;
-}>(function ImageCropper({ src, size = 240, maxZoom = 3, shape = "round", className, labels }, ref) {
+  /** Accessibility features to add for this cropper only (adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
+}>(function ImageCropper({ src, size = 240, maxZoom = 3, shape = "round", className, labels, accessibilityFeatures }, ref) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
   const l = { ...imageCropperLabels, ...labels };
   const stage = useRef<HTMLDivElement>(null);
   const imgEl = useRef<HTMLImageElement | null>(null);
@@ -61,6 +70,15 @@ export const ImageCropper = forwardRef<ImageCropperHandle, {
     return { mx: Math.max(0, (natural.w * base * z - size) / 2), my: Math.max(0, (natural.h * base * z - size) / 2) };
   }, [natural, base, size]);
   const clamp = (v: number, m: number) => Math.min(m, Math.max(-m, v));
+
+  const syncPan = useCallback(() => {
+    const { mx, my } = limits(zoom);
+    const nx = mx ? Math.round((x.get() / mx) * 100) : 0;
+    const ny = my ? Math.round((y.get() / my) * 100) : 0;
+    setPan((p) => (p.x === nx && p.y === ny ? p : { x: nx, y: ny }));
+  }, [limits, zoom, x, y]);
+  useMotionValueEvent(x, "change", syncPan);
+  useMotionValueEvent(y, "change", syncPan);
 
   useEffect(() => {
     animate(scale, zoom, springFirm);
@@ -113,11 +131,16 @@ export const ImageCropper = forwardRef<ImageCropperHandle, {
 
   const r = size / 2;
   return (
-    <div className={cn("flex flex-col items-center gap-5", className)}>
+    <div {...rootProps} className={cn("flex flex-col items-center gap-5", className)}>
       <div
         ref={stage}
-        role="application"
+        role="slider"
+        aria-roledescription="image cropper"
         aria-label={l.crop}
+        aria-valuemin={100}
+        aria-valuemax={maxZoom * 100}
+        aria-valuenow={Math.round(zoom * 100)}
+        aria-valuetext={l.valueText(Math.round(zoom * 100), -pan.x, -pan.y)}
         tabIndex={0}
         onKeyDown={onKey}
         onPointerDown={(e) => {

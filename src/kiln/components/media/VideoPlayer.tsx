@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useId, useImperative
 import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
 import { Captions, Check, ChevronLeft, ChevronRight, Keyboard, Maximize, Minimize, PictureInPicture2, RectangleHorizontal, RotateCcw, Settings, Volume1, Volume2, VolumeX, X } from "lucide-react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { easeOut, fade, springFirm, springSnappy, springSoft } from "../../motion";
 
 export type VideoRendition = { label: string; src: string; height: number };
@@ -292,6 +293,8 @@ export type VideoPlayerProps = {
   /** Replace any built-in icon. Merged over `videoPlayerIcons`. */
   icons?: Partial<VideoPlayerIcons>;
   className?: string;
+  /** Accessibility features to add for this player only. `captions` starts it with captions on, when it has any. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Icons used by VideoPlayer. Pass a partial via `icons` to swap any of them. */
@@ -421,7 +424,7 @@ function frameStyle(p: Previews, t: number, w: number) {
 const PLAY = ["M7 4.5 L12.6 7.9 L12.6 16.1 L7 19.5 Z", "M12.6 7.9 L19.5 12 L19.5 12 L12.6 16.1 Z"];
 const PAUSE = ["M6 5 L10 5 L10 19 L6 19 Z", "M14 5 L18 5 L18 19 L14 19 Z"];
 
-const CAPTION_SIZES = { S: "text-[13px] sm:text-[15px]", M: "text-[15px] sm:text-[18px]", L: "text-[18px] sm:text-[24px]" } as const;
+const CAPTION_SIZES = { S: "text-[0.8125rem] sm:text-[0.9375rem]", M: "text-[0.9375rem] sm:text-[1.125rem]", L: "text-[1.125rem] sm:text-[1.5rem]" } as const;
 type CaptionSize = keyof typeof CAPTION_SIZES;
 
 type Page = "main" | "speed" | "quality" | "captions" | "chapters";
@@ -449,8 +452,9 @@ export function VideoPlayer({
   skipButtons = 10, volume: showVolume = true, speed: showSpeed = true, quality: showQuality = true, pip: showPip = true, theaterButton = true, fullscreen: showFullscreen = true,
   keyboard = true, autoHideControls = HIDE_AFTER, bigPlayButton = true, controlsStart, controlsEnd, overlay, onKeyDown, shortcuts,
   onTimeUpdate, onPlay, onPause, onEnded, onSeek, onLoadedMetadata, onRateChange, onVolumeChange, onFullscreenChange,
-  autoPlay = false, loop = false, defaultMuted, freeze = false, theater = false, onTheaterChange, labels, icons, className,
+  autoPlay = false, loop = false, defaultMuted, freeze = false, theater = false, onTheaterChange, labels, icons, className, accessibilityFeatures,
 }: VideoPlayerProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...videoPlayerLabels, ...labels };
   const ic = useMemo(() => ({ ...videoPlayerIcons, ...icons }), [icons]);
   const root = useRef<HTMLDivElement>(null);
@@ -473,7 +477,11 @@ export function VideoPlayer({
   const [muted, setMuted] = useState(defaultMuted ?? autoPlay);
   const heldByViewer = useRef(false);
   const [volumeState, setVolumeState] = useState(0.8);
-  const [cc, setCc] = useState(false);
+  const [cc, setCc] = useState(a11y.captions && hasCaptions);
+  // Captions start on for people who asked for them, also when the setting changes while the player is open.
+  useEffect(() => {
+    if (a11y.captions && hasCaptions) setCc(true);
+  }, [a11y.captions, hasCaptions]);
   const [ccSize, setCcSize] = useState<CaptionSize>("M");
   const [cue, setCue] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
@@ -892,6 +900,7 @@ export function VideoPlayer({
   return (
     <VideoIconsContext value={ic}>
       <div
+        {...rootProps}
         ref={root}
         tabIndex={0}
         role="region"
@@ -945,7 +954,7 @@ export function VideoPlayer({
               <div className="absolute inset-0 grid place-items-center">
                 <div className="flex flex-col items-center gap-1.5 text-white">
                   <SeekChevrons side={ripple.side} k={ripple.key} />
-                  <span className="text-[13px] font-semibold tabular">{ripple.total} seconds</span>
+                  <span className="text-[0.8125rem] font-semibold tabular">{ripple.total} seconds</span>
                 </div>
               </div>
             </motion.div>
@@ -1013,11 +1022,11 @@ export function VideoPlayer({
               <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-4 text-white sm:p-6">
                 {showTitle && (
                   <div className="min-w-0">
-                    <p className="truncate text-lg font-semibold tracking-[-0.01em] sm:text-[26px] sm:leading-8">{title}</p>
-                    {subtitle && <p className="mt-0.5 truncate text-[13px] text-white/75 sm:text-[15px]">{subtitle}</p>}
+                    <p className="truncate text-lg font-semibold tracking-[-0.01em] sm:text-[1.625rem] sm:leading-8">{title}</p>
+                    {subtitle && <p className="mt-0.5 truncate text-[0.8125rem] text-white/75 sm:text-[0.9375rem]">{subtitle}</p>}
                   </div>
                 )}
-                <p className={cn("shrink-0 text-[13px] font-medium tabular text-white/80", !showTitle && "ml-auto")}>
+                <p className={cn("shrink-0 text-[0.8125rem] font-medium tabular text-white/80", !showTitle && "ml-auto")}>
                   {duration ? fmt(duration) : ""}
                   {chapters.length > 0 && (
                     <span className="hidden sm:inline">
@@ -1062,7 +1071,7 @@ export function VideoPlayer({
           {ended && (
             <motion.div key="end" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={fade} className="absolute inset-0 grid place-items-center bg-black/70 p-4">
               <div className="flex w-full max-w-[640px] flex-col items-center text-center text-white">
-                <p className="text-[13px] text-white/70">{l.youWatched}</p>
+                <p className="text-[0.8125rem] text-white/70">{l.youWatched}</p>
                 <p className="mt-0.5 text-lg font-semibold sm:text-xl">{title}</p>
                 <motion.button
                   type="button"
@@ -1094,8 +1103,8 @@ export function VideoPlayer({
                         <span className="block w-fit overflow-hidden rounded-[8px] ring-1 ring-white/15 transition-[box-shadow] group-hover/ch:ring-white/60">
                           <span className="block transition-transform duration-500 ease-out-soft group-hover/ch:scale-[1.04]" style={frameStyle(previews, c.start + 1, 140)} />
                         </span>
-                        <span className="mt-1.5 block truncate text-[12px] font-medium text-white">{c.title}</span>
-                        <span className="block text-[11px] tabular text-white/60">{fmt(c.start)}</span>
+                        <span className="mt-1.5 block truncate text-[0.75rem] font-medium text-white">{c.title}</span>
+                        <span className="block text-[0.6875rem] tabular text-white/60">{fmt(c.start)}</span>
                       </motion.button>
                     ))}
                   </div>
@@ -1116,8 +1125,8 @@ export function VideoPlayer({
             <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
             <div className="relative flex items-start gap-3 px-4 pt-3.5 text-white sm:px-5 sm:pt-4">
               <div className="min-w-0">
-                <p className="truncate text-[15px] font-semibold sm:text-base">{title}</p>
-                {chapters.length > 0 && !showChapterTitle && <motion.p className="truncate text-[13px] text-white/70">{currentChapter}</motion.p>}
+                <p className="truncate text-[0.9375rem] font-semibold sm:text-base">{title}</p>
+                {chapters.length > 0 && !showChapterTitle && <motion.p className="truncate text-[0.8125rem] text-white/70">{currentChapter}</motion.p>}
               </div>
             </div>
           </motion.div>
@@ -1151,7 +1160,7 @@ export function VideoPlayer({
                 type="button"
                 onClick={() => setRemaining((r) => !r)}
                 aria-label={remaining ? l.showTotal : l.showRemaining}
-                className="w-11 shrink-0 rounded-[6px] text-right text-[12.5px] font-medium tabular text-white/75 transition-colors hover:text-white"
+                className="w-11 shrink-0 rounded-[6px] text-right text-[0.78125rem] font-medium tabular text-white/75 transition-colors hover:text-white"
               >
                 {remaining ? <RemainingText time={time} duration={duration} /> : fmt(duration)}
               </button>
@@ -1173,13 +1182,13 @@ export function VideoPlayer({
               {showVolume && <VolumeControl volume={volume} level={volumeState} muted={muted} onToggle={toggleMute} onChange={setVol} l={l} />}
               {controlsStart?.(handle)}
               {showChapterTitle && chapters.length > 0 ? (
-                <motion.span className="mx-2 min-w-0 flex-1 truncate text-[13px] font-medium text-white/80">{currentChapter}</motion.span>
+                <motion.span className="mx-2 min-w-0 flex-1 truncate text-[0.8125rem] font-medium text-white/80">{currentChapter}</motion.span>
               ) : (
                 <span className="flex-1" />
               )}
               {controlsEnd?.(handle)}
               {showSpeed && speed !== 1 && (
-                <button type="button" onClick={() => setMenu("speed")} className="mr-1 hidden h-6 items-center rounded-full bg-white/15 px-2 text-[11.5px] font-semibold tabular text-white sm:flex">
+                <button type="button" onClick={() => setMenu("speed")} className="mr-1 hidden h-6 items-center rounded-full bg-white/15 px-2 text-[0.71875rem] font-semibold tabular text-white sm:flex">
                   {speed}×
                 </button>
               )}
@@ -1281,7 +1290,7 @@ export function VideoPlayer({
                 className="max-h-full w-full max-w-[520px] overflow-y-auto rounded-[14px] bg-surface p-4 text-white ring-1 ring-white/10 sm:p-5"
               >
                 <div className="mb-3 flex items-center justify-between">
-                  <p className="text-[15px] font-semibold">{l.keyboardShortcuts}</p>
+                  <p className="text-[0.9375rem] font-semibold">{l.keyboardShortcuts}</p>
                   <button
                     type="button"
                     autoFocus
@@ -1295,13 +1304,13 @@ export function VideoPlayer({
                     {ic.close}
                   </button>
                 </div>
-                <dl className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-[13px] sm:grid-cols-2">
+                <dl className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-[0.8125rem] sm:grid-cols-2">
                   {sheetRows.map(([keys, what]) => (
                     <div key={what} className="flex items-center justify-between gap-3">
                       <dt className="text-white/75">{what}</dt>
                       <dd className="flex gap-1">
                         {keys.split("  ").map((k) => (
-                          <kbd key={k} className="min-w-6 rounded-[5px] bg-white/10 px-1.5 text-center text-[12px] font-medium leading-6 text-white">{k}</kbd>
+                          <kbd key={k} className="min-w-6 rounded-[5px] bg-white/10 px-1.5 text-center text-[0.75rem] font-medium leading-6 text-white">{k}</kbd>
                         ))}
                       </dd>
                     </div>
@@ -1413,7 +1422,7 @@ function SeekChevrons({ side, k }: { side: -1 | 1; k: number }) {
 
 function TimeText({ time, className }: { time: MotionValue<number>; className?: string }) {
   const now = useTransform(time, fmt);
-  return <motion.span className={cn("shrink-0 text-[12.5px] font-medium tabular text-white/90", className)}>{now}</motion.span>;
+  return <motion.span className={cn("shrink-0 text-[0.78125rem] font-medium tabular text-white/90", className)}>{now}</motion.span>;
 }
 
 function RemainingText({ time, duration }: { time: MotionValue<number>; duration: number }) {
@@ -1555,7 +1564,7 @@ function Scrubber({ time, played, buffered, duration, chapters, split, markers, 
           key={`${m.time}-${i}`}
           aria-hidden
           className={cn(
-            "pointer-events-none absolute top-1/2 grid size-[18px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full text-[10px] font-bold leading-none tabular",
+            "pointer-events-none absolute top-1/2 grid size-[18px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full text-[0.625rem] font-bold leading-none tabular",
             MARKER_TONES[m.tone ?? "accent"],
           )}
           style={{ left: `${Math.min(1, m.time / duration) * 100}%` }}
@@ -1596,8 +1605,8 @@ function Scrubber({ time, played, buffered, duration, chapters, split, markers, 
             />
           )}
           <div className="mt-2 flex items-baseline justify-center gap-2 text-white">
-            {chapters.length > 0 && <motion.span className="max-w-[160px] truncate text-[12px] font-semibold">{hoverChapter}</motion.span>}
-            <motion.span className="text-[12px] font-medium tabular text-white/75">{hoverText}</motion.span>
+            {chapters.length > 0 && <motion.span className="max-w-[160px] truncate text-[0.75rem] font-semibold">{hoverChapter}</motion.span>}
+            <motion.span className="text-[0.75rem] font-medium tabular text-white/75">{hoverText}</motion.span>
           </div>
         </div>
       </motion.div>
@@ -1667,7 +1676,7 @@ function VolumeControl({ volume, level, muted, onToggle, onChange, l }: { volume
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round((muted ? 0 : level) * 100)}
-        className="relative ml-0.5 mr-2 hidden h-8 w-[72px] cursor-pointer items-center touch-none outline-none sm:flex"
+        className="relative ml-0.5 mr-2 hidden h-8 w-[72px] cursor-pointer items-center touch-none outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:flex"
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId);
           dragging.current = true;
@@ -1750,7 +1759,7 @@ function SettingsPanel(p: PanelProps) {
     setPage(null);
     p.rootRef.current?.focus({ preventScroll: true });
   };
-  const row = "flex h-10 w-full shrink-0 items-center gap-3 rounded-[8px] px-3 text-left text-[13.5px] text-white outline-none transition-colors hover:bg-white/[0.08] focus-visible:bg-white/[0.08]";
+  const row = "flex h-10 w-full shrink-0 items-center gap-3 rounded-[8px] px-3 text-left text-[0.84375rem] text-white outline-none transition-colors hover:bg-white/[0.08] focus-visible:bg-white/[0.08]";
   const current = chapterAt(p.chapters, now);
 
   const pages: Array<[Page, ReactNode]> = [
@@ -1765,7 +1774,7 @@ function SettingsPanel(p: PanelProps) {
           <button type="button" role="menuitem" className={cn(row, "text-white/80")} onClick={p.onShortcuts}>
             <span className="grid text-white/60 [&>svg]:size-4" aria-hidden>{ic.shortcuts}</span>
             <span className="flex-1">{l.keyboardShortcuts}</span>
-            <kbd className="rounded-[5px] bg-white/10 px-1.5 text-[11px] leading-5 text-white/80">?</kbd>
+            <kbd className="rounded-[5px] bg-white/10 px-1.5 text-[0.6875rem] leading-5 text-white/80">?</kbd>
           </button>
         )}
       </>,
@@ -1782,14 +1791,14 @@ function SettingsPanel(p: PanelProps) {
               role="menuitemradio"
               aria-checked={s === p.speed}
               onClick={() => p.onSpeed(s)}
-              className="relative h-10 rounded-[8px] text-[13px] font-medium tabular outline-none transition-colors hover:bg-white/[0.08] focus-visible:ring-2 focus-visible:ring-white/60"
+              className="relative h-10 rounded-[8px] text-[0.8125rem] font-medium tabular outline-none transition-colors hover:bg-white/[0.08] focus-visible:ring-2 focus-visible:ring-white/60"
             >
               <motion.span aria-hidden initial={false} animate={{ opacity: s === p.speed ? 1 : 0 }} transition={fade} className="pointer-events-none absolute inset-0 rounded-[8px] bg-white" />
               <span className={cn("relative z-[1] transition-colors duration-200", s === p.speed ? "text-black" : "text-white")}>{`${s}×`}</span>
             </button>
           ))}
         </div>
-        <p className="px-3 pt-3 text-[12px] leading-4 text-white/55">{l.speedHint}</p>
+        <p className="px-3 pt-3 text-[0.75rem] leading-4 text-white/55">{l.speedHint}</p>
       </>,
     ],
     [
@@ -1800,7 +1809,7 @@ function SettingsPanel(p: PanelProps) {
           <button key={q.label} type="button" role="menuitemradio" aria-checked={q.label === p.quality} className={row} onClick={() => { p.onQuality(q.label); close(); }}>
             <Tick on={q.label === p.quality} />
             <span className="flex-1">{q.label}</span>
-            {q.height >= 720 && <span className="rounded-[4px] bg-white/15 px-1 text-[10px] font-bold leading-4">{l.hd}</span>}
+            {q.height >= 720 && <span className="rounded-[4px] bg-white/15 px-1 text-[0.625rem] font-bold leading-4">{l.hd}</span>}
           </button>
         ))}
       </>,
@@ -1817,7 +1826,7 @@ function SettingsPanel(p: PanelProps) {
             <Tick on={p.cc} /> <span className="flex-1">{p.captions.label}</span>
           </button>
         )}
-        <p className="px-3 pb-1.5 pt-2.5 text-[12px] font-medium text-white/55">{l.textSize}</p>
+        <p className="px-3 pb-1.5 pt-2.5 text-[0.75rem] font-medium text-white/55">{l.textSize}</p>
         <div className="grid grid-cols-3 gap-1.5 px-1.5" role="group" aria-label={l.captionTextSize}>
           {(Object.keys(CAPTION_SIZES) as CaptionSize[]).map((s) => (
             <button
@@ -1830,7 +1839,7 @@ function SettingsPanel(p: PanelProps) {
               className="relative h-9 rounded-[8px] outline-none transition-colors hover:bg-white/[0.08] focus-visible:ring-2 focus-visible:ring-white/60"
             >
               <motion.span aria-hidden initial={false} animate={{ opacity: s === p.ccSize ? 1 : 0 }} transition={fade} className="pointer-events-none absolute inset-0 rounded-[8px] bg-white" />
-              <span className={cn("relative z-[1] font-semibold transition-colors duration-200", s === p.ccSize ? "text-black" : "text-white", { S: "text-[11px]", M: "text-[13px]", L: "text-[16px]" }[s])}>Aa</span>
+              <span className={cn("relative z-[1] font-semibold transition-colors duration-200", s === p.ccSize ? "text-black" : "text-white", { S: "text-[0.6875rem]", M: "text-[0.8125rem]", L: "text-[1rem]" }[s])}>Aa</span>
             </button>
           ))}
         </div>
@@ -1849,7 +1858,7 @@ function SettingsPanel(p: PanelProps) {
               ) : null}
               <span className="min-w-0 flex-1">
                 <span className={cn("block truncate", on && "font-semibold")}>{c.title}</span>
-                <span className="block text-[11.5px] tabular text-white/55">{fmt(c.start)}</span>
+                <span className="block text-[0.71875rem] tabular text-white/55">{fmt(c.start)}</span>
               </span>
             </button>
           );

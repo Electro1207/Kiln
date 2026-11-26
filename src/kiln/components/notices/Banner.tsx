@@ -67,7 +67,7 @@ export function Banner({ open, onDismiss, children, action, tone = "inverse", la
             animate={{ y: 0 }}
             exit={{ y: "-100%", transition: { duration: 0.26, ease: easeOut } }}
             transition={springFirm}
-            className={cn("relative flex min-h-11 items-center gap-3 px-4 py-2 text-[13.5px] leading-5 sm:justify-center", onDismiss && "sm:px-12", tones[tone], className)}
+            className={cn("relative flex min-h-11 items-center gap-3 px-4 py-2 text-[0.84375rem] leading-5 sm:justify-center", onDismiss && "sm:px-12", tones[tone], className)}
           >
             <p className="min-w-0 flex-1 sm:flex-none">{children}</p>
             {action && <span className="shrink-0">{action}</span>}
@@ -76,7 +76,7 @@ export function Banner({ open, onDismiss, children, action, tone = "inverse", la
                 type="button"
                 aria-label={l.dismiss}
                 onClick={onDismiss}
-                className="-mr-1.5 grid size-7 shrink-0 place-items-center rounded-full [&>svg]:size-4 opacity-70 transition-opacity hover:opacity-100 sm:absolute sm:right-3"
+                className="k-hit -mr-1.5 grid size-7 shrink-0 place-items-center rounded-full [&>svg]:size-4 opacity-70 transition-opacity hover:opacity-100 sm:absolute sm:right-3"
               >
                 {ic.close}
               </button>

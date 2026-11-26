@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { fade } from "../../motion";
 import { Skeleton } from "../status/Skeleton";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by InfiniteFeed. Pass a partial via `labels` to translate or reword. */
 export interface InfiniteFeedLabels {
@@ -10,8 +11,10 @@ export interface InfiniteFeedLabels {
   error: string;
   /** The retry button. */
   retry: string;
+  /** The button that loads the next page by hand. */
+  loadMore: string;
 }
-export const infiniteFeedLabels: InfiniteFeedLabels = { error: "Couldn’t load more.", retry: "Try again" };
+export const infiniteFeedLabels: InfiniteFeedLabels = { error: "Couldn’t load more.", retry: "Try again", loadMore: "Load more" };
 
 export type InfiniteFeedProps<T> = {
   /** Return the next page after `cursor` (null for the first). Return `next: null` at the end. */
@@ -27,6 +30,8 @@ export type InfiniteFeedProps<T> = {
   className?: string;
   /** Override any UI text. Merged over `infiniteFeedLabels`. */
   labels?: Partial<InfiniteFeedLabels>;
+  /** Accessibility features to add for this feed only (adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 function DefaultSkeleton() {
@@ -47,7 +52,8 @@ function DefaultSkeleton() {
  * below what you are reading, skeleton rows hold their place while they load,
  * and each new page fades in, so the scroll position never jumps.
  */
-export function InfiniteFeed<T>({ load, getKey, renderItem, skeleton, height, label, endText = "That’s everything.", className, labels }: InfiniteFeedProps<T>) {
+export function InfiniteFeed<T>({ load, getKey, renderItem, skeleton, height, label, endText = "That’s everything.", className, labels, accessibilityFeatures }: InfiniteFeedProps<T>) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...infiniteFeedLabels, ...labels };
   const [pages, setPages] = useState<T[][]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -88,12 +94,13 @@ export function InfiniteFeed<T>({ load, getKey, renderItem, skeleton, height, la
 
   return (
     <div
+      {...rootProps}
       ref={boxRef}
       role="feed"
       aria-label={label}
       aria-busy={loading}
       className={cn("overflow-y-auto overscroll-contain rounded-card", className)}
-      style={{ height, overflowAnchor: "none" }}
+      style={{ ...rootProps.style, height, overflowAnchor: "none" }}
     >
       <div className="flex flex-col gap-2 p-2">
         {pages.map((page, pi) => (
@@ -113,12 +120,25 @@ export function InfiniteFeed<T>({ load, getKey, renderItem, skeleton, height, la
         {error && (
           <div className="flex items-center justify-between gap-3 rounded-card bg-negative-soft px-4 py-3 text-sm text-ink">
             {l.error}
-            <button type="button" onClick={more} className="rounded-control bg-surface px-3 py-1.5 text-[13px] font-medium text-ink hover:bg-raised">
+            <button type="button" onClick={more} className="rounded-control bg-surface px-3 py-1.5 text-[0.8125rem] font-medium text-ink hover:bg-raised">
               {l.retry}
             </button>
           </div>
         )}
-        {done && <p className="py-6 text-center text-[13px] text-muted">{endText}</p>}
+        {!done && !loading && !error && (
+          // Scrolling loads pages by itself; this is the way in for keyboard and switch users.
+          <button
+            type="button"
+            onClick={more}
+            className={cn(
+              "rounded-control bg-surface px-3 py-2 text-[0.8125rem] font-medium text-ink hover:bg-raised",
+              a11y.screenReaderHints || a11y.extendedTime || a11y.calm ? "self-center" : "sr-only focus-visible:not-sr-only focus-visible:self-center",
+            )}
+          >
+            {l.loadMore}
+          </button>
+        )}
+        {done && <p className="py-6 text-center text-[0.8125rem] text-muted">{endText}</p>}
         <div ref={sentinel} aria-hidden className="h-px" />
       </div>
     </div>

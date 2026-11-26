@@ -5,6 +5,7 @@ import { cn } from "../../cn";
 import { fade } from "../../motion";
 import { AnchoredLayer, panelClass } from "../shared/Anchored";
 import { Button } from "../buttons/Button";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type Cmd = "bold" | "italic" | "underline" | "strikeThrough" | "insertUnorderedList" | "insertOrderedList" | "quote" | "code" | "link";
 
@@ -102,7 +103,7 @@ function cleanHTML(root: HTMLElement) {
  * (**bold**, *italic*, `code`, ~~strike~~, "- " or "1. " lists, "> " quotes).
  * Pasted content arrives as plain text. `onChange` gets clean HTML.
  */
-export function RichTextEditor({ value, defaultValue, defaultHTML, onChange, label: labelProp, placeholder: placeholderProp, minHeight = 160, className, labels, icons }: {
+export function RichTextEditor({ value, defaultValue, defaultHTML, onChange, label: labelProp, placeholder: placeholderProp, minHeight = 160, className, labels, icons, accessibilityFeatures }: {
   /** Controlled HTML. Leave out to let the editor keep its own. */
   value?: string;
   /** Where the uncontrolled editor starts. Default empty. */
@@ -119,7 +120,23 @@ export function RichTextEditor({ value, defaultValue, defaultHTML, onChange, lab
   labels?: Partial<RichTextEditorLabels>;
   /** Replace any built-in icon. Merged over `richTextEditorIcons`. */
   icons?: Partial<RichTextEditorIcons>;
+  /** Accessibility features to add for this editor only (adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
+  const toolbar = useRef<HTMLDivElement>(null);
+  const [tab, setTab] = useState(0);
+  // Roving tabindex: the toolbar is one Tab stop; arrows, Home and End move inside it.
+  const onToolbarKey = (e: KeyboardEvent) => {
+    const items = Array.from(toolbar.current?.querySelectorAll<HTMLButtonElement>("button") ?? []);
+    const at = items.indexOf(document.activeElement as HTMLButtonElement);
+    if (at < 0) return;
+    const to = e.key === "ArrowRight" ? (at + 1) % items.length : e.key === "ArrowLeft" ? (at - 1 + items.length) % items.length : e.key === "Home" ? 0 : e.key === "End" ? items.length - 1 : -1;
+    if (to < 0) return;
+    e.preventDefault();
+    setTab(to);
+    items[to].focus();
+  };
   const l = { ...richTextEditorLabels, ...labels, tools: { ...richTextEditorLabels.tools, ...labels?.tools } };
   const ic = useMemo(() => ({ ...richTextEditorIcons, ...icons }), [icons]);
   const label = labelProp ?? l.label;
@@ -323,10 +340,10 @@ export function RichTextEditor({ value, defaultValue, defaultHTML, onChange, lab
   };
 
   return (
-    <div className={cn("flex w-full flex-col gap-2", className)}>
+    <div {...rootProps} className={cn("flex w-full flex-col gap-2", className)}>
       <span id={`${id}-l`} className="text-sm font-medium text-ink">{label}</span>
       <div className="overflow-hidden rounded-card border border-line-strong bg-surface transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/20">
-        <div role="toolbar" aria-label={l.toolbar} aria-controls={id} className="flex gap-0.5 overflow-x-auto border-b border-line p-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div ref={toolbar} role="toolbar" aria-orientation="horizontal" aria-label={l.toolbar} aria-controls={id} onKeyDown={onToolbarKey} className="flex gap-0.5 overflow-x-auto border-b border-line p-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {TOOLS.map((t, i) => {
             const on = !!state[t.cmd];
             return (
@@ -335,6 +352,8 @@ export function RichTextEditor({ value, defaultValue, defaultHTML, onChange, lab
                 <button
                   ref={t.cmd === "link" ? linkBtn : undefined}
                   type="button"
+                  tabIndex={i === tab ? 0 : -1}
+                  onFocus={() => setTab(i)}
                   aria-label={l.tools[t.cmd]}
                   aria-pressed={t.cmd === "link" ? undefined : on}
                   title={t.keys ? `${l.tools[t.cmd]} (${t.keys})` : l.tools[t.cmd]}

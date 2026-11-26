@@ -1,8 +1,10 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { motion } from "motion/react";
-import { Download, Eraser, Undo2 } from "lucide-react";
+import { Download, Eraser, PenLine, Type, Undo2 } from "lucide-react";
 import { cn } from "../../cn";
 import { fade } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { announce } from "../accessibility/announce";
 import { Button } from "../buttons/Button";
 
 type Pt = { x: number; y: number; w: number };
@@ -16,8 +18,12 @@ export interface SignaturePadIcons {
   clear: ReactNode;
   /** Download button. */
   download: ReactNode;
+  /** Button that switches to typing a name. */
+  typeMode: ReactNode;
+  /** Button that switches back to drawing. */
+  drawMode: ReactNode;
 }
-export const signaturePadIcons: SignaturePadIcons = { undo: <Undo2 />, clear: <Eraser />, download: <Download /> };
+export const signaturePadIcons: SignaturePadIcons = { undo: <Undo2 />, clear: <Eraser />, download: <Download />, typeMode: <Type />, drawMode: <PenLine /> };
 
 /** Text used by SignaturePad. Pass a partial via `labels` to translate or reword. */
 export interface SignaturePadLabels {
@@ -39,6 +45,20 @@ export interface SignaturePadLabels {
   clear: string;
   /** Download button. */
   download: string;
+  /** Button that switches to typing a name. */
+  typeInstead: string;
+  /** Button that switches back to drawing. */
+  drawInstead: string;
+  /** Label of the name field in typed mode. */
+  typedLabel: string;
+  /** Placeholder of the name field. */
+  typedPlaceholder: string;
+  /** Status text in typed mode with a name. */
+  typed: string;
+  /** Announced when the mode changes: "Typing your signature". */
+  modeTyped: string;
+  /** Announced when the mode changes: "Drawing your signature". */
+  modeDrawn: string;
 }
 export const signaturePadLabels: SignaturePadLabels = {
   label: "Signature",
@@ -50,7 +70,27 @@ export const signaturePadLabels: SignaturePadLabels = {
   undo: "Undo",
   clear: "Clear",
   download: "Download PNG",
+  typeInstead: "Type instead",
+  drawInstead: "Draw instead",
+  typedLabel: "Type your name",
+  typedPlaceholder: "Your name",
+  typed: "Typed",
+  modeTyped: "Typing your signature",
+  modeDrawn: "Drawing your signature",
 };
+
+const SCRIPT = '"Snell Roundhand", "Segoe Script", "Brush Script MT", "Lucida Handwriting", "Apple Chancery", cursive';
+
+/** Draw `text` in a script stack, shrunk to fit `maxW`; returns its measured width and font size. */
+function drawTyped(g: CanvasRenderingContext2D, text: string, maxW: number, baseline: number, x: number, size: number) {
+  let px = size;
+  g.font = `italic 400 ${px}px ${SCRIPT}`;
+  const w0 = g.measureText(text).width;
+  if (w0 > maxW) { px = Math.max(12, (px * maxW) / w0); g.font = `italic 400 ${px}px ${SCRIPT}`; }
+  g.textBaseline = "alphabetic";
+  g.fillText(text, x, baseline);
+  return { width: g.measureText(text).width, px };
+}
 
 export type SignaturePadHandle = {
   /** PNG of the signature on a transparent ground, trimmed to the ink with a margin. */
@@ -79,7 +119,10 @@ export const SignaturePad = forwardRef<SignaturePadHandle, {
   labels?: Partial<SignaturePadLabels>;
   /** Replace any built-in icon. Merged over `signaturePadIcons`. */
   icons?: Partial<SignaturePadIcons>;
-}>(function SignaturePad({ label: labelProp, onChange, minWidth = 1.2, maxWidth = 3.6, height = 200, className, downloadName, labels, icons }, ref) {
+  /** Accessibility features to add for this pad only (adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
+}>(function SignaturePad({ label: labelProp, onChange, minWidth = 1.2, maxWidth = 3.6, height = 200, className, downloadName, labels, icons, accessibilityFeatures }, ref) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...signaturePadLabels, ...labels };
   const ic = useMemo(() => ({ ...signaturePadIcons, ...icons }), [icons]);
   const label = labelProp ?? l.label;
@@ -87,6 +130,11 @@ export const SignaturePad = forwardRef<SignaturePadHandle, {
   const strokes = useRef<Stroke[]>([]);
   const live = useRef<{ stroke: Stroke; last: { x: number; y: number; t: number }; w: number } | null>(null);
   const [count, setCount] = useState(0);
+  const [mode, setMode] = useState<"draw" | "type">("draw");
+  const [typed, setTyped] = useState("");
+  const typedRef = useRef({ mode, typed });
+  typedRef.current = { mode, typed };
+  const has = mode === "type" ? typed.trim().length > 0 : count > 0;
 
   const ink = () => getComputedStyle(document.documentElement).getPropertyValue("--k-ink").trim() || "#141413";
 
@@ -120,6 +168,11 @@ export const SignaturePad = forwardRef<SignaturePadHandle, {
     if (!g) return;
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, w, h);
+    const t = typedRef.current;
+    if (t.mode === "type") {
+      if (t.typed.trim()) drawTyped(g, t.typed.trim(), w - 48, h * 0.62, 24, Math.min(64, h * 0.4));
+      return;
+    }
     for (const s of strokes.current) {
       if (s.length === 1) { dot(g, s[0]); continue; }
       for (let i = 1; i < s.length - 1; i++) segment(g, s[i - 1], s[i], s[i + 1]);
@@ -143,6 +196,12 @@ export const SignaturePad = forwardRef<SignaturePadHandle, {
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
     return () => mo.disconnect();
   }, [redraw]);
+
+  useEffect(() => {
+    redraw();
+    onChange?.(mode === "type" ? !typed.trim() : strokes.current.length === 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, typed]);
 
   const changed = () => { setCount(strokes.current.length); onChange?.(strokes.current.length === 0); };
 
@@ -200,9 +259,36 @@ export const SignaturePad = forwardRef<SignaturePadHandle, {
   };
 
   const undo = () => { strokes.current.pop(); redraw(); changed(); };
-  const clear = () => { strokes.current = []; redraw(); changed(); };
+  const clear = () => {
+    strokes.current = [];
+    setTyped("");
+    redraw();
+    changed();
+  };
+  const switchMode = () => {
+    const next = mode === "draw" ? "type" : "draw";
+    setMode(next);
+    announce(next === "type" ? l.modeTyped : l.modeDrawn);
+  };
 
   const toDataURL = () => {
+    if (mode === "type") {
+      const text = typed.trim();
+      if (!text) return null;
+      const probe = document.createElement("canvas").getContext("2d");
+      if (!probe) return null;
+      const size = 64, pad = 12, scale = 2;
+      probe.font = `italic 400 ${size}px ${SCRIPT}`;
+      const w = Math.ceil(probe.measureText(text).width) + pad * 2, h = size * 1.5 + pad * 2;
+      const out = document.createElement("canvas");
+      out.width = w * scale; out.height = Math.ceil(h * scale);
+      const g = out.getContext("2d");
+      if (!g) return null;
+      g.scale(scale, scale);
+      g.fillStyle = "#141413";
+      drawTyped(g, text, w, pad + size * 1.1, pad, size);
+      return out.toDataURL("image/png");
+    }
     const all = strokes.current.flat();
     if (!all.length) return null;
     const pad = 12;
@@ -226,7 +312,7 @@ export const SignaturePad = forwardRef<SignaturePadHandle, {
     return out.toDataURL("image/png");
   };
 
-  useImperativeHandle(ref, () => ({ toDataURL, clear, isEmpty: () => strokes.current.length === 0 }));
+  useImperativeHandle(ref, () => ({ toDataURL, clear, isEmpty: () => (mode === "type" ? !typed.trim() : strokes.current.length === 0) }));
 
   const download = () => {
     const url = toDataURL();
@@ -237,17 +323,28 @@ export const SignaturePad = forwardRef<SignaturePadHandle, {
   };
 
   return (
-    <div className={cn("flex w-full flex-col gap-2.5", className)}>
+    <div {...rootProps} className={cn("flex w-full flex-col gap-2.5", className)}>
       <div className="flex items-baseline justify-between gap-3">
         <span className="text-sm font-medium text-ink">{label}</span>
-        <span className="text-[13px] text-muted" aria-live="polite">{count ? l.strokes(count) : l.empty}</span>
+        <span className="text-[0.8125rem] text-muted" aria-live="polite">{mode === "type" ? (has ? l.typed : l.empty) : count ? l.strokes(count) : l.empty}</span>
       </div>
+      {mode === "type" && (
+        <input
+          type="text"
+          autoComplete="name"
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          aria-label={l.typedLabel}
+          placeholder={l.typedPlaceholder}
+          className="k-ctl-md w-full rounded-control border border-line-strong bg-surface px-3 text-ink placeholder:text-faint"
+        />
+      )}
       <div className="relative overflow-hidden rounded-card bg-surface" style={{ height }}>
         <motion.span
           aria-hidden
           className="pointer-events-none absolute inset-x-6 bottom-8 flex items-end gap-3 text-faint"
           initial={false}
-          animate={{ opacity: count ? 0 : 1 }}
+          animate={{ opacity: has || mode === "type" ? 0 : 1 }}
           transition={fade}
         >
           <span className="text-lg leading-none">×</span>
@@ -256,8 +353,8 @@ export const SignaturePad = forwardRef<SignaturePadHandle, {
         <canvas
           ref={canvas}
           role="img"
-          aria-label={count ? l.signed(label) : l.emptyHint(label)}
-          className="absolute inset-0 size-full cursor-crosshair touch-none"
+          aria-label={has ? l.signed(label) : l.emptyHint(label)}
+          className={cn("absolute inset-0 size-full touch-none", mode === "type" ? "pointer-events-none" : "cursor-crosshair")}
           onPointerDown={onDown}
           onPointerMove={onMove}
           onPointerUp={onUp}
@@ -265,9 +362,10 @@ export const SignaturePad = forwardRef<SignaturePadHandle, {
         />
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" variant="ghost" leading={ic.undo} onClick={undo} disabled={!count}>{l.undo}</Button>
-        <Button size="sm" variant="ghost" leading={ic.clear} onClick={clear} disabled={!count}>{l.clear}</Button>
-        {downloadName && <Button size="sm" variant="secondary" leading={ic.download} onClick={download} disabled={!count} className="ml-auto">{l.download}</Button>}
+        {mode === "draw" && <Button size="sm" variant="ghost" leading={ic.undo} onClick={undo} disabled={!count}>{l.undo}</Button>}
+        <Button size="sm" variant="ghost" leading={ic.clear} onClick={clear} disabled={!has}>{l.clear}</Button>
+        <Button size="sm" variant="ghost" leading={mode === "draw" ? ic.typeMode : ic.drawMode} onClick={switchMode}>{mode === "draw" ? l.typeInstead : l.drawInstead}</Button>
+        {downloadName && <Button size="sm" variant="secondary" leading={ic.download} onClick={download} disabled={!has} className="ml-auto">{l.download}</Button>}
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { easeOut, fade, spring, springSoft } from "../../motion";
 import { Button } from "../buttons/Button";
 import { TextField } from "../text-input/TextField";
 import { PasswordField } from "../text-input/PasswordField";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type AuthMode = "sign-in" | "sign-up" | "forgot";
 
@@ -86,6 +87,7 @@ export function AuthForms({
   className,
   labels,
   icons,
+  accessibilityFeatures,
 }: {
   initialMode?: AuthMode;
   /** Resolve to finish, reject (with a message) to show an error. */
@@ -98,7 +100,10 @@ export function AuthForms({
   labels?: Partial<AuthFormsLabels>;
   /** Replace any built-in icon. Merged over `authFormsIcons`. */
   icons?: Partial<AuthFormsIcons>;
+  /** Accessibility features to add for this form only (adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...authFormsLabels, ...labels };
   const ic = { ...authFormsIcons, ...icons };
   const id = useId();
@@ -150,14 +155,15 @@ export function AuthForms({
   return (
     <LayoutGroup id={id}>
       <motion.div
+        {...rootProps}
+        style={{ ...rootProps.style, height }}
         className={cn("w-full max-w-sm overflow-hidden rounded-sheet bg-surface", className)}
-        style={{ height }}
       >
       <div ref={inner} className="p-6 sm:p-8">
         <motion.div {...item} className="grid [&>*]:[grid-area:1/1]">
           {(Object.keys(copy) as AuthMode[]).map((m) => (
             <motion.div key={m} initial={false} animate={{ opacity: m === mode ? 1 : 0 }} transition={textSwap(m === mode)} aria-hidden={m !== mode} className={m === mode ? "" : "pointer-events-none"}>
-              <h3 className="text-[22px] font-semibold leading-tight tracking-[-0.01em] text-ink">{copy[m].title}</h3>
+              <h3 className="text-[1.375rem] font-semibold leading-tight tracking-[-0.01em] text-ink">{copy[m].title}</h3>
               <p className="mt-1.5 text-sm text-muted">{copy[m].subtitle}</p>
             </motion.div>
           ))}
@@ -179,24 +185,24 @@ export function AuthForms({
               <AnimatePresence initial={false} mode="popLayout">
                 {mode === "sign-up" && (
                   <motion.div key="name" {...item} {...enter}>
-                    <TextField label={l.name} leading={ic.name} autoComplete="name" value={values.name} onChange={(e) => set("name")(e.target.value)} required />
+                    <TextField label={l.name} leading={ic.name} autoComplete="name" name="name" value={values.name} onChange={(e) => set("name")(e.target.value)} required />
                   </motion.div>
                 )}
                 <motion.div key="email" {...item}>
-                  <TextField label={l.email} type="email" leading={ic.email} autoComplete="email" value={values.email} onChange={(e) => set("email")(e.target.value)} required />
+                  <TextField label={l.email} type="email" leading={ic.email} autoComplete={mode === "sign-in" ? "username" : "email"} name="email" inputMode="email" value={values.email} onChange={(e) => set("email")(e.target.value)} required />
                 </motion.div>
                 {mode !== "forgot" && (
                   <motion.div key="password" {...item} {...enter}>
-                    <PasswordField value={values.password} onValueChange={set("password")} meter={mode === "sign-up"} />
+                    <PasswordField name="password" value={values.password} onValueChange={set("password")} meter={mode === "sign-up"} />
                   </motion.div>
                 )}
                 {mode === "sign-in" && (
                   <motion.div key="forgot-link" {...item} {...enter} className="-mt-1 flex justify-end">
-                    <button type="button" onClick={() => go("forgot")} className="text-[13px] font-medium text-accent hover:underline">{l.forgotPassword}</button>
+                    <button type="button" onClick={() => go("forgot")} className="k-hit text-[0.8125rem] font-medium text-accent hover:underline">{l.forgotPassword}</button>
                   </motion.div>
                 )}
                 {error && (
-                  <motion.p key="error" {...item} role="alert" {...enter} className="rounded-control bg-negative-soft px-3 py-2 text-[13px] text-negative">
+                  <motion.p key="error" {...item} role="alert" {...enter} className="rounded-control bg-negative-soft px-3 py-2 text-[0.8125rem] text-negative">
                     {error}
                   </motion.p>
                 )}
@@ -211,7 +217,7 @@ export function AuthForms({
                 </motion.div>
                 {mode !== "forgot" && providers.length > 0 && (
                   <motion.div key="providers" {...item} {...enter} className="flex flex-col gap-3">
-                    <p className="text-center text-[13px] text-faint">{l.or}</p>
+                    <p className="text-center text-[0.8125rem] text-faint">{l.or}</p>
                     {providers.map((p) => (
                       <Button key={p.label} type="button" variant="outline" leading={p.icon} onClick={p.onClick} className="w-full">{p.label}</Button>
                     ))}
@@ -222,7 +228,7 @@ export function AuthForms({
           )}
         </AnimatePresence>
 
-        <motion.p {...item} className="mt-6 text-center text-[13px] text-muted">
+        <motion.p {...item} className="mt-6 text-center text-[0.8125rem] text-muted">
           <span className="grid [&>*]:[grid-area:1/1]">
             <ModeLine show={mode === "sign-in"}>{l.newHere} <SwitchLink onClick={() => go("sign-up")}>{l.createAccount}</SwitchLink></ModeLine>
             <ModeLine show={mode === "sign-up"}>{l.haveAccount} <SwitchLink onClick={() => go("sign-in")}>{l.signIn}</SwitchLink></ModeLine>

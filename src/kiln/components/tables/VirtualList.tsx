@@ -1,5 +1,6 @@
 import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type VirtualGroup<T> = { id: string; label: string; items: T[] };
 
@@ -16,6 +17,8 @@ export type VirtualListProps<T> = {
   height: number;
   label: string;
   className?: string;
+  /** Accessibility features to add for this list only (adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 type Entry<T> = { kind: "header"; group: number; top: number; h: number } | { kind: "row"; group: number; item: T; index: number; top: number; h: number };
@@ -29,8 +32,9 @@ const OVERSCAN = 400;
  * and End move the active row and keep it in view.
  */
 export function VirtualList<T>({
-  groups, rowHeight, renderRow, getKey, getLabel, onSelect, headerHeight = 32, height, label, className,
+  groups, rowHeight, renderRow, getKey, getLabel, onSelect, headerHeight = 32, height, label, className, accessibilityFeatures,
 }: VirtualListProps<T>) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const id = useId();
   const boxRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
@@ -117,7 +121,7 @@ export function VirtualList<T>({
   };
 
   return (
-    <div className={cn("relative overflow-hidden rounded-card bg-surface", className)} style={{ height }}>
+    <div {...rootProps} className={cn("relative overflow-hidden rounded-card bg-surface", className)} style={{ ...rootProps.style, height }}>
       <div
         ref={boxRef}
         role="listbox"

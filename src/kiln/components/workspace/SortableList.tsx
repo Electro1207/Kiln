@@ -4,6 +4,8 @@ import { GripVertical } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { announce } from "../accessibility/announce";
 
 /** Icons used by SortableList. Pass a partial via `icons` to swap any of them. */
 export interface SortableListIcons {
@@ -29,6 +31,8 @@ export type SortableListProps<T> = {
   /** Replace any built-in icon. Merged over `sortableListIcons`. */
   icons?: Partial<SortableListIcons>;
   className?: string;
+  /** Accessibility features to add for this list only (adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Text used by SortableList. Pass a partial via `labels` to translate or reword. */
@@ -47,11 +51,11 @@ export const sortableListLabels: SortableListLabels = {
  * A list reordered by dragging its handles. Keyboard: focus a handle and use
  * the Up and Down arrows (Home and End jump to either end).
  */
-export function SortableList<T>({ items: itemsProp, defaultItems, onReorder: onReorderProp, getKey, getLabel, renderItem, label, labels, icons, className }: SortableListProps<T>) {
+export function SortableList<T>({ items: itemsProp, defaultItems, onReorder: onReorderProp, getKey, getLabel, renderItem, label, labels, icons, className, accessibilityFeatures }: SortableListProps<T>) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...sortableListLabels, ...labels };
   const ic = { ...sortableListIcons, ...icons };
   const [items, onReorder] = useControllable<T[]>(itemsProp, defaultItems ?? [], onReorderProp);
-  const [said, setSaid] = useState("");
   const listRef = useRef<HTMLUListElement>(null);
 
   const moveTo = (from: number, to: number) => {
@@ -60,14 +64,14 @@ export function SortableList<T>({ items: itemsProp, defaultItems, onReorder: onR
     const [it] = next.splice(from, 1);
     next.splice(to, 0, it);
     onReorder(next);
-    setSaid(l.moved(getLabel(it), to + 1, items.length));
+    announce(l.moved(getLabel(it), to + 1, items.length), "assertive");
     const key = getKey(it);
     requestAnimationFrame(() => listRef.current?.querySelector<HTMLElement>(`[data-handle="${CSS.escape(key)}"]`)?.focus());
   };
 
   return (
-    <>
-      <Reorder.Group
+    <Reorder.Group
+        {...rootProps}
         ref={listRef}
         axis="y"
         values={items}
@@ -91,8 +95,6 @@ export function SortableList<T>({ items: itemsProp, defaultItems, onReorder: onR
           </Row>
         ))}
       </Reorder.Group>
-      <span className="sr-only" aria-live="assertive">{said}</span>
-    </>
   );
 }
 
