@@ -4,6 +4,10 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-26
+
+A video player you can drive from outside and shape to your product: switch any control off, add your own, mark moments on the timeline.
+
 ### Added
 
 - `VideoPlayer` takes a `ref`. It gives `play()`, `pause()`, `toggle()`, `seek(t)`, `setRate(r)`, `setVolume(v)`, `enterFullscreen()` and `exitFullscreen()`, plus `currentTime`, `duration`, `paused` and the raw `video` element, so buttons outside the player can drive it.
@@ -157,7 +161,8 @@ The first release on npm, published with provenance.
 
 - `Switch` and `HeatStrip` fixes, and zero lint warnings.
 
-[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/Electro1207/Kiln/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/Electro1207/Kiln/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/Electro1207/Kiln/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/Electro1207/Kiln/compare/v0.4.1...v0.5.0
