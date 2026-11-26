@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, type Ref, type RefObject } from "react";
-import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
+import { AnimatePresence, motion, useIsPresent, useMotionValue, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
 import { Captions, Check, ChevronLeft, ChevronRight, Keyboard, Maximize, Minimize, PictureInPicture2, RectangleHorizontal, RotateCcw, Settings, Volume1, Volume2, VolumeX, X } from "lucide-react";
 import { cn } from "../../cn";
 import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
@@ -1724,9 +1724,11 @@ type PanelProps = {
 };
 
 /**
- * Settings, inside the player. Every page shares one cell, so the panel keeps
- * one size and pages cross-fade in place: nothing slides and nothing jumps.
- * On a phone it covers the picture; on wider screens it sits above the bar.
+ * Settings, inside the player. The panel is as tall as the page showing (up to
+ * the space the player has, then that page scrolls). Pages cross-fade in place:
+ * the page leaving drops out of layout at once and fades where it was, so the
+ * panel never keeps the height of a page that is no longer shown. On a phone it
+ * sits over the picture; on wider screens it sits above the bar.
  */
 function SettingsPanel(p: PanelProps) {
   const { page, setPage, l } = p;
@@ -1893,30 +1895,37 @@ function SettingsPanel(p: PanelProps) {
               items[(i + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length]?.focus();
             }
           }}
-          className="absolute inset-2 z-20 overflow-y-auto overscroll-contain rounded-[14px] bg-surface p-1.5 text-white shadow-float ring-1 ring-white/10 sm:inset-auto sm:bottom-[84px] sm:right-4 sm:max-h-[calc(100%-100px)] sm:w-[272px]"
+          className="absolute inset-x-2 bottom-2 z-20 max-h-[calc(100%-1rem)] overflow-y-auto overscroll-contain rounded-[14px] bg-surface p-1.5 text-white shadow-float ring-1 ring-white/10 sm:inset-x-auto sm:bottom-[84px] sm:right-4 sm:max-h-[calc(100%-100px)] sm:w-[272px]"
         >
-          <div className="grid [&>*]:[grid-area:1/1]">
-            {pages.map(([id, body]) => {
-              const on = shown === id;
-              return (
-                <motion.div
-                  key={id}
-                  data-page={id}
-                  initial={false}
-                  animate={{ opacity: on ? 1 : 0 }}
-                  transition={{ duration: on ? 0.22 : 0.12, ease: easeOut, delay: on ? 0.06 : 0 }}
-                  className={cn("flex flex-col self-start", !on && "pointer-events-none")}
-                  aria-hidden={!on}
-                  inert={!on}
-                >
-                  {body}
-                </motion.div>
-              );
-            })}
+          <div className="relative">
+            <AnimatePresence mode="popLayout" initial={false}>
+              <PanelPage key={shown} id={shown}>
+                {pages.find(([id]) => id === shown)?.[1]}
+              </PanelPage>
+            </AnimatePresence>
           </div>
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+/** One page of the settings panel. While it fades out it is `inert`, hidden from assistive tech and out of layout (popLayout). */
+function PanelPage({ id, children, ref }: { id: Page; children: ReactNode; ref?: React.Ref<HTMLDivElement> }) {
+  const present = useIsPresent();
+  return (
+    <motion.div
+      ref={ref}
+      data-page={id}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: { duration: 0.22, ease: easeOut, delay: 0.06 } }}
+      exit={{ opacity: 0, transition: { duration: 0.12, ease: easeOut } }}
+      className={cn("flex min-w-0 flex-col", !present && "pointer-events-none")}
+      aria-hidden={!present}
+      inert={!present}
+    >
+      {children}
+    </motion.div>
   );
 }
 
