@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Gem } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by SecretHunt. Pass a partial via `labels` to translate or reword. */
 export interface SecretHuntLabels {
@@ -29,6 +30,8 @@ type HuntValue = {
   collect: (id: string) => void;
   /** Forget every find (for a "start again" control). */
   reset: () => void;
+  /** Reduced motion: no spin, hop or pop. */
+  still: boolean;
 };
 const HuntContext = createContext<HuntValue | null>(null);
 
@@ -50,6 +53,11 @@ export type SecretHuntProps = {
   labels?: Partial<SecretHuntLabels>;
   /** Override any icon. Merged over `secretHuntIcons`. */
   icons?: Partial<SecretHuntIcons>;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion makes a find fade away, with no spin or hop, and the notice fade in place.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 function readFound(key?: string): Set<string> {
@@ -68,7 +76,9 @@ function readFound(key?: string): Set<string> {
  * notice with the count. Finds can be remembered between visits. Nothing appears unless someone
  * goes looking: the secrets are small, and the notice only answers a find.
  */
-export function SecretHunt({ children, total, storageKey, onFound, onComplete, noticeFor = 2800, noticeClassName, labels, icons }: SecretHuntProps) {
+export function SecretHunt({ children, total, storageKey, onFound, onComplete, noticeFor = 2800, noticeClassName, labels, icons, accessibilityFeatures }: SecretHuntProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion;
   const l = { ...secretHuntLabels, ...labels };
   const ic = { ...secretHuntIcons, ...icons };
   const [found, setFound] = useState<Set<string>>(() => readFound(storageKey));
@@ -101,19 +111,19 @@ export function SecretHunt({ children, total, storageKey, onFound, onComplete, n
   }, [storageKey]);
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
-  const value = useMemo(() => ({ found, total, collect, reset }), [found, total, collect, reset]);
+  const value = useMemo(() => ({ found, total, collect, reset, still }), [found, total, collect, reset, still]);
   return (
     <HuntContext.Provider value={value}>
       {children}
-      <div aria-live="polite" className={cn("pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center", noticeClassName)}>
+      <div aria-live="polite" {...rootProps} className={cn("pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center", noticeClassName)}>
         <AnimatePresence>
           {notice && (
             <motion.div
               key={notice.key}
-              initial={{ opacity: 0, y: 12, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, transition: { duration: 0.25, ease: easeOut } }}
-              transition={springSoft}
+              initial={still ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.96 }}
+              animate={still ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+              exit={still ? { opacity: 0, transition: { duration: 0.15 } } : { opacity: 0, y: 8, transition: { duration: 0.25, ease: easeOut } }}
+              transition={still ? { duration: 0.15 } : springSoft}
               className="flex items-center gap-2.5 rounded-full border border-line bg-surface px-4 py-2 text-sm font-medium text-ink shadow-float"
             >
               <span aria-hidden className="grid size-4 place-items-center text-accent [&>svg]:size-4">{ic.notice}</span>
@@ -155,9 +165,9 @@ export function Secret({ id, label, children, className }: SecretProps) {
           type="button"
           aria-label={label}
           onClick={() => ctx.collect(id)}
-          exit={{ y: -28, rotate: 200, scale: 1.4, opacity: 0, transition: { duration: 0.7, ease: easeOut } }}
-          whileHover={{ scale: 1.15 }}
-          whileTap={{ scale: 0.9 }}
+          exit={ctx.still ? { opacity: 0, transition: { duration: 0.2 } } : { y: -28, rotate: 200, scale: 1.4, opacity: 0, transition: { duration: 0.7, ease: easeOut } }}
+          whileHover={ctx.still ? undefined : { scale: 1.15 }}
+          whileTap={ctx.still ? undefined : { scale: 0.9 }}
           transition={springSoft}
           className={cn(
             "inline-grid size-8 place-items-center rounded-full text-accent opacity-40 outline-none transition-opacity duration-300 hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent [&>svg]:size-4",

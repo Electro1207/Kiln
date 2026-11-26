@@ -1,7 +1,7 @@
 import { useMemo, useRef, type ReactNode, type RefObject } from "react";
 import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { cn } from "../../cn";
-import { usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ScrollTimelineItem = {
   id: string;
@@ -43,6 +43,11 @@ export type ScrollTimelineProps = {
   className?: string;
   /** Override any UI text. Merged over `scrollTimelineLabels`. */
   labels?: Partial<ScrollTimelineLabels>;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion shows every entry fully told, with the rail filled.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -53,15 +58,16 @@ export type ScrollTimelineProps = {
  * motion is opacity and transform tied to scroll. With reduced motion everything
  * is simply shown.
  */
-export function ScrollTimeline({ items, line = 0.6, headingLevel = 3, container, className, labels }: ScrollTimelineProps) {
+export function ScrollTimeline({ items, line = 0.6, headingLevel = 3, container, className, labels, accessibilityFeatures }: ScrollTimelineProps) {
   const l = useMemo(() => ({ ...scrollTimelineLabels, ...labels }), [labels]);
   const ref = useRef<HTMLOListElement>(null);
-  const reduce = usePrefersReducedMotion();
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const reduce = a11y.reduceMotion;
   const { scrollYProgress } = useScroll({ target: ref, container, offset: [`start ${line}`, `end ${line}`] });
   const fill = useTransform(scrollYProgress, (p) => (reduce ? 1 : p));
 
   return (
-    <ol ref={ref} className={cn("relative", className)}>
+    <ol ref={ref} {...rootProps} className={cn("relative", className)}>
       <span aria-hidden className="absolute bottom-2 top-2 left-[7px] w-px bg-line md:left-[calc(11rem+7px)]" />
       <motion.span
         aria-hidden
@@ -107,7 +113,7 @@ function Entry({
               <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium tracking-normal text-accent">{l.current}</span>
             )}
           </H>
-          {item.meta && <p className="mt-1 text-[15px] text-muted">{item.meta}</p>}
+          {item.meta && <p className="mt-1 text-[0.9375rem] text-muted">{item.meta}</p>}
         </motion.div>
         {item.body && (
           <motion.div style={{ opacity: body, y: bodyY }} className="mt-3 max-w-2xl text-base leading-7 text-ink">
@@ -132,7 +138,7 @@ function TagChip({ p, reduce, from, span, children }: { p: MotionValue<number>; 
   const opacity = useTransform(p, [from, from + span], reduce ? [1, 1] : [0, 1]);
   const y = useTransform(p, [from, from + span], reduce ? [0, 0] : [8, 0]);
   return (
-    <motion.li style={{ opacity, y }} className="rounded-full border border-line bg-surface px-2.5 py-1 text-[13px] leading-none text-ink">
+    <motion.li style={{ opacity, y }} className="rounded-full border border-line bg-surface px-2.5 py-1 text-[0.8125rem] leading-none text-ink">
       {children}
     </motion.li>
   );

@@ -2,7 +2,7 @@ import { useId, useLayoutEffect, useMemo, useRef, type ReactNode, type RefObject
 import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
-import { usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type StampTrailItem = {
   id: string;
@@ -43,6 +43,11 @@ export type StampTrailProps = {
   className?: string;
   /** Override any UI text. Merged over `stampTrailLabels`. */
   labels?: Partial<StampTrailLabels>;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion shows every seal already pressed, with no drift or fade.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -57,9 +62,10 @@ export type StampTrailProps = {
  * Every row keeps its height from the start, the motion is transform and opacity
  * tied to scroll, and with reduced motion every seal is simply pressed.
  */
-export function StampTrail({ items, initialCount = 2, size = 176, alternate = true, open: openProp, defaultOpen = false, onOpenChange, container, className, labels }: StampTrailProps) {
+export function StampTrail({ items, initialCount = 2, size = 176, alternate = true, open: openProp, defaultOpen = false, onOpenChange, container, className, labels, accessibilityFeatures }: StampTrailProps) {
   const l = useMemo(() => ({ ...stampTrailLabels, ...labels }), [labels]);
-  const reduce = usePrefersReducedMotion();
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const reduce = a11y.reduceMotion;
   const listId = useId();
   const [open, setOpen] = useControllable(openProp, defaultOpen, onOpenChange);
   const hidden = Math.max(0, items.length - initialCount);
@@ -90,7 +96,7 @@ export function StampTrail({ items, initialCount = 2, size = 176, alternate = tr
   };
 
   return (
-    <div className={cn("relative overflow-x-clip [overflow-clip-margin:24px]", className)}>
+    <div {...rootProps} className={cn("relative overflow-x-clip [overflow-clip-margin:24px]", className)}>
       <ul id={listId} className="flex flex-col gap-16 md:gap-24">
         {shown.map((item, i) => (
           <Row
@@ -112,7 +118,7 @@ export function StampTrail({ items, initialCount = 2, size = 176, alternate = tr
             aria-expanded={open}
             aria-controls={listId}
             onClick={flip}
-            className="inline-flex h-11 items-center rounded-full bg-raised px-5 text-[15px] font-medium text-ink transition-colors duration-200 hover:bg-active focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="inline-flex h-11 items-center rounded-full bg-raised px-5 text-[0.9375rem] font-medium text-ink transition-colors duration-200 hover:bg-active focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {open ? l.less : l.more(hidden)}
           </button>

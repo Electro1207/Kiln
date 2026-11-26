@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { motion, useMotionValue, useMotionValueEvent, useScroll, useSpring, useTransform, type MotionValue } from "motion/react";
 import { cn } from "../../cn";
-import { useLoop, usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { useLoop } from "../shared/useLoop";
 
 /** One stop on the journey: what the card shows there, and where it rests. */
 export type JourneyStop = {
@@ -60,6 +61,11 @@ export type CardJourneyProps = {
   /** Size of the card. Default `w-[min(90vw,720px)] h-[min(76vh,540px)]`. */
   sizeClassName?: string;
   "aria-label"?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion keeps the card in place and changes its face there; calm also stops the bob.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 type JourneyState = { progress: MotionValue<number>; count: number };
@@ -99,11 +105,14 @@ function useWide(query = "(min-width: 1024px)") {
  */
 export function CardJourney({
   stops, container, length = 1.2, hold = 0.45, spin = "y", turns = 1, offset = 0.22, lean = 0, float = 8,
-  backdrop, foreground, onStopChange, className, cardClassName, sizeClassName = "w-[min(90vw,720px)] h-[min(76vh,540px)]", "aria-label": ariaLabel,
+  backdrop, foreground, onStopChange, className, cardClassName, sizeClassName = "w-[min(90vw,720px)] h-[min(76vh,540px)]", "aria-label": ariaLabel, accessibilityFeatures,
 }: CardJourneyProps) {
   const root = useRef<HTMLElement>(null);
   const bob = useRef<HTMLDivElement>(null);
-  const reduce = usePrefersReducedMotion();
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const reduce = a11y.reduceMotion;
+  // The bob loops on its own, so calm holds it too.
+  const bobbing = !reduce && !a11y.calm;
   const wide = useWide();
   const n = stops.length;
   const last = Math.max(0, n - 1);
@@ -193,13 +202,13 @@ export function CardJourney({
     root,
     () => {
       const el = bob.current;
-      if (!el || !float || reduce || hasVideo) return [];
+      if (!el || !float || !bobbing || hasVideo) return [];
       return [el.animate(
         [{ transform: "translate3d(0,0,0)" }, { transform: `translate3d(0,${-float}px,0)` }, { transform: "translate3d(0,0,0)" }],
         { duration: 6000, iterations: Infinity, easing: "ease-in-out" },
       )];
     },
-    [float, reduce, hasVideo],
+    [float, bobbing, hasVideo],
   );
 
   const front = pair % 2 === 0 ? pair : pair + 1;
@@ -217,8 +226,9 @@ export function CardJourney({
     <section
       ref={root}
       aria-label={ariaLabel}
+      {...rootProps}
       className={cn("relative", className)}
-      style={{ height: `calc(var(--journey-vh, 1vh) * ${last * length * 100 + 100})` }}
+      style={{ ...rootProps.style, height: `calc(var(--journey-vh, 1vh) * ${last * length * 100 + 100})` }}
     >
       {stops.map((s, i) => (
         <div key={s.id} id={s.id} aria-hidden className="pointer-events-none absolute left-0 h-px w-px" style={{ top: `calc(var(--journey-vh, 1vh) * ${i * length * 100})` }} />

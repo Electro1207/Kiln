@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useInView } from "motion/react";
 import { cn } from "../../cn";
-import { usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ScrambleTextProps = {
   text: string;
@@ -12,6 +12,12 @@ export type ScrambleTextProps = {
   /** ms for the whole decode. */
   duration?: number;
   className?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features.
+   * Reduced motion and no-flashing show the final text with no decode.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -24,11 +30,13 @@ const CODE = "アイウエオカキクケコサシスセソ0123456789ABCDEF";
  * glyphs and lock in from left to right. Each letter has its own cell sized by
  * the real letter, so nothing on the line moves while it scrambles.
  */
-export function ScrambleText({ text, code, trigger = "both", duration = 900, className }: ScrambleTextProps) {
+export function ScrambleText({ text, code, trigger = "both", duration = 900, className, accessibilityFeatures }: ScrambleTextProps) {
   const root = useRef<HTMLSpanElement>(null);
   const cells = useRef<Array<HTMLSpanElement | null>>([]);
   const raf = useRef(0);
-  const reduce = usePrefersReducedMotion();
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  // The decode flickers glyphs at 30 Hz, so no-flashing counts as well as reduced motion.
+  const reduce = a11y.reduceMotion || a11y.noFlashing;
   const inView = useInView(root, { once: true, amount: 0.8 });
 
   const run = useCallback(() => {
@@ -76,11 +84,12 @@ export function ScrambleText({ text, code, trigger = "both", duration = 900, cla
   return (
     <span
       ref={root}
-      aria-label={text}
+      {...rootProps}
       onPointerEnter={trigger !== "view" ? run : undefined}
       onFocus={trigger !== "view" ? run : undefined}
       className={cn(code && "font-mono", "inline-block", className)}
     >
+      <span className="sr-only">{text}</span>
       {words.map(({ chars, start }, w) => (
         <span key={w} aria-hidden className="inline-block whitespace-pre">
           {chars.map((c, j) => {

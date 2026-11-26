@@ -2,7 +2,8 @@ import { useRef, type ReactNode, type RefObject } from "react";
 import { motion, useMotionTemplate, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
 import { cn } from "../../cn";
 import { springSoft } from "../../motion";
-import { useLoop, usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { useLoop } from "../shared/useLoop";
 
 export type FloatingCardProps = {
   children: ReactNode;
@@ -20,6 +21,11 @@ export type FloatingCardProps = {
   className?: string;
   /** Classes for the card surface itself. */
   cardClassName?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion and calm hold the card still; the lean and drift stop under reduced motion.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -30,16 +36,20 @@ export type FloatingCardProps = {
  * the card is off screen; with reduced motion the card simply sits still.
  * Anything inside stays fully interactive, a video player included.
  */
-export function FloatingCard({ children, float = 10, period = 6, tilt = 5, drift = 0, container, className, cardClassName }: FloatingCardProps) {
+export function FloatingCard({ children, float = 10, period = 6, tilt = 5, drift = 0, container, className, cardClassName, accessibilityFeatures }: FloatingCardProps) {
   const root = useRef<HTMLDivElement>(null);
   const bob = useRef<HTMLDivElement>(null);
-  const reduce = usePrefersReducedMotion();
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const reduce = a11y.reduceMotion;
+  // The bob loops on its own, so calm stops it too. (useLoop reads only the shared settings, so the
+  // component's own prop is applied here as well.)
+  const hold = reduce || a11y.calm;
 
   useLoop(
     root,
     () => {
       const el = bob.current;
-      if (!el || !float) return [];
+      if (!el || !float || hold) return [];
       return [
         el.animate(
           [
@@ -51,7 +61,7 @@ export function FloatingCard({ children, float = 10, period = 6, tilt = 5, drift
         ),
       ];
     },
-    [float, period],
+    [float, period, hold],
   );
 
   const { scrollYProgress } = useScroll({ target: root, container, offset: ["start end", "end start"] });
@@ -67,7 +77,7 @@ export function FloatingCard({ children, float = 10, period = 6, tilt = 5, drift
   const light = useMotionTemplate`radial-gradient(420px circle at ${lx} ${ly}, color-mix(in oklab, var(--color-ink) 9%, transparent), transparent 70%)`;
 
   return (
-    <motion.div ref={root} style={{ y }} className={cn("[perspective:1200px]", className)}>
+    <motion.div ref={root} {...rootProps} style={{ ...rootProps.style, y }} className={cn("[perspective:1200px]", className)}>
       <div ref={bob} className="will-change-transform">
         <motion.div
           onPointerMove={(e) => {

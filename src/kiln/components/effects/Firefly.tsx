@@ -3,7 +3,8 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut, springSoft } from "../../motion";
-import { useLoop, usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { useLoop } from "../shared/useLoop";
 
 export type FireflyProps = {
   /** How many wander about. Default 1. */
@@ -27,6 +28,11 @@ export type FireflyProps = {
   /** Classes for each light: its colour comes from the text colour. Default `text-accent`. */
   fireflyClassName?: string;
   className?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion and calm hold the lights still, glowing in place.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /* A tiny seeded random, so each firefly keeps the same path between renders. */
@@ -43,20 +49,21 @@ const rand = (seed: number) => {
  * `message`, catching one makes it flare and shows the message beside it. Transform and opacity
  * only, on the compositor; with reduced motion they glow in place without wandering.
  */
-export function Firefly({ count = 1, message, messageAt = "beside", onCatch, pace = 14, label = "A firefly", fireflyClassName, className }: FireflyProps) {
+export function Firefly({ count = 1, message, messageAt = "beside", onCatch, pace = 14, label = "A firefly", fireflyClassName, className, accessibilityFeatures }: FireflyProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion || a11y.calm;
   return (
-    <div data-firefly-field aria-hidden={message ? undefined : true} className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}>
+    <div data-firefly-field aria-hidden={message ? undefined : true} {...rootProps} className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}>
       {Array.from({ length: count }, (_, i) => (
-        <Fly key={i} seed={i * 7919 + 17} message={message} messageAt={messageAt} onCatch={onCatch} pace={pace} label={label} className={fireflyClassName} />
+        <Fly key={i} seed={i * 7919 + 17} message={message} messageAt={messageAt} onCatch={onCatch} pace={pace} label={label} className={fireflyClassName} still={still} />
       ))}
     </div>
   );
 }
 
-function Fly({ seed, message, messageAt, onCatch, pace, label, className }: { seed: number; message?: ReactNode; messageAt: "beside" | "bottom"; onCatch?: () => void; pace: number; label: string; className?: string }) {
+function Fly({ seed, message, messageAt, onCatch, pace, label, className, still }: { still: boolean; seed: number; message?: ReactNode; messageAt: "beside" | "bottom"; onCatch?: () => void; pace: number; label: string; className?: string }) {
   const travel = useRef<HTMLDivElement>(null);
   const light = useRef<HTMLSpanElement>(null);
-  const reduce = usePrefersReducedMotion();
   const [caught, setCaught] = useState(false);
   // The message opens towards the middle of the parent, where there is room for it.
   const [toLeft, setToLeft] = useState(false);
@@ -67,7 +74,7 @@ function Fly({ seed, message, messageAt, onCatch, pace, label, className }: { se
   useLoop(
     travel,
     (el) => {
-      if (reduce) return [];
+      if (still) return [];
       const g = rand(seed + 1);
       const pts = Array.from({ length: 6 }, () => `translate(${(g() - 0.5) * 40}cqw, ${(g() - 0.5) * 40}cqh)`);
       const wander = el.animate(
@@ -80,7 +87,7 @@ function Fly({ seed, message, messageAt, onCatch, pace, label, className }: { se
       );
       return blink ? [wander, blink] : [wander];
     },
-    [reduce, pace, seed],
+    [still, pace, seed],
   );
 
   // A caught firefly holds still while its message shows.

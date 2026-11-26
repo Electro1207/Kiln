@@ -1,7 +1,7 @@
 import { useRef, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
 import { cn } from "../../cn";
-import { usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ParallaxSectionProps = {
   children: ReactNode;
@@ -23,6 +23,11 @@ export type ParallaxSectionProps = {
   style?: CSSProperties;
   "aria-labelledby"?: string;
   "aria-label"?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion keeps the section still, at full size and opacity.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -35,16 +40,17 @@ export type ParallaxSectionProps = {
  * reduced motion. Nothing is laid over the content, so at rest it is the
  * section and nothing else.
  */
-export function ParallaxSection({ children, as = "section", lag = 0.35, scale = 0.94, dim = 0.6, container, id, className, style, ...aria }: ParallaxSectionProps) {
+export function ParallaxSection({ children, as = "section", lag = 0.35, scale = 0.94, dim = 0.6, container, id, className, style, accessibilityFeatures, ...aria }: ParallaxSectionProps) {
   const ref = useRef<HTMLElement>(null);
-  const reduce = usePrefersReducedMotion();
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const reduce = a11y.reduceMotion;
   const { scrollYProgress } = useScroll({ target: ref, container, offset: ["end end", "end start"] });
   const y = useTransform(scrollYProgress, (p) => (reduce ? "0%" : `${p * lag * 100}%`));
   const s = useTransform(scrollYProgress, [0, 1], reduce ? [1, 1] : [1, scale]);
   const opacity = useTransform(scrollYProgress, [0, 1], reduce ? [1, 1] : [1, 1 - dim]);
   const Tag = motion[as];
   return (
-    <Tag ref={ref as never} id={id} {...aria} style={style} className={cn("relative", className)}>
+    <Tag ref={ref as never} id={id} {...aria} {...rootProps} style={{ ...rootProps.style, ...style }} className={cn("relative", className)}>
       <motion.div style={{ y, scale: s, opacity, transformOrigin: "50% 100%" }} className="relative will-change-transform">
         {children}
       </motion.div>

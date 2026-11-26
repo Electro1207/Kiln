@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, type ElementType } from "react";
 import { useInView } from "motion/react";
 import { cn } from "../../cn";
-import { usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type TextAnimateProps = {
   text: string;
@@ -16,6 +16,11 @@ export type TextAnimateProps = {
   /** Play again every time it re-enters the screen. */
   repeat?: boolean;
   className?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /* The same feel as springSoft, as a curve the compositor can run on its own. */
@@ -34,10 +39,12 @@ const frames: Record<NonNullable<TextAnimateProps["preset"]>, Keyframe[]> = {
  * on the compositor and never competes with scrolling. Words never break
  * apart, and screen readers get the plain text.
  */
-export function TextAnimate({ text, by = "word", preset = "fade-up", as: Tag = "p", stagger, delay = 0, repeat, className }: TextAnimateProps) {
+export function TextAnimate({ text, by = "word", preset = "fade-up", as: Tag = "p", stagger, delay = 0, repeat, className, accessibilityFeatures }: TextAnimateProps) {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: !repeat, amount: 0.6 });
-  const reduce = usePrefersReducedMotion();
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  // Reduced motion: every unit sits in its final pose, no animation.
+  const reduce = a11y.reduceMotion;
   const words = text.split(" ");
   const gap = (stagger ?? (by === "word" ? 0.06 : 0.022)) * 1000;
   const mask = preset === "rise";
@@ -64,7 +71,8 @@ export function TextAnimate({ text, by = "word", preset = "fade-up", as: Tag = "
   }, [inView, reduce, preset, delay, gap, text]);
 
   return (
-    <Tag ref={ref} aria-label={text} className={className}>
+    <Tag ref={ref} className={className} {...rootProps}>
+      <span className="sr-only">{text}</span>
       <span aria-hidden className="inline">
         {words.map((w, i) => (
           <span key={i} className={cn("inline-block whitespace-nowrap", mask && "overflow-hidden pb-[0.12em] -mb-[0.12em] align-bottom")}>

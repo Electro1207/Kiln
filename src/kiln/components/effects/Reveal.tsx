@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, type ElementType, type ReactNode } from "react
 import { useInView } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut } from "../../motion";
-import { usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type RevealProps = {
   children: ReactNode;
@@ -17,6 +17,11 @@ export type RevealProps = {
   /** Play again every time it re-enters the screen. */
   repeat?: boolean;
   className?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion shows the content in place, with no rise or fade.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const DURATION = 720;
@@ -27,10 +32,11 @@ const DURATION = 720;
  * it stays on the compositor however many are on the page. With reduced
  * motion the content is simply there.
  */
-export function Reveal({ children, as: Tag = "div", from = "bottom", distance = 24, delay = 0, repeat, className }: RevealProps) {
+export function Reveal({ children, as: Tag = "div", from = "bottom", distance = 24, delay = 0, repeat, className, accessibilityFeatures }: RevealProps) {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: !repeat, amount: 0.2, margin: "0px 0px -8% 0px" });
-  const reduce = usePrefersReducedMotion();
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const reduce = a11y.reduceMotion;
   const dx = from === "left" ? -distance : from === "right" ? distance : 0;
   const dy = from === "bottom" ? distance : from === "top" ? -distance : 0;
   const hidden = `translate3d(${dx}px, ${dy}px, 0)`;
@@ -57,7 +63,7 @@ export function Reveal({ children, as: Tag = "div", from = "bottom", distance = 
   }, [inView, reduce, hidden, delay]);
 
   return (
-    <Tag ref={ref} className={cn(className)}>
+    <Tag ref={ref} className={cn(className)} {...rootProps}>
       {children}
     </Tag>
   );

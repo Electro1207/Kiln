@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { motion, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import { cn } from "../../cn";
-import { usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ScrollStoryStep = {
   id: string;
@@ -44,6 +44,11 @@ export type ScrollStoryProps = {
   panelClassName?: string;
   /** Override any UI text. Merged over `scrollStoryLabels`. */
   labels?: Partial<ScrollStoryLabels>;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion turns the story into plain stacked content: each step with its visual above it, nothing pinned or faded.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -54,12 +59,13 @@ export type ScrollStoryProps = {
  * Below 768px the panel sits inline above each step's words instead of pinning.
  */
 export function ScrollStory({
-  steps, stickyTop = 0, keepRead = true, onStepChange, container, className, panelClassName, labels,
+  steps, stickyTop = 0, keepRead = true, onStepChange, container, className, panelClassName, labels, accessibilityFeatures,
 }: ScrollStoryProps) {
   const l = useMemo(() => ({ ...scrollStoryLabels, ...labels }), [labels]);
   const track = useRef<HTMLDivElement>(null);
-  const reduce = usePrefersReducedMotion();
-  const wide = useWide();
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const reduce = a11y.reduceMotion;
+  const wide = useWide() && !reduce;
   const n = steps.length;
   const [active, setActive] = useState(0);
   const { scrollYProgress } = useScroll({ target: track, container, offset: ["start center", "end center"] });
@@ -77,7 +83,7 @@ export function ScrollStory({
     track.current?.children[i]?.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
 
   return (
-    <div className={cn("grid gap-x-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]", className)}>
+    <div {...rootProps} className={cn("grid gap-x-12", reduce ? "mx-auto max-w-3xl" : "md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]", className)}>
       <div ref={track}>
         {steps.map((st, i) => (
           <Step key={st.id} s={s} i={i} reduce={reduce} keepRead={keepRead} step={st} inline={!wide} panelClassName={panelClassName} />
@@ -148,12 +154,12 @@ function Step({
   const opacity = useTransform(s, [i - 0.6, i, i + 0.6], reduce ? [1, 1, 1] : [0.22, 1, keepRead ? 1 : 0.22]);
   const y = useTransform(s, [i - 1, i], reduce ? [0, 0] : [24, 0]);
   return (
-    <section className="flex flex-col justify-center py-10 md:min-h-[calc(var(--story-vh,100vh)*0.78)] md:py-16">
+    <section className={cn("flex flex-col justify-center py-10 md:py-16", !reduce && "md:min-h-[calc(var(--story-vh,100vh)*0.78)]")}>
       {inline && <div className={cn("relative mb-6 overflow-hidden rounded-card bg-raised", panelClassName)}>{step.visual}</div>}
       <motion.div style={inline ? undefined : { opacity, y }} className="max-w-xl">
         {step.eyebrow && <p className="text-sm font-medium text-accent">{step.eyebrow}</p>}
         <h3 className="mt-2 text-2xl font-semibold leading-tight tracking-[-0.015em] text-ink md:text-3xl">{step.title}</h3>
-        {step.body && <div className="mt-3 text-base leading-7 text-muted md:text-[17px] md:leading-8">{step.body}</div>}
+        {step.body && <div className="mt-3 text-base leading-7 text-muted md:text-[1.0625rem] md:leading-8">{step.body}</div>}
       </motion.div>
     </section>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { useLoop } from "../shared/useLoop";
 
 export type AnimatedBeamProps = {
@@ -16,6 +17,11 @@ export type AnimatedBeamProps = {
   /** ms before the first pulse. */
   delay?: number;
   className?: string;
+  /**
+   * Accessibility features this component supports on its own, on top of the person's settings and any
+   * AccessibilityScope: "all", "none", a profile name, a list of profiles, or single features. Reduced motion and calm hold the light still, leaving just the line.
+   */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 type Geo = { d: string; w: number; h: number };
@@ -25,7 +31,9 @@ type Geo = { d: string; w: number; h: number };
  * it. The light is a dash moved along the path, so there is no gradient, and
  * it pauses while the diagram is off-screen.
  */
-export function AnimatedBeam({ container, from, to, curvature = 0, reverse, duration = 2600, delay = 0, className }: AnimatedBeamProps) {
+export function AnimatedBeam({ container, from, to, curvature = 0, reverse, duration = 2600, delay = 0, className, accessibilityFeatures }: AnimatedBeamProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const hold = a11y.reduceMotion || a11y.calm;
   const [geo, setGeo] = useState<Geo | null>(null);
   const pulse = useRef<SVGPathElement>(null);
   const svg = useRef<SVGSVGElement>(null);
@@ -57,7 +65,7 @@ export function AnimatedBeam({ container, from, to, curvature = 0, reverse, dura
   useLoop(
     container,
     () =>
-      pulse.current && geo
+      pulse.current && geo && !hold
         ? [
             pulse.current.animate(
               reverse
@@ -67,12 +75,12 @@ export function AnimatedBeam({ container, from, to, curvature = 0, reverse, dura
             ),
           ]
         : [],
-    [geo?.d, reverse, duration, delay],
+    [geo?.d, reverse, duration, delay, hold],
   );
 
   if (!geo) return null;
   return (
-    <svg ref={svg} aria-hidden className={cn("pointer-events-none absolute left-0 top-0", className)} width={geo.w} height={geo.h} fill="none">
+    <svg ref={svg} aria-hidden {...rootProps} className={cn("pointer-events-none absolute left-0 top-0", className)} width={geo.w} height={geo.h} fill="none">
       <path id={id} d={geo.d} pathLength={1} strokeWidth={2} className="stroke-line-strong" strokeLinecap="round" />
       <path
         ref={pulse}
