@@ -4,6 +4,27 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+### Added
+
+- `VideoPlayer` takes a `ref`. It gives `play()`, `pause()`, `toggle()`, `seek(t)`, `setRate(r)`, `setVolume(v)`, `enterFullscreen()` and `exitFullscreen()`, plus `currentTime`, `duration`, `paused` and the raw `video` element, so buttons outside the player can drive it.
+- `VideoPlayer` plays one file with `src`, no quality menu needed. `renditions` still works; give one or the other.
+- `VideoPlayer` can hide its title and subtitle with `showTitle={false}`. The title stays the player's accessible name.
+- Every built-in `VideoPlayer` control can be switched off: `skipButtons` (or a different number of seconds), `volume`, `speed`, `quality`, `captions`, `pip`, `theaterButton`, `fullscreen`, `keyboard`, `autoHideControls` (a delay, or `false`) and `bigPlayButton`. The keys and shortcuts-sheet rows of a switched-off control go with it. The defaults are the player you already have.
+- `VideoPlayer` has `timelineSplit` (the scrubber as one segment per chapter, on by default, `false` for one bar) and `showChapterTitle`, which shows the current chapter's name in the control bar.
+- `VideoPlayer` has `markers`: numbered, glowing hit markers on the scrubber. A click near one seeks exactly to it.
+- `VideoPlayer` has `cues`: captions from data instead of a `.vtt` file.
+- `VideoPlayer` has `controlsStart` and `controlsEnd`, which put your own controls in the bar, and `VideoPlayerControl`, an icon button with label, tooltip, key hint and an `active` underline, so they look like the built-in ones.
+- `VideoPlayer` has `overlay`, rendered inside the player so a side panel or a note stays visible in full screen.
+- `VideoPlayer` has `onKeyDown` for shortcuts of your own, and `shortcuts` to list them in its shortcuts sheet.
+- `VideoPlayer` reports `onTimeUpdate`, `onPlay`, `onPause`, `onEnded`, `onSeek`, `onLoadedMetadata`, `onRateChange`, `onVolumeChange` and `onFullscreenChange`.
+- `useVideoTime(ref)` returns a `VideoPlayer`'s current time as a motion value that updates every frame while it plays, so a playhead or a highlighted row can follow it without a React render.
+- `videoPlayerLabels` has `skipBack` and `skipForward` for skip buttons that are not ten seconds.
+
+### Changed
+
+- `VideoPlayer`'s `captions` also accepts `false`, and its `renditions` prop is now optional (give `src` instead). Nothing changes for existing uses.
+- The gallery's Video player shows four variants: the default, a minimal one, a Playhead-style one and one driven from outside.
+
 ## [0.6.1] - 2026-11-25
 
 A sidebar that collapses without moving the rest of the screen.
