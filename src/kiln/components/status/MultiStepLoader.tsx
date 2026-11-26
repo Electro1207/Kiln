@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Check } from "lucide-react";
 import { cn } from "../../cn";
 import { fade, springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by MultiStepLoader. Pass a partial via `labels` to translate or reword. */
 export interface MultiStepLoaderLabels {
@@ -37,6 +38,8 @@ export type MultiStepLoaderProps = {
   labels?: Partial<MultiStepLoaderLabels>;
   /** Replace any built-in icon. Merged over `multiStepLoaderIcons`. */
   icons?: Partial<MultiStepLoaderIcons>;
+  /** Accessibility features to add here. The loader never advances by itself (`current` is yours), so `extendedTime` changes nothing; `calm` and `reduceMotion` fill the line without animating. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -44,7 +47,9 @@ export type MultiStepLoaderProps = {
  * working to done, and a line fills down the list as it goes. Marks fade
  * between states in one cell; only the line moves.
  */
-export function MultiStepLoader({ steps, current, className, labels, icons }: MultiStepLoaderProps) {
+export function MultiStepLoader({ steps, current, className, labels, icons, accessibilityFeatures }: MultiStepLoaderProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...multiStepLoaderLabels, ...labels };
   const ic = { ...multiStepLoaderIcons, ...icons };
   const n = steps.length;
@@ -52,7 +57,7 @@ export function MultiStepLoader({ steps, current, className, labels, icons }: Mu
   const ROW = 40;
 
   return (
-    <ol className={cn("relative", className)} aria-label={l.progress}>
+    <ol {...rootProps} className={cn("relative", className)} aria-label={l.progress}>
       <span aria-hidden className="absolute left-[9px] w-0.5 rounded-full bg-line" style={{ top: ROW / 2, height: (n - 1) * ROW }} />
       <motion.span
         aria-hidden
@@ -60,7 +65,7 @@ export function MultiStepLoader({ steps, current, className, labels, icons }: Mu
         style={{ top: ROW / 2, height: (n - 1) * ROW }}
         initial={false}
         animate={{ scaleY: fill }}
-        transition={springFirm}
+        transition={still ? { duration: 0 } : springFirm}
       />
       {steps.map((label, i) => {
         const state = i < current ? "done" : i === current ? "active" : "waiting";

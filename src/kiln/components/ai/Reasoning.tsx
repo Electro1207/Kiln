@@ -5,6 +5,7 @@ import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { fade, springFirm } from "../../motion";
 import { useLoop } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by Reasoning. Pass a partial via `labels` to translate or reword. */
 export interface ReasoningLabels {
@@ -46,6 +47,8 @@ export type ReasoningProps = {
   labels?: Partial<ReasoningLabels>;
   /** Replace any built-in icon. Merged over `reasoningIcons`. */
   icons?: Partial<ReasoningIcons>;
+  /** Accessibility features to add here. `calm` and `reduceMotion` stop the breathing label and fold the panel without animating. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -53,7 +56,9 @@ export type ReasoningProps = {
  * breathes and the panel is open; when it is done it reads "Thought for 6
  * seconds" and folds shut, one click from reopening.
  */
-export function Reasoning({ thinking, seconds, children, autoCollapse = true, open: openProp, defaultOpen, onOpenChange, className, labels, icons }: ReasoningProps) {
+export function Reasoning({ thinking, seconds, children, autoCollapse = true, open: openProp, defaultOpen, onOpenChange, className, labels, icons, accessibilityFeatures }: ReasoningProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...reasoningLabels, ...labels };
   const ic = useMemo(() => ({ ...reasoningIcons, ...icons }), [icons]);
   const [open, setOpen] = useControllable(openProp, defaultOpen ?? thinking, onOpenChange);
@@ -85,13 +90,13 @@ export function Reasoning({ thinking, seconds, children, autoCollapse = true, op
   // A slow breathing of the label while thinking; opacity only, on the compositor.
   useLoop(
     label,
-    (el) => (thinking ? [el.animate([{ opacity: 1 }, { opacity: 0.45 }, { opacity: 1 }], { duration: 1600, iterations: Infinity, easing: "ease-in-out" })] : []),
-    [thinking],
+    (el) => (thinking && !still ? [el.animate([{ opacity: 1 }, { opacity: 0.45 }, { opacity: 1 }], { duration: 1600, iterations: Infinity, easing: "ease-in-out" })] : []),
+    [thinking, still],
   );
 
   const secs = seconds ?? measured;
   return (
-    <div className={cn("text-sm", className)}>
+    <div {...rootProps} className={cn("text-sm", className)}>
       <button
         type="button"
         aria-expanded={open}
@@ -116,10 +121,10 @@ export function Reasoning({ thinking, seconds, children, autoCollapse = true, op
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ height: springFirm, opacity: fade }}
+            transition={still ? { duration: 0 } : { height: springFirm, opacity: fade }}
             className="overflow-hidden"
           >
-            <div className="mb-1 ml-2 mt-1 border-l-2 border-line pl-4 text-[13.5px] leading-[21px] text-muted">{children}</div>
+            <div className="mb-1 ml-2 mt-1 border-l-2 border-line pl-4 text-[0.8438rem] leading-[21px] text-muted">{children}</div>
           </motion.div>
         )}
       </AnimatePresence>

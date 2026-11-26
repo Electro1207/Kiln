@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "re
 import { animate, AnimatePresence, motion, useMotionValue, useTransform, type AnimationPlaybackControls } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut, fade, springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by UndoBar. Pass a partial via `labels` to translate or reword. */
 export interface UndoBarLabels {
@@ -22,19 +23,23 @@ export type UndoBarProps = {
   onUndo: (id: string) => void;
   /** The window closed without an undo: make the removal permanent. */
   onCommit: (id: string) => void;
-  /** ms to change your mind. Default 6000. */
+  /** ms to change your mind. Default 6000; three times that under `extendedTime`. */
   duration?: number;
   /** Override any UI text. Merged over `undoBarLabels`. */
   labels?: Partial<UndoBarLabels>;
   className?: string;
+  /** Accessibility features to add here (`extendedTime` triples the window). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
  * "Deleted X · Undo", in the flow of the page. A ring counts down the time
- * left and pauses while the pointer is on the bar. It opens and closes its
+ * left and pauses while the pointer is on the bar or focus is inside it. It opens and closes its
  * own space smoothly.
  */
-export function UndoBar({ item, onUndo, onCommit, duration = 6000, labels, className }: UndoBarProps) {
+export function UndoBar({ item, onUndo, onCommit, duration = 6000, labels, className, accessibilityFeatures }: UndoBarProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const window_ = a11y.extendedTime ? duration * 3 : duration;
   const l = { ...undoBarLabels, ...labels };
   // A deletion replaced by the next one before its time ran out is committed then.
   const resolved = useRef(new Set<string>());
@@ -59,6 +64,7 @@ export function UndoBar({ item, onUndo, onCommit, duration = 6000, labels, class
       {item && (
         <motion.div
           key="undo"
+          {...rootProps}
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: "auto", opacity: 1, transition: { height: springFirm, opacity: { ...fade, delay: 0.06 } } }}
           exit={{ height: 0, opacity: 0, transition: { height: { ...springFirm, delay: 0.06 }, opacity: { duration: 0.14, ease: easeOut } } }}
@@ -67,7 +73,7 @@ export function UndoBar({ item, onUndo, onCommit, duration = 6000, labels, class
           <div className="pt-3">
             <div className="grid [&>*]:[grid-area:1/1]">
               <AnimatePresence initial={false}>
-                <Bar key={item.id} item={item} onUndo={undo} onCommit={commit} duration={duration} undoText={l.undo} className={className} />
+                <Bar key={item.id} item={item} onUndo={undo} onCommit={commit} duration={window_} undoText={l.undo} className={className} />
               </AnimatePresence>
             </div>
           </div>
@@ -77,7 +83,7 @@ export function UndoBar({ item, onUndo, onCommit, duration = 6000, labels, class
   );
 }
 
-function Bar({ item, onUndo, onCommit, duration, undoText, className }: Required<Omit<UndoBarProps, "item" | "className" | "labels">> & { item: UndoItem; undoText: string; className?: string }) {
+function Bar({ item, onUndo, onCommit, duration, undoText, className }: Required<Omit<UndoBarProps, "item" | "className" | "labels" | "accessibilityFeatures">> & { item: UndoItem; undoText: string; className?: string }) {
   const left = useMotionValue(1);
   const seconds = useTransform(left, (v) => Math.max(1, Math.ceil((v * duration) / 1000)));
   const controls = useRef<AnimationPlaybackControls | null>(null);
@@ -114,15 +120,15 @@ function Bar({ item, onUndo, onCommit, duration, undoText, className }: Required
       onPointerEnter={() => setPaused(true)}
       onPointerLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
-      onBlur={() => setPaused(false)}
-      className={cn("flex h-11 items-center gap-3 rounded-card border border-line bg-surface pl-3 pr-1.5 text-[13.5px] text-ink", className)}
+      onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setPaused(false)}
+      className={cn("flex h-11 items-center gap-3 rounded-card border border-line bg-surface pl-3 pr-1.5 text-[0.8438rem] text-ink", className)}
     >
       <span className="relative grid size-6 shrink-0 place-items-center" aria-hidden>
         <svg viewBox="0 0 24 24" className="absolute inset-0 -rotate-90">
           <circle cx="12" cy="12" r="10" fill="none" strokeWidth="2" className="stroke-active" />
           <motion.circle cx="12" cy="12" r="10" fill="none" strokeWidth="2" strokeLinecap="round" className="stroke-accent" style={{ pathLength: left }} />
         </svg>
-        <motion.span className="tabular text-[10.5px] font-semibold leading-none text-muted">{seconds}</motion.span>
+        <motion.span className="tabular text-[0.6562rem] font-semibold leading-none text-muted">{seconds}</motion.span>
       </span>
       <span className="min-w-0 flex-1 truncate">{item.message}</span>
       <button
@@ -133,7 +139,7 @@ function Bar({ item, onUndo, onCommit, duration, undoText, className }: Required
           controls.current?.stop();
           onUndo(item.id);
         }}
-        className="h-8 shrink-0 rounded-[6px] px-2.5 text-[13px] font-semibold text-accent transition-colors hover:bg-raised"
+        className="h-8 shrink-0 rounded-[6px] px-2.5 text-[0.8125rem] font-semibold text-accent transition-colors hover:bg-raised"
       >
         {undoText}
       </button>

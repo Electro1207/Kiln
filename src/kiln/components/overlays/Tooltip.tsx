@@ -2,6 +2,7 @@ import { cloneElement, useCallback, useEffect, useId, useRef, useState, type Rea
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { originFor, Portal, useAnchored, type Side } from "../shared/useOverlay";
 
 /* One tooltip is open at a time. Leaving a trigger keeps its tooltip for a
@@ -31,6 +32,8 @@ export type TooltipProps = {
   /** Delay before the first tooltip opens, in ms. */
   delay?: number;
   className?: string;
+  /** Accessibility features to add here (`extendedTime` keeps the tip a little longer when the pointer slips off). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** The open-delay and close-grace timeouts, cleared on unmount. */
@@ -53,11 +56,18 @@ function useTimers() {
   return { clearOpen, clearAll, startOpen, startClose };
 }
 
-/** A short label on hover or keyboard focus. Not for anything the user must read to act. */
-export function Tooltip({ content, children, side = "top", delay = 450, className }: TooltipProps) {
+/**
+ * A short label on hover or keyboard focus. Not for anything the user must read to act.
+ * Meets WCAG 1.4.13: the pointer can move onto the tip without it closing, Esc dismisses it,
+ * and it stays while the trigger is hovered or focused.
+ */
+export function Tooltip({ content, children, side = "top", delay = 450, className, accessibilityFeatures }: TooltipProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const [focused, setFocused] = useState(false);
   const [open, setOpen] = useState(false);
   const [instant, setInstant] = useState(false);
   const timers = useTimers();
+  const { clearAll } = timers;
   const id = useId();
   const { setAnchor, floatingRef, placement, floatingStyle } = useAnchored(open, side, "center", 8);
 
@@ -84,30 +94,30 @@ export function Tooltip({ content, children, side = "top", delay = 450, classNam
 
   const hide = (grace = true) => {
     timers.clearOpen();
-    if (!open) return;
-    if (grace) timers.startClose(close, GRACE_MS);
+    if (!open || focused) return;
+    if (grace) timers.startClose(close, a11y.extendedTime ? GRACE_MS * 3 : GRACE_MS);
     else close();
   };
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && (clearAll(), setInstant(false), setOpen(false));
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("keydown", onKey);
       if (current?.id === id) current = null;
       warmUntil = Date.now() + WARM_MS;
     };
-  }, [open, id]);
+  }, [open, id, clearAll]);
 
   const p = children.props;
   const trigger = cloneElement(children, {
     ref: setAnchor as Ref<HTMLElement>,
     onPointerEnter: (e) => { p.onPointerEnter?.(e); if (e.pointerType === "mouse") show(); },
     onPointerLeave: (e) => { p.onPointerLeave?.(e); hide(); },
-    onPointerDown: (e) => { p.onPointerDown?.(e); hide(false); },
-    onFocus: (e) => { p.onFocus?.(e); if ((e.target as HTMLElement).matches(":focus-visible")) show(); },
-    onBlur: (e) => { p.onBlur?.(e); hide(false); },
+    onPointerDown: (e) => { p.onPointerDown?.(e); timers.clearOpen(); if (open) close(); },
+    onFocus: (e) => { p.onFocus?.(e); if ((e.target as HTMLElement).matches(":focus-visible")) { setFocused(true); show(); } },
+    onBlur: (e) => { p.onBlur?.(e); setFocused(false); timers.clearOpen(); if (open) close(); },
     "aria-describedby": open ? id : undefined,
   });
 
@@ -126,6 +136,9 @@ export function Tooltip({ content, children, side = "top", delay = 450, classNam
               id={id}
               ref={floatingRef}
               role="tooltip"
+              {...rootProps}
+              onPointerEnter={() => timers.clearAll()}
+              onPointerLeave={() => hide()}
               initial={instant ? { opacity: 1 } : { opacity: 0, scale: 0.94, ...offsetFrom }}
               animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
               custom={instant}
@@ -134,9 +147,9 @@ export function Tooltip({ content, children, side = "top", delay = 450, classNam
               }}
               exit="exit"
               transition={springSoft}
-              style={{ ...floatingStyle, transformOrigin: originFor(placement) }}
+              style={{ ...rootProps.style, ...floatingStyle, transformOrigin: originFor(placement) }}
               className={cn(
-                "pointer-events-none z-[60] max-w-64 rounded-[7px] bg-ink px-2.5 py-1.5 text-[12.5px] font-medium leading-[18px] text-surface shadow-float",
+                "z-[60] max-w-64 rounded-[7px] bg-ink px-2.5 py-1.5 text-[0.7812rem] font-medium leading-[18px] text-surface shadow-float",
                 "dark:bg-elevated dark:text-ink dark:ring-1 dark:ring-inset dark:ring-line-strong/60",
                 className,
               )}

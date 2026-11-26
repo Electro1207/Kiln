@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { animate, motion, useMotionValue, type PanInfo } from "motion/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { springFirm, springSnappy } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by Carousel. Pass a partial via `labels` to translate or reword. */
 export interface CarouselLabels {
@@ -19,6 +20,10 @@ export interface CarouselLabels {
   next: string;
   /** Live-region announcement of the current slide. */
   announce: (index: number, count: number) => string;
+  /** aria-label of the pause button (shown while it autoplays). */
+  pause: string;
+  /** aria-label of the play button (shown while it is paused). */
+  play: string;
 }
 export const carouselLabels: CarouselLabels = {
   slideOf: (i, n) => `${i} of ${n}`,
@@ -27,6 +32,8 @@ export const carouselLabels: CarouselLabels = {
   previous: "Previous slide",
   next: "Next slide",
   announce: (i, n) => `Slide ${i} of ${n}`,
+  pause: "Pause slideshow",
+  play: "Start slideshow",
 };
 
 export type CarouselProps = {
@@ -41,11 +48,18 @@ export type CarouselProps = {
   /** Slides visible at once from 720px wide. Phones always show one with a peek of the next. */
   perView?: number;
   gap?: number;
+  /**
+   * ms between automatic advances; leave out for no autoplay. It stops while the pointer or focus is
+   * on the carousel, never runs under `calm` or `reduceMotion`, and shows a pause button (WCAG 2.2.2).
+   */
+  autoPlay?: number;
   /** Override any UI text. Merged over `carouselLabels`. */
   labels?: Partial<CarouselLabels>;
   /** Replace any built-in icon. Merged over `carouselIcons`. */
   icons?: Partial<CarouselIcons>;
   className?: string;
+  /** Accessibility features to add here. `calm` and `reduceMotion` turn autoplay off; `screenReaderHints` keeps the pause button always visible. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Drag with momentum, snaps to a slide, arrows and keyboard too. */
@@ -55,10 +69,18 @@ export interface CarouselIcons {
   previous: ReactNode;
   /** Next slide button. */
   next: ReactNode;
+  /** Pause button. */
+  pause: ReactNode;
+  /** Play button. */
+  play: ReactNode;
 }
-export const carouselIcons: CarouselIcons = { previous: <ChevronLeft />, next: <ChevronRight /> };
+export const carouselIcons: CarouselIcons = { previous: <ChevronLeft />, next: <ChevronRight />, pause: <Pause />, play: <Play /> };
 
-export function Carousel({ slides, label, value, defaultValue = 0, onChange, perView = 2, gap = 16, labels, icons, className }: CarouselProps) {
+export function Carousel({ slides, label, value, defaultValue = 0, onChange, perView = 2, gap = 16, autoPlay, labels, icons, className, accessibilityFeatures }: CarouselProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const [paused, setPaused] = useState(false);
+  const [held, setHeld] = useState(false);
+  const canPlay = autoPlay !== undefined && !a11y.reduceMotion && !a11y.calm;
   const l = { ...carouselLabels, ...labels };
   const ic = useMemo(() => ({ ...carouselIcons, ...icons }), [icons]);
   const uid = useId();
@@ -110,6 +132,18 @@ export function Carousel({ slides, label, value, defaultValue = 0, onChange, per
 
   useEffect(() => () => x.stop(), [x]);
 
+  // Autoplay: one timer per slide, restarted by any change of slide, paused by hover, focus or the button.
+  const goRef = useRef(go);
+  useLayoutEffect(() => {
+    goRef.current = go;
+  });
+  const running = canPlay && !paused && !held;
+  useEffect(() => {
+    if (!running || !autoPlay) return;
+    const t = window.setTimeout(() => goRef.current(index >= maxIndex ? 0 : index + 1), autoPlay);
+    return () => window.clearTimeout(t);
+  }, [running, autoPlay, index, maxIndex]);
+
   const onDragEnd = (_: unknown, info: PanInfo) => {
     const projected = x.get() + info.velocity.x * 0.18;
     go(Math.round(-projected / stride), info.velocity.x);
@@ -117,7 +151,17 @@ export function Carousel({ slides, label, value, defaultValue = 0, onChange, per
   };
 
   return (
-    <section aria-roledescription="carousel" aria-label={label} className={cn("flex w-full min-w-0 flex-col gap-4", className)}>
+    <section
+      aria-roledescription="carousel"
+      aria-label={label}
+      {...rootProps}
+      className={cn("flex w-full min-w-0 flex-col gap-4", className)}
+      onPointerEnter={(e) => e.pointerType === "mouse" && setHeld(true)}
+      onPointerLeave={() => setHeld(false)}
+      onFocus={() => setHeld(true)}
+      onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setHeld(false)}
+    >
+      <div className="group/car relative">
       <div
         ref={viewport}
         className="overflow-hidden rounded-card outline-offset-4"
@@ -153,6 +197,25 @@ export function Carousel({ slides, label, value, defaultValue = 0, onChange, per
           ))}
         </motion.div>
       </div>
+      {canPlay && (
+        // Its own layer over the corner of the slides: fades in, never moves anything.
+        <button
+          type="button"
+          aria-label={paused ? l.play : l.pause}
+          aria-pressed={paused}
+          onClick={() => setPaused((p) => !p)}
+          className={cn(
+            "absolute right-2 top-2 z-10 grid size-8 place-items-center rounded-full border border-line-strong bg-surface text-ink shadow-float",
+            "transition-opacity duration-200 hover:bg-raised [&>svg]:size-4",
+            a11y.screenReaderHints
+              ? "opacity-100"
+              : "opacity-0 focus-visible:opacity-100 group-focus-within/car:opacity-100 group-hover/car:opacity-100",
+          )}
+        >
+          {paused ? ic.play : ic.pause}
+        </button>
+      )}
+      </div>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-1.5" role="tablist" aria-label={l.chooseSlide}>
           {Array.from({ length: maxIndex + 1 }, (_, i) => (
@@ -183,7 +246,7 @@ export function Carousel({ slides, label, value, defaultValue = 0, onChange, per
           </ArrowBtn>
         </div>
       </div>
-      <span id={uid} className="sr-only" aria-live="polite">
+      <span id={uid} className="sr-only" aria-live={running ? "off" : "polite"}>
         {l.announce(index + 1, slides.length)}
       </span>
     </section>

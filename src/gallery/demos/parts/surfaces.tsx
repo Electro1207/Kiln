@@ -227,23 +227,30 @@ const PLACES = [
   { seed: "minas-tirith", title: "Minas Tirith", note: "The White City" },
 ];
 
+const placeSlides = () =>
+  PLACES.map((s) => (
+    <figure className="flex flex-col gap-2" key={s.seed}>
+      <div className="aspect-[4/3] overflow-hidden rounded-card bg-active">
+        <img decoding="async" src={pic(s.seed)} alt={ALT} width={800} height={600} draggable={false} className="size-full object-cover" />
+      </div>
+      <figcaption className="flex items-baseline justify-between gap-3 text-sm">
+        <span className="shrink-0 whitespace-nowrap font-medium text-ink">{s.title}</span>
+        <span className="min-w-0 truncate text-muted">{s.note}</span>
+      </figcaption>
+    </figure>
+  ));
+
 export function CarouselDemo() {
   return (
-    <Stage>
-      <Carousel
-        label="Places in Middle-earth"
-        slides={PLACES.map((s) => (
-          <figure className="flex flex-col gap-2" key={s.seed}>
-            <div className="aspect-[4/3] overflow-hidden rounded-card bg-active">
-              <img decoding="async" src={pic(s.seed)} alt={ALT} width={800} height={600} draggable={false} className="size-full object-cover" />
-            </div>
-            <figcaption className="flex items-baseline justify-between gap-3 text-sm">
-              <span className="shrink-0 whitespace-nowrap font-medium text-ink">{s.title}</span>
-              <span className="min-w-0 truncate text-muted">{s.note}</span>
-            </figcaption>
-          </figure>
-        ))}
-      />
+    <Stage className="flex-col items-stretch gap-10">
+      <div className="flex min-w-0 flex-col gap-3">
+        <span className="text-xs text-muted">Drag, flick or use the arrows</span>
+        <Carousel label="Places in Middle-earth" slides={placeSlides()} />
+      </div>
+      <div className="flex min-w-0 flex-col gap-3">
+        <span className="text-xs text-muted">Autoplay every 4 seconds: it stops on hover and focus, has a pause button, and stays still under calm</span>
+        <Carousel label="More places in Middle-earth, advancing on its own" slides={placeSlides().reverse()} autoPlay={4000} />
+      </div>
     </Stage>
   );
 }
