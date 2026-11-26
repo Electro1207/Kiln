@@ -8,6 +8,7 @@ import { DocsNav, type DocsNavSection } from "../kiln/components/menus/DocsNav";
 import { ThemeSwitcher } from "../kiln/components/primitives/ThemeToggle";
 import { cn } from "../kiln/cn";
 import { fade } from "../kiln/motion";
+import { a11yMarkerCss, hasA11yMeta } from "./a11yViewStore";
 
 type Props = {
   route: Route;
@@ -15,11 +16,13 @@ type Props = {
   onNavigate: (r: Route) => void;
   /** The phone drawer brings its own title row. */
   brand?: boolean;
+  /** Accessibility view: a dot on entries with notes, and each group counts them. */
+  a11yView?: boolean;
 };
 
 const total = categories.reduce((n, c) => n + c.entries.length, 0);
 
-export const Sidebar = memo(function Sidebar({ route, activeEntry, onNavigate, brand = true }: Props) {
+export const Sidebar = memo(function Sidebar({ route, activeEntry, onNavigate, brand = true, a11yView = false }: Props) {
   const nav = useMemo<DocsNavSection[]>(
     () => [
       { id: "start", groups: [{ id: "overview", label: "Overview", href: "/", icon: <LayoutGrid /> }] },
@@ -30,16 +33,19 @@ export const Sidebar = memo(function Sidebar({ route, activeEntry, onNavigate, b
           id: g.id,
           label: g.name,
           href: href({ page: "category", category: g.id }),
+          count: a11yView ? g.entries.filter((e) => hasA11yMeta(e.id)).length : undefined,
           items: g.entries.map((e) => ({ id: e.id, label: e.name, keywords: e.summary, href: href({ page: "category", category: g.id, entry: e.id }) })),
         })),
       })),
     ],
-    [],
+    [a11yView],
   );
 
   const value =
     route.page === "overview" ? "overview" : route.page === "category" ? (activeEntry ?? route.category) : route.page;
   return (
+    <>
+    {a11yView && <style>{a11yMarkerCss()}</style>}
     <DocsNav
       aria-label="Components"
       sections={nav}
@@ -73,6 +79,7 @@ export const Sidebar = memo(function Sidebar({ route, activeEntry, onNavigate, b
         </div>
       }
     />
+    </>
   );
 });
 
