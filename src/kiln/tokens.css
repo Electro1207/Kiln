@@ -56,6 +56,10 @@
   --k-scrim: rgb(20 20 19 / 0.32);
   --k-tour-scrim: rgb(14 16 17 / 0.5);  /* the page dimmed around a tour spotlight */
 
+  /* Colour-blind safe series (Okabe–Ito, tuned for this ground). Used when colourSafe is on. */
+  --k-cvd-1: #0072b2; --k-cvd-2: #b87400; --k-cvd-3: #00805f; --k-cvd-4: #b4538a;
+  --k-cvd-5: #2f93cf; --k-cvd-6: #c75400; --k-cvd-7: #8a7e00; --k-cvd-8: #4a4d49;
+
   color-scheme: light;
 }
 
@@ -92,6 +96,9 @@
   --k-float-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -8px rgb(0 0 0 / 0.6);
   --k-scrim: rgb(0 0 0 / 0.55);
   --k-tour-scrim: rgb(0 0 0 / 0.62);
+
+  --k-cvd-1: #4b9bdb; --k-cvd-2: #e69f00; --k-cvd-3: #2dbe93; --k-cvd-4: #e08fbf;
+  --k-cvd-5: #7cc8f2; --k-cvd-6: #ef7b3c; --k-cvd-7: #e8dc4a; --k-cvd-8: #cfcfca;
 
   color-scheme: dark;
 }

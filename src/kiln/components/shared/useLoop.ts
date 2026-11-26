@@ -1,33 +1,17 @@
 /* Infinite decorative loops (orbits, beams, carets) run as Web Animations so
    transform and opacity loops stay on the compositor. They pause while their
-   root is off-screen and never start under reduced motion.
+   root is off-screen and never start under reduced motion or calm.
 
-   Every instance on a page shares one IntersectionObserver (per margin) and one
-   reduced-motion listener, so a table of 200 spinners costs one observer, not 200. */
+   Every instance on a page shares one IntersectionObserver (per margin) and, through useA11y,
+   one set of system listeners, so a table of 200 spinners costs one observer, not 200. */
 
-import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
+import { useA11y } from "../../a11y";
 
-const REDUCE = "(prefers-reduced-motion: reduce)";
-let reduceQuery: MediaQueryList | null = null;
-const reduceQueryOf = () => (reduceQuery ??= window.matchMedia(REDUCE));
-const reduceListeners = new Set<() => void>();
-const onReduceChange = () => reduceListeners.forEach((f) => f());
-
-function subscribeReduce(f: () => void) {
-  if (reduceListeners.size === 0) reduceQueryOf().addEventListener("change", onReduceChange);
-  reduceListeners.add(f);
-  return () => {
-    reduceListeners.delete(f);
-    if (reduceListeners.size === 0) reduceQueryOf().removeEventListener("change", onReduceChange);
-  };
-}
-
+/** True when motion should be reduced: the system asks for it, or the person (AccessibilityMenu),
+    a scope or the component's own `accessibilityFeatures` does. */
 export function usePrefersReducedMotion() {
-  return useSyncExternalStore(
-    subscribeReduce,
-    () => reduceQueryOf().matches,
-    () => false,
-  );
+  return useA11y().reduceMotion;
 }
 
 type Shared = { io: IntersectionObserver; subs: Map<Element, Set<(on: boolean) => void>> };
@@ -90,7 +74,9 @@ export function useLoop(
   setup: (root: Element) => Animation[],
   deps: unknown[],
 ) {
-  const reduce = usePrefersReducedMotion();
+  // Calm holds loops still too: nothing moves on its own.
+  const a11y = useA11y();
+  const reduce = a11y.reduceMotion || a11y.calm;
   const visible = useOnScreen(root);
   const shown = useRef(visible);
   shown.current = visible;

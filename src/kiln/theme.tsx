@@ -62,7 +62,7 @@ function writeColorwayCss(g: ColorwayTheme | undefined) {
 
 /** Run `apply` inside a view transition whose new state opens as a circle from `origin`. */
 function reveal(origin: HTMLElement | null | undefined, apply: () => void) {
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.hasAttribute("data-k-reduce-motion");
   const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
   if (!doc.startViewTransition || reduce) return apply();
   const root = document.documentElement;
