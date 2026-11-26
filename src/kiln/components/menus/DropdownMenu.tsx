@@ -35,12 +35,14 @@ type MenuContentProps = {
   onBack?: () => void;
   label?: string;
   minWidth?: number;
+  /** Which row is highlighted when the menu opens: the first, the last, or none (the default; the first arrow key picks). */
+  initialFocus?: "first" | "last" | "none";
   /** Replace any built-in icon. Merged over `dropdownMenuIcons`. */
   icons?: Partial<DropdownMenuIcons>;
 };
 
 /** The panel of a menu. Shared by DropdownMenu and ContextMenu; submenus are nested MenuContents. */
-export function MenuContent({ open, onClose, anchor, items, placement = "bottom-start", group, restoreFocus = true, onBack, label, minWidth = 208, icons }: MenuContentProps) {
+export function MenuContent({ open, onClose, anchor, items, placement = "bottom-start", group, restoreFocus = true, onBack, label, minWidth = 208, initialFocus = "none", icons }: MenuContentProps) {
   const ic = useMemo(() => ({ ...dropdownMenuIcons, ...icons }), [icons]);
   const id = useId();
   const groupId = group ?? id;
@@ -62,8 +64,13 @@ export function MenuContent({ open, onClose, anchor, items, placement = "bottom-
 
   useEffect(() => {
     if (!open) return;
-    const raf = requestAnimationFrame(() => panelRef.current?.focus({ preventScroll: true }));
+    const raf = requestAnimationFrame(() => {
+      panelRef.current?.focus({ preventScroll: true });
+      if (initialFocus === "first") setActive(move(-1, 1));
+      else if (initialFocus === "last") setActive(move(0, -1));
+    });
     return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => () => window.clearTimeout(hoverTimer.current), []);
