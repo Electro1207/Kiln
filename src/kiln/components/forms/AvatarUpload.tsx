@@ -122,7 +122,7 @@ export function AvatarUpload({
             {sample && <Button size="sm" variant="ghost" leading={ic.sample} onClick={() => { setError(null); setEditing(sample()); }}>{l.sample}</Button>}
             {value && <Button size="sm" variant="ghost" leading={ic.remove} onClick={() => onChange(null)}>{l.remove}</Button>}
           </div>
-          <p className={cn("text-[13px]", error ? "text-negative" : "text-muted")} role={error ? "alert" : undefined}>
+          <p className={cn("text-[0.8125rem]", error ? "text-negative" : "text-muted")} role={error ? "alert" : undefined}>
             {error ?? l.hint}
           </p>
         </div>

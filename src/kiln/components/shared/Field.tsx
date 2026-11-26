@@ -46,11 +46,11 @@ export function Field({
         <div className="grid [&>*]:[grid-area:1/1]">
           <AnimatePresence initial={false}>
             {error ? (
-              <motion.p key="err" id={`${id}-msg`} role="alert" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { ...fade, delay: 0.08 } }} exit={{ opacity: 0, transition: { duration: 0.09 } }} className="text-[13px] text-negative">
+              <motion.p key="err" id={`${id}-msg`} role="alert" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { ...fade, delay: 0.08 } }} exit={{ opacity: 0, transition: { duration: 0.09 } }} className="text-[0.8125rem] text-negative">
                 {error}
               </motion.p>
             ) : (
-              <motion.p key="hint" id={`${id}-msg`} initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { ...fade, delay: 0.08 } }} exit={{ opacity: 0, transition: { duration: 0.09 } }} className="text-[13px] text-muted">
+              <motion.p key="hint" id={`${id}-msg`} initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { ...fade, delay: 0.08 } }} exit={{ opacity: 0, transition: { duration: 0.09 } }} className="text-[0.8125rem] text-muted">
                 {hint}
               </motion.p>
             )}

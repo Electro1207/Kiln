@@ -130,7 +130,7 @@ function DrawerLayer({ onOpenChange, side = "right", title, label, children, foo
         )}
         {title && (
           <div className={cn("flex items-center gap-3 px-5", side === "bottom" ? "pb-2" : "pb-2 pt-5")}>
-            <h2 id={titleId} className="min-w-0 flex-1 truncate text-[17px] font-semibold">
+            <h2 id={titleId} className="min-w-0 flex-1 truncate text-[1.0625rem] font-semibold">
               {title}
             </h2>
             <motion.button

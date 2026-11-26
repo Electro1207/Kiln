@@ -183,7 +183,7 @@ export function DiffViewer({ oldText, newText, filename, context = 3, defaultVie
           options={[{ value: "split", label: l.split }, { value: "unified", label: l.unified }]}
         />
       </div>
-      <motion.div key={view} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={fade} className="overflow-x-auto font-mono text-[12.5px] leading-[22px]">
+      <motion.div key={view} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={fade} className="overflow-x-auto font-mono text-[0.78125rem] leading-[22px]">
         <div className={cn(view === "split" ? "min-w-[640px]" : "min-w-[420px]")}>
           {shown.map((r, i) => {
             if (r.kind === "fold") {

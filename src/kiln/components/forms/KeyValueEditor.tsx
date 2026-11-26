@@ -112,11 +112,11 @@ export function KeyValueEditor({ rows: rowsProp, defaultRows = [], onChange: onC
     requestAnimationFrame(() => (focusTo ? keyInputs.current.get(focusTo.id)?.focus() : undefined));
   };
 
-  const cell = "h-9 w-full min-w-0 rounded-control border bg-surface px-2.5 text-[13px] text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-faint focus:border-accent focus:ring-[3px] focus:ring-accent/20";
+  const cell = "h-9 w-full min-w-0 rounded-control border bg-surface px-2.5 text-[0.8125rem] text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-faint focus:border-accent focus:ring-[3px] focus:ring-accent/20";
 
   return (
     <div className={cn("flex w-full flex-col gap-2", className)}>
-      <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,3fr)_76px] gap-2 px-0.5 text-[13px] font-medium text-muted sm:grid" aria-hidden>
+      <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,3fr)_76px] gap-2 px-0.5 text-[0.8125rem] font-medium text-muted sm:grid" aria-hidden>
         <span>{keyLabel}</span><span>{valueLabel}</span><span />
       </div>
       <ul className="flex flex-col gap-2">

@@ -238,11 +238,11 @@ export function DocsNav({
         </div>
       )}
       <ScrollArea ref={viewport} className="min-h-0 flex-1" viewportClassName="px-3 pb-6 pt-1">
-        <nav aria-label={ariaLabel} className="text-[14px]">
-          {shown.length === 0 && <p className="px-3 py-6 text-[13px] text-muted">{emptyText ?? l.empty}</p>}
+        <nav aria-label={ariaLabel} className="text-[0.875rem]">
+          {shown.length === 0 && <p className="px-3 py-6 text-[0.8125rem] text-muted">{emptyText ?? l.empty}</p>}
           {shown.map((s, si) => (
             <div key={s.id} className={cn(si > 0 && "mt-5")}>
-              {s.label && <p className="flex h-7 items-center px-3 text-[12px] font-medium text-muted">{s.label}</p>}
+              {s.label && <p className="flex h-7 items-center px-3 text-[0.75rem] font-medium text-muted">{s.label}</p>}
               <ul className="space-y-px">
                 {s.groups.map((g) => (
                   <GroupBlock
@@ -409,7 +409,7 @@ const ItemRow = memo(function ItemRow({ it, groupId, here, index, q, rowHeight, 
         aria-current={here ? "page" : undefined}
         onClick={(e) => onPick(e, it.id, groupId)}
         className={cn(
-          "relative flex items-center rounded-control px-2.5 text-[13px] transition-colors duration-200",
+          "relative flex items-center rounded-control px-2.5 text-[0.8125rem] transition-colors duration-200",
           here ? "text-ink" : "text-muted hover:bg-raised hover:text-ink",
         )}
         style={{ height: rowHeight }}

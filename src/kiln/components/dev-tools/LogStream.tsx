@@ -149,7 +149,7 @@ export function LogStream({ entries, title, height = 360, rowHeight = 26, locale
         aria-label={title ?? lb.log}
         aria-live="off"
         tabIndex={0}
-        className="relative overflow-y-auto font-mono text-[12.5px] [contain:strict]"
+        className="relative overflow-y-auto font-mono text-[0.78125rem] [contain:strict]"
         style={{ height }}
         onScroll={(e) => {
           const el = e.currentTarget;
@@ -168,7 +168,7 @@ export function LogStream({ entries, title, height = 360, rowHeight = 26, locale
                 style={{ height: rowHeight, transform: `translateY(${(first + k) * rowHeight}px)` }}
               >
                 <span className="tabular shrink-0 text-faint">{e.time}</span>
-                <span className={cn("w-10 shrink-0 font-sans text-[11px] font-semibold", lv.tone)}>{lb.levels[lv.id]}</span>
+                <span className={cn("w-10 shrink-0 font-sans text-[0.6875rem] font-semibold", lv.tone)}>{lb.levels[lv.id]}</span>
                 <span className="hidden w-24 shrink-0 truncate text-muted @lg:block">{e.source}</span>
                 <span className="min-w-0 flex-1 truncate text-ink">{e.message}</span>
               </div>

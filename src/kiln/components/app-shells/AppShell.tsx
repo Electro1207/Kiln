@@ -176,7 +176,7 @@ export function AppShell({ brand, nav, value: valueProp, defaultValue, onNavigat
                 >
                   <span className="min-w-0 flex-1 truncate">{it.label}</span>
                   {it.badge != null && (
-                    <span className="tabular rounded-full bg-raised px-1.5 text-[11px] font-medium leading-[18px] text-ink">{it.badge}</span>
+                    <span className="tabular rounded-full bg-raised px-1.5 text-[0.6875rem] font-medium leading-[18px] text-ink">{it.badge}</span>
                   )}
                 </motion.span>
               </button>

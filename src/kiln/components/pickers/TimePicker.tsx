@@ -92,7 +92,7 @@ function Wheel({ items, value, onChange, label }: { items: number[]; value: numb
           data-i={i}
           onClick={() => ref.current?.scrollTo({ top: i * ITEM, behavior: "smooth" })}
           className={cn(
-            "flex w-full snap-center items-center justify-center text-[17px] tabular will-change-transform",
+            "flex w-full snap-center items-center justify-center text-[1.0625rem] tabular will-change-transform",
             n === value ? "font-medium text-ink" : "text-muted",
           )}
           style={{ height: ITEM }}
@@ -119,7 +119,7 @@ export function TimeWheels({ value, onChange, minuteStep = 5, labels }: {
     <div className="relative flex items-center justify-center gap-1 px-3 py-2">
       <span aria-hidden className="pointer-events-none absolute inset-x-3 top-1/2 -translate-y-1/2 rounded-control bg-raised" style={{ height: ITEM }} />
       <Wheel label={l.hours} items={hours} value={value.hours} onChange={(h) => onChange({ ...value, hours: h })} />
-      <span aria-hidden className="relative z-[1] pb-0.5 text-[17px] font-medium text-muted">:</span>
+      <span aria-hidden className="relative z-[1] pb-0.5 text-[1.0625rem] font-medium text-muted">:</span>
       <Wheel
         label={l.minutes}
         items={minutes}
@@ -178,7 +178,7 @@ export function TimePicker({ value: valueProp, defaultValue = null, onChange: on
   return (
     <div className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
       {label && (
-        <span id={`${id}-label`} className="text-[13px] font-medium text-ink">
+        <span id={`${id}-label`} className="text-[0.8125rem] font-medium text-ink">
           {label}
         </span>
       )}

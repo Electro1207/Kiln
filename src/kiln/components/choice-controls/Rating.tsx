@@ -5,7 +5,7 @@ import { springBouncy } from "../../motion";
 import { useControllable, type Size } from "../../controllable";
 
 const STAR_PX: Record<Size, number> = { sm: 20, md: 28, lg: 36 };
-const LABEL_TEXT: Record<Size, string> = { sm: "text-[13px]", md: "text-sm", lg: "text-[15px]" };
+const LABEL_TEXT: Record<Size, string> = { sm: "text-[0.8125rem]", md: "text-sm", lg: "text-[0.9375rem]" };
 
 const STAR = "M12 2.8l2.75 5.6 6.15.9-4.45 4.33 1.05 6.12L12 16.86l-5.5 2.9 1.05-6.13L3.1 9.3l6.15-.9z";
 

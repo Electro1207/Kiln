@@ -199,7 +199,7 @@ export function CalendarMonth({ events, value, defaultValue, defaultDate, onChan
         <button
           type="button"
           onClick={() => pick(today)}
-          className="h-8 rounded-control bg-btn-secondary px-3 text-[13px] font-medium text-btn-secondary-ink transition-colors hover:bg-btn-secondary-hover"
+          className="h-8 rounded-control bg-btn-secondary px-3 text-[0.8125rem] font-medium text-btn-secondary-ink transition-colors hover:bg-btn-secondary-hover"
         >
           {l.today}
         </button>
@@ -279,7 +279,7 @@ export function CalendarMonth({ events, value, defaultValue, defaultDate, onChan
                     </span>
                     <span className="pointer-events-none hidden flex-col gap-0.5 @xl:flex">
                       {list.slice(0, maxPerDay).map((e) => (
-                        <span key={e.id} className={cn("flex items-center gap-1 truncate rounded-[4px] px-1.5 text-[11px] leading-5 text-ink", chipTone[e.tone ?? "accent"], !inMonth && "opacity-60")}>
+                        <span key={e.id} className={cn("flex items-center gap-1 truncate rounded-[4px] px-1.5 text-[0.6875rem] leading-5 text-ink", chipTone[e.tone ?? "accent"], !inMonth && "opacity-60")}>
                           {e.time && <span className="shrink-0 text-muted tabular">{e.time}</span>}
                           <span className="truncate">{e.title}</span>
                         </span>
@@ -289,7 +289,7 @@ export function CalendarMonth({ events, value, defaultValue, defaultDate, onChan
                       <button
                         type="button"
                         onClick={(ev) => { moreRef.current = ev.currentTarget; setMore({ date: d }); }}
-                        className="relative hidden w-fit rounded-[4px] px-1.5 text-left text-[11px] leading-5 text-muted transition-colors hover:bg-active hover:text-ink @xl:block"
+                        className="relative hidden w-fit rounded-[4px] px-1.5 text-left text-[0.6875rem] leading-5 text-muted transition-colors hover:bg-active hover:text-ink @xl:block"
                       >
                         {l.more(hidden)}
                       </button>
@@ -305,9 +305,9 @@ export function CalendarMonth({ events, value, defaultValue, defaultDate, onChan
       <AnchoredLayer open={!!more} onClose={() => setMore(null)} anchor={moreRef} placement="bottom-start" role="dialog" aria-label={l.allEvents} className="w-64 p-2">
         {more && (
           <div className="flex flex-col gap-1">
-            <p className="px-1.5 pb-1 text-[13px] font-semibold text-ink">{fmtDay.format(more.date)}</p>
+            <p className="px-1.5 pb-1 text-[0.8125rem] font-semibold text-ink">{fmtDay.format(more.date)}</p>
             {(byDay.get(key(more.date)) ?? []).map((e) => (
-              <div key={e.id} className="flex items-center gap-2 rounded-[6px] px-1.5 py-1 text-[13px] text-ink">
+              <div key={e.id} className="flex items-center gap-2 rounded-[6px] px-1.5 py-1 text-[0.8125rem] text-ink">
                 <span className={cn("size-2 shrink-0 rounded-full", dotTone[e.tone ?? "accent"])} />
                 <span className="w-10 shrink-0 text-muted tabular">{e.time ?? l.allDay}</span>
                 <span className="truncate">{e.title}</span>
@@ -339,7 +339,7 @@ export function CalendarMonth({ events, value, defaultValue, defaultDate, onChan
                 {dayEvents.map((e) => (
                   <li key={e.id} className="flex items-start gap-3 rounded-card bg-raised px-3 py-2.5">
                     <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", dotTone[e.tone ?? "accent"])} />
-                    <span className="w-12 shrink-0 text-[13px] text-muted tabular">{e.time ?? l.allDay}</span>
+                    <span className="w-12 shrink-0 text-[0.8125rem] text-muted tabular">{e.time ?? l.allDay}</span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm text-ink">{e.title}</span>
                       {e.place && <span className="block text-xs text-muted">{e.place}</span>}

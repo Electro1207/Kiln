@@ -127,7 +127,7 @@ function OrderCard({ order: o, onReorder, currency, locale, l, ic }: { order: Or
   return (
     <li className="overflow-hidden rounded-sheet bg-surface">
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 pt-4 sm:px-5 sm:pt-5">
-        <dl className="flex flex-wrap gap-x-8 gap-y-2 text-[13px]">
+        <dl className="flex flex-wrap gap-x-8 gap-y-2 text-[0.8125rem]">
           <div><dt className="text-muted">{l.order}</dt><dd className="font-medium text-ink tabular">{o.id}</dd></div>
           <div><dt className="text-muted">{l.placed}</dt><dd className="text-ink">{date(o.placed)}</dd></div>
           <div><dt className="text-muted">{l.total}</dt><dd className="font-medium text-ink tabular">{formatMoney(o.total, currency)}</dd></div>
@@ -141,7 +141,7 @@ function OrderCard({ order: o, onReorder, currency, locale, l, ic }: { order: Or
             <img decoding="async" src={it.image.src} alt={it.image.alt} className={cn("size-14 shrink-0 rounded-[10px] bg-raised object-cover", o.status === "cancelled" && "opacity-60")} />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-medium text-ink">{it.name}</span>
-              <span className="block truncate text-[13px] text-muted">{[it.variant, l.qty(it.quantity)].filter(Boolean).join(" · ")}</span>
+              <span className="block truncate text-[0.8125rem] text-muted">{[it.variant, l.qty(it.quantity)].filter(Boolean).join(" · ")}</span>
             </span>
           </li>
         ))}
@@ -171,7 +171,7 @@ function OrderCard({ order: o, onReorder, currency, locale, l, ic }: { order: Or
           <motion.div key="track" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
             transition={{ height: { duration: 0.32, ease: easeOut }, opacity: fade }} className="overflow-hidden">
             <div className="mx-4 mb-4 rounded-card bg-raised p-4 sm:mx-5">
-              {o.carrier && <p className="mb-3 text-[13px] text-muted">{o.carrier}</p>}
+              {o.carrier && <p className="mb-3 text-[0.8125rem] text-muted">{o.carrier}</p>}
               <ol className="flex flex-col">
                 {o.tracking.map((step, i) => {
                   const last = i === o.tracking!.length - 1;
@@ -186,7 +186,7 @@ function OrderCard({ order: o, onReorder, currency, locale, l, ic }: { order: Or
                       </span>
                       <span className={cn("pb-4", last && "pb-0")}>
                         <span className={cn("block text-sm", step.done ? "font-medium text-ink" : "text-muted")}>{step.label}</span>
-                        {(step.detail || step.date) && <span className="block text-[13px] text-muted">{[step.detail, step.date && date(step.date)].filter(Boolean).join(" · ")}</span>}
+                        {(step.detail || step.date) && <span className="block text-[0.8125rem] text-muted">{[step.detail, step.date && date(step.date)].filter(Boolean).join(" · ")}</span>}
                       </span>
                     </li>
                   );

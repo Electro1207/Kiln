@@ -94,7 +94,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
       <span className="pt-0.5">{control}</span>
       <div className="min-w-0">
         <label htmlFor={id} className="block cursor-pointer select-none text-sm font-medium text-ink">{label}</label>
-        {description && <p id={`${id}-d`} className="text-[13px] text-muted">{description}</p>}
+        {description && <p id={`${id}-d`} className="text-[0.8125rem] text-muted">{description}</p>}
       </div>
     </div>
   );

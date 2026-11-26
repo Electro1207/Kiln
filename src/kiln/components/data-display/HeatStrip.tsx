@@ -89,7 +89,7 @@ export function HeatStrip({ days, unit, locale, className, labels }: HeatStripPr
   const cur = active != null ? days[active] : null;
   return (
     <div className={cn("flex w-full min-w-0 flex-col gap-3", className)}>
-      <div className="flex items-baseline justify-between gap-3 text-[13px]" aria-live="polite">
+      <div className="flex items-baseline justify-between gap-3 text-[0.8125rem]" aria-live="polite">
         <span className="tabular text-muted">{cur ? fmt(cur.date, locale) : l.lastWeeks(weeks)}</span>
         <span className="tabular font-medium text-ink">
           {cur ? cur.count : total} {unit}
@@ -124,7 +124,7 @@ export function HeatStrip({ days, unit, locale, className, labels }: HeatStripPr
           />
         </div>
       </div>
-      <div className="flex items-center gap-1.5 self-end text-[11px] text-muted" aria-hidden>
+      <div className="flex items-center gap-1.5 self-end text-[0.6875rem] text-muted" aria-hidden>
         {l.fewer}
         {LEVELS.map((lv, i) => (
           <span key={i} className={cn("size-2.5 rounded-[3px]", i === 0 ? "bg-active" : "bg-accent")} style={{ opacity: i === 0 ? 1 : lv }} />
@@ -194,7 +194,7 @@ const Cells = memo(function Cells({ days, unit, gridRef, locale, l }: { days: He
                   cells[n].tabIndex = 0;
                   cells[n].focus();
                 }}
-                className={cn("rounded-[3px] outline-none", lvl === 0 ? "bg-active" : "bg-accent")}
+                className={cn("rounded-[3px] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent", lvl === 0 ? "bg-active" : "bg-accent")}
                 style={{ width: CELL, height: CELL, opacity: lvl === 0 ? 1 : LEVELS[lvl] }}
               />
             );

@@ -170,7 +170,7 @@ function FilterChip({ field, value, onChange, onRemove, autoOpen, l, ic }: {
   const labels = field.options.filter((o) => value.includes(o.value)).map((o) => o.label);
   const text = labels.length === 0 ? l.any : labels.length <= 2 ? labels.join(", ") : l.selected(labels.length);
   return (
-    <span className="inline-flex h-8 items-center rounded-full bg-surface text-[13px] text-ink">
+    <span className="inline-flex h-8 items-center rounded-full bg-surface text-[0.8125rem] text-ink">
       <button
         ref={ref}
         type="button"
@@ -253,7 +253,7 @@ export function FilterBar({
                   if (v.sort) setSort(v.sort);
                   setPending([]);
                 }}
-                className={cn("relative h-8 shrink-0 rounded-full px-3 text-[13px] transition-colors duration-200", on ? "font-medium text-ink" : "text-muted hover:text-ink")}
+                className={cn("relative h-8 shrink-0 rounded-full px-3 text-[0.8125rem] transition-colors duration-200", on ? "font-medium text-ink" : "text-muted hover:text-ink")}
               >
                 <motion.span aria-hidden initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className="pointer-events-none absolute inset-0 bg-surface" style={{ borderRadius: 999 }} />
                 <span className="relative z-[1]">{v.label}</span>
@@ -271,7 +271,7 @@ export function FilterBar({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={search}
-            className="h-full min-w-0 flex-1 bg-transparent text-[13px] text-ink outline-none placeholder:text-muted"
+            className="h-full min-w-0 flex-1 bg-transparent text-[0.8125rem] text-ink outline-none placeholder:text-muted"
           />
           <span className="grid size-5 shrink-0 [&>*]:[grid-area:1/1]">
             <AnimatePresence initial={false}>
@@ -333,7 +333,7 @@ export function FilterBar({
                 trigger={({ open, ...p }) => (
                   <button
                     {...p}
-                    className={cn("inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] text-muted transition-colors hover:bg-active hover:text-ink", open && "bg-active text-ink")}
+                    className={cn("inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] text-muted transition-colors hover:bg-active hover:text-ink", open && "bg-active text-ink")}
                   >
                     <span aria-hidden className="grid place-items-center [&>svg]:size-3.5">{ic.add}</span> {l.filter}
                   </button>
@@ -352,7 +352,7 @@ export function FilterBar({
               exit={{ opacity: 0, transition: { duration: 0.12 } }}
               transition={{ layout: springFirm, opacity: fade }}
               onClick={clear}
-              className="h-8 rounded-full px-3 text-[13px] text-accent transition-colors hover:bg-active"
+              className="h-8 rounded-full px-3 text-[0.8125rem] text-accent transition-colors hover:bg-active"
             >
               {l.clearAll}
             </motion.button>
@@ -360,7 +360,7 @@ export function FilterBar({
         </AnimatePresence>
 
         <div className="ml-auto flex items-center gap-3">
-          {summary && <SwapText value={summary} className="text-[13px] text-muted tabular">{summary}</SwapText>}
+          {summary && <SwapText value={summary} className="text-[0.8125rem] text-muted tabular">{summary}</SwapText>}
           {sorts && sorts.length > 0 && (
             <DropdownMenu
               label={l.sortBy}
@@ -372,7 +372,7 @@ export function FilterBar({
               trigger={({ open, ...p }) => (
                 <button
                   {...p}
-                  className={cn("inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] text-ink transition-colors hover:bg-active", open && "bg-active")}
+                  className={cn("inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] text-ink transition-colors hover:bg-active", open && "bg-active")}
                 >
                   <span aria-hidden className="grid place-items-center text-muted [&>svg]:size-3.5">{ic.sort}</span>
                   <SwapText value={sort ?? ""}>{sorts.find((s) => s.id === sort)?.label ?? l.sort}</SwapText>

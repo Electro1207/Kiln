@@ -97,7 +97,7 @@ export function Terminal({ lines, prompt = "$", typing, onCommand, title, height
         role="log"
         aria-live="polite"
         aria-label={title ?? lb.output}
-        className="overflow-y-auto px-4 py-3 font-mono text-[13px] leading-[21px] [contain:strict]"
+        className="overflow-y-auto px-4 py-3 font-mono text-[0.8125rem] leading-[21px] [contain:strict]"
         style={{ height }}
         onClick={() => input.current?.focus()}
       >

@@ -202,7 +202,7 @@ export function ChatThread({ messages, me, typing, value, defaultValue = "", onC
                         style={{ transformOrigin: mine ? "100% 100%" : "0% 100%" }}
                         title={clock(m.at)}
                         className={cn(
-                          "px-3.5 py-2 text-[14px] leading-5 [overflow-wrap:anywhere]",
+                          "px-3.5 py-2 text-[0.875rem] leading-5 [overflow-wrap:anywhere]",
                           mine ? "bg-btn-primary text-btn-primary-ink" : "bg-raised text-ink",
                           "rounded-[18px]",
                           mine
@@ -250,7 +250,7 @@ export function ChatThread({ messages, me, typing, value, defaultValue = "", onC
             animate={{ opacity: 1, y: 0, x: "-50%" }}
             exit={{ opacity: 0, y: 10, x: "-50%", transition: { duration: 0.16, ease: easeOut } }}
             transition={springSoft}
-            className="absolute bottom-[68px] left-1/2 z-10 flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3 [&>svg]:size-3.5 text-[13px] font-medium text-ink shadow-float"
+            className="absolute bottom-[68px] left-1/2 z-10 flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3 [&>svg]:size-3.5 text-[0.8125rem] font-medium text-ink shadow-float"
           >
             {ic.latest}
             <span className="grid [&>*]:[grid-area:1/1]">

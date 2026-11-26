@@ -484,13 +484,13 @@ export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, 
           {renaming === n.id ? (
             <RenameInput label={l.newName} name={n.name} kind={n.kind} align={view === "grid" ? "center" : "left"} onDone={(v) => (v == null ? (setRenaming(null), focusItem(n.id)) : commitRename(n.id, v))} />
           ) : (
-            <span className={cn("min-w-0 text-[13px] text-ink", view === "grid" ? "line-clamp-2 break-words" : "truncate")}>{n.name}</span>
+            <span className={cn("min-w-0 text-[0.8125rem] text-ink", view === "grid" ? "line-clamp-2 break-words" : "truncate")}>{n.name}</span>
           )}
         </span>
         {view === "list" && (
           <>
-            <span className="relative z-[1] hidden truncate text-[13px] text-muted @xl:block">{n.modified ?? l.none}</span>
-            <span className="relative z-[1] text-right text-[13px] text-muted tabular">{n.kind === "folder" ? l.items(nodes.filter((c) => c.parent === n.id).length) : l.fileSize(n.size)}</span>
+            <span className="relative z-[1] hidden truncate text-[0.8125rem] text-muted @xl:block">{n.modified ?? l.none}</span>
+            <span className="relative z-[1] text-right text-[0.8125rem] text-muted tabular">{n.kind === "folder" ? l.items(nodes.filter((c) => c.parent === n.id).length) : l.fileSize(n.size)}</span>
           </>
         )}
       </motion.div>
@@ -528,7 +528,7 @@ export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, 
           <button
             type="button"
             onClick={newFolder}
-            className="inline-flex h-8 items-center gap-1.5 rounded-control bg-btn-secondary px-3 text-[13px] font-medium text-btn-secondary-ink transition-colors hover:bg-btn-secondary-hover"
+            className="inline-flex h-8 items-center gap-1.5 rounded-control bg-btn-secondary px-3 text-[0.8125rem] font-medium text-btn-secondary-ink transition-colors hover:bg-btn-secondary-hover"
           >
             <span aria-hidden className="grid place-items-center [&>svg]:size-4">{ic.newFolder}</span> <span className="hidden @md:inline">{l.newFolder}</span>
           </button>
@@ -583,7 +583,7 @@ export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, 
             <div>
               <span aria-hidden className="mx-auto grid w-fit place-items-center text-faint [&>svg]:size-10 [&>svg]:[stroke-width:1.3]">{ic.folder}</span>
               <p className="mt-3 text-sm font-medium text-ink">{l.emptyTitle}</p>
-              <p className="mt-1 text-[13px] text-muted">{l.emptyHint}</p>
+              <p className="mt-1 text-[0.8125rem] text-muted">{l.emptyHint}</p>
             </div>
           </div>
         )}
@@ -640,7 +640,7 @@ function RenameInput({ label, name, kind, align, onDone }: { label: string; name
         if (e.key === "Escape") finish(null);
       }}
       onBlur={() => finish(v)}
-      className={cn("w-full min-w-0 rounded-[5px] border border-accent bg-surface px-1.5 py-0.5 text-[13px] text-ink outline-none ring-2 ring-accent/25", align === "center" ? "text-center" : "text-left")}
+      className={cn("w-full min-w-0 rounded-[5px] border border-accent bg-surface px-1.5 py-0.5 text-[0.8125rem] text-ink outline-none ring-2 ring-accent/25", align === "center" ? "text-center" : "text-left")}
     />
   );
 }

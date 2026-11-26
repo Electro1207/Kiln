@@ -75,7 +75,7 @@ export function Accordion({ items, type = "single", defaultOpen = [], value, onC
                 aria-controls={`${id}-p-${it.id}`}
                 disabled={it.disabled}
                 onClick={() => toggle(it.id)}
-                className="group flex w-full items-center gap-4 py-4 text-left text-[15px] font-medium text-ink disabled:opacity-40"
+                className="group flex w-full items-center gap-4 py-4 text-left text-[0.9375rem] font-medium text-ink disabled:opacity-40"
               >
                 <span className="flex-1">{it.title}</span>
                 <motion.span

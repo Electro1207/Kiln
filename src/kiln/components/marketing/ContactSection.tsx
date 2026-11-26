@@ -125,11 +125,11 @@ export function ContactSection({ title, description, offices, topics, onSend = (
       <div className="grid gap-10 @4xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] @4xl:gap-12">
         <div>
           <h2 className="text-2xl font-semibold tracking-[-0.02em] text-ink text-balance @2xl:text-[1.75rem]">{title}</h2>
-          {description && <p className="mt-3 text-[15px] leading-relaxed text-ink">{description}</p>}
+          {description && <p className="mt-3 text-[0.9375rem] leading-relaxed text-ink">{description}</p>}
           <ul className="mt-8 grid gap-4 @xl:grid-cols-2 @4xl:grid-cols-1">
             {offices.map((o) => (
               <li key={o.city} className="rounded-card bg-surface p-5">
-                <p className="text-[15px] font-medium text-ink">{o.city}</p>
+                <p className="text-[0.9375rem] font-medium text-ink">{o.city}</p>
                 <p className="mt-2 flex gap-2 text-sm text-ink">
                   <span aria-hidden className="mt-0.5 grid shrink-0 self-start place-items-center text-muted [&>svg]:size-4">{ic.address}</span>
                   <span>{o.address.map((l) => <span key={l} className="block">{l}</span>)}</span>
@@ -185,7 +185,7 @@ export function ContactSection({ title, description, offices, topics, onSend = (
                 <Select label={l.topic} placeholder={l.topicPlaceholder} options={topics} value={v.topic} onChange={(t) => setV({ ...v, topic: t })} />
                 <Textarea label={l.message} value={v.message} onChange={(e) => setV({ ...v, message: e.target.value })} error={show("message")} minRows={4} maxLength={1000} showCount />
                 <div className="flex flex-col gap-3 @md:flex-row @md:items-center @md:justify-between">
-                  <p className="text-[13px] text-muted" role={fail ? "alert" : undefined}>
+                  <p className="text-[0.8125rem] text-muted" role={fail ? "alert" : undefined}>
                     {fail ? <span className="text-negative">{fail}</span> : l.hint}
                   </p>
                   <Button type="submit" loading={busy}>{l.send}</Button>

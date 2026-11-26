@@ -92,8 +92,8 @@ export function ToolCall({ name, summary, args, state, result, onApprove, onDeny
       >
         <span className="grid size-8 shrink-0 place-items-center rounded-[10px] bg-raised text-muted"><span className="grid [&>svg]:size-4" aria-hidden>{ic.tool}</span></span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-mono text-[13px] font-medium">{name}</span>
-          <span className="block truncate text-[13px] text-muted">{summary}</span>
+          <span className="block truncate font-mono text-[0.8125rem] font-medium">{name}</span>
+          <span className="block truncate text-[0.8125rem] text-muted">{summary}</span>
         </span>
         {/* Every status chip sits in one cell; the cell keeps the widest, so nothing shifts. */}
         <span className="grid shrink-0 justify-items-end [&>*]:[grid-area:1/1]">
@@ -125,7 +125,7 @@ export function ToolCall({ name, summary, args, state, result, onApprove, onDeny
             className="overflow-hidden"
           >
             <div className="border-t border-line px-4 pb-4 pt-3">
-              <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-[13px]">
+              <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-[0.8125rem]">
                 {Object.entries(args).map(([k, v]) => (
                   <div key={k} className="contents">
                     <dt className="font-mono text-muted">{k}</dt>
@@ -141,7 +141,7 @@ export function ToolCall({ name, summary, args, state, result, onApprove, onDeny
                     <Button size="sm" variant="secondary" onClick={onDeny}>{l.deny}</Button>
                   </motion.div>
                 ) : result && state !== "running" ? (
-                  <motion.div key="result" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={fade} className="mt-4 rounded-[10px] bg-raised px-3 py-2.5 text-[13.5px] leading-5">
+                  <motion.div key="result" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={fade} className="mt-4 rounded-[10px] bg-raised px-3 py-2.5 text-[0.84375rem] leading-5">
                     {result}
                   </motion.div>
                 ) : null}

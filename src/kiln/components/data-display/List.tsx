@@ -129,9 +129,9 @@ export function ListItem({ title, description, leading, trailing, actions, onCli
         {leading && <span className="pointer-events-none relative shrink-0">{leading}</span>}
         <span className="pointer-events-none relative flex min-w-0 flex-1 flex-col">
           <span className="truncate font-medium text-ink">{title}</span>
-          {description && <span className="truncate text-[13px] text-muted">{description}</span>}
+          {description && <span className="truncate text-[0.8125rem] text-muted">{description}</span>}
         </span>
-        {trailing && <span className="relative shrink-0 text-[13px] text-muted">{trailing}</span>}
+        {trailing && <span className="relative shrink-0 text-[0.8125rem] text-muted">{trailing}</span>}
       </motion.div>
     </motion.li>
   );

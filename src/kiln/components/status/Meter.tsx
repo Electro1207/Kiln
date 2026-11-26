@@ -92,7 +92,7 @@ export function Meter({ label, value = 0, max, unit = "", segments, warnAt = 0.8
         )}
       </div>
       {segments && (
-        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px] text-muted">
+        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[0.8125rem] text-muted">
           {segments.map((s) => (
             <li key={s.label} className="flex items-center gap-1.5">
               <span aria-hidden className={cn("size-2 rounded-full", segTone[s.tone ?? "accent"])} />

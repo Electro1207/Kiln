@@ -103,7 +103,7 @@ export function SplitButton({ label, onClick, actions, className, labels, icons 
                 {a.icon && <span className="mt-0.5 text-muted [&_svg]:size-4">{a.icon}</span>}
                 <span className="min-w-0">
                   <span className="block text-sm font-medium text-ink">{a.label}</span>
-                  {a.description && <span className="block text-[13px] text-muted">{a.description}</span>}
+                  {a.description && <span className="block text-[0.8125rem] text-muted">{a.description}</span>}
                 </span>
               </button>
             ))}

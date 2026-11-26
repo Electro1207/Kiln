@@ -220,7 +220,7 @@ export function SidebarNav({ sections, value: valueProp, defaultValue, onChange:
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1, transition: { ...fade, delay: 0.06 } }}
                           exit={{ opacity: 0, transition: { duration: 0.1 } }}
-                          className="relative z-[1] min-w-[18px] rounded-full bg-btn-primary px-1.5 text-center text-[11px] font-medium leading-[18px] text-btn-primary-ink tabular"
+                          className="relative z-[1] min-w-[18px] rounded-full bg-btn-primary px-1.5 text-center text-[0.6875rem] font-medium leading-[18px] text-btn-primary-ink tabular"
                         >
                           {it.badge}
                         </motion.span>
@@ -248,7 +248,7 @@ export function SidebarNav({ sections, value: valueProp, defaultValue, onChange:
                               aria-current={c.id === value ? "page" : undefined}
                               onClick={() => onChange(c.id)}
                               className={cn(
-                                "relative ml-[21px] flex h-9 w-[calc(100%-21px)] items-center rounded-control pl-5 pr-3 text-[13px] transition-colors",
+                                "relative ml-[21px] flex h-9 w-[calc(100%-21px)] items-center rounded-control pl-5 pr-3 text-[0.8125rem] transition-colors",
                                 c.id === value ? "font-medium text-ink" : "text-muted hover:text-ink",
                               )}
                             >

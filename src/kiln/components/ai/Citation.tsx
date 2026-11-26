@@ -51,7 +51,7 @@ function SiteMark({ url, className }: { url: string; className?: string }) {
   return (
     <span
       aria-hidden
-      className={cn("grid size-4 shrink-0 place-items-center rounded-[4px] text-[9px] font-semibold uppercase", className)}
+      className={cn("grid size-4 shrink-0 place-items-center rounded-[4px] text-[0.5625rem] font-semibold uppercase", className)}
       style={{ backgroundColor: `light-dark(hsl(${h} 55% 88%), hsl(${h} 30% 28%))`, color: `light-dark(hsl(${h} 45% 28%), hsl(${h} 60% 84%))` }}
     >
       {d[0]}
@@ -67,8 +67,8 @@ function SourceCard({ s, l, ic }: { s: Source; l: CitationLabels; ic: CitationIc
         {domain(s.url)}
       </div>
       <p className="mt-2 text-sm font-semibold leading-snug">{s.title}</p>
-      {s.snippet && <p className="mt-1.5 text-[13px] leading-5 text-muted">{s.snippet}</p>}
-      <a href={s.url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-[13px] font-medium text-accent hover:underline">
+      {s.snippet && <p className="mt-1.5 text-[0.8125rem] leading-5 text-muted">{s.snippet}</p>}
+      <a href={s.url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-[0.8125rem] font-medium text-accent hover:underline">
         {l.openSource} <span className="grid [&>svg]:size-3" aria-hidden>{ic.external}</span>
       </a>
     </div>
@@ -104,7 +104,7 @@ export function Citation({ sources, className, labels, icons }: {
         target="_blank"
         rel="noreferrer"
         className={cn(
-          "mx-0.5 inline-flex h-5 translate-y-[-1px] items-center gap-1 rounded-full bg-raised px-1.5 align-middle text-[11.5px] font-medium leading-none text-muted transition-colors hover:bg-active hover:text-ink",
+          "mx-0.5 inline-flex h-5 translate-y-[-1px] items-center gap-1 rounded-full bg-raised px-1.5 align-middle text-[0.71875rem] font-medium leading-none text-muted transition-colors hover:bg-active hover:text-ink",
           className,
         )}
       >
@@ -164,7 +164,7 @@ export function Sources({ sources, className, labels, icons }: {
                       <SiteMark url={s.url} />
                       {domain(s.url)}
                     </span>
-                    <span className="line-clamp-2 text-[13px] font-medium leading-5 text-ink">{s.title}</span>
+                    <span className="line-clamp-2 text-[0.8125rem] font-medium leading-5 text-ink">{s.title}</span>
                   </a>
                 </motion.li>
               ))}

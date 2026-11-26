@@ -211,7 +211,7 @@ export function PhoneInput({ value: valueProp, defaultValue, onChange: onChangeP
           />
         </div>
         <ul id={listId} role="listbox" aria-label={l.countries} className="max-h-64 overflow-y-auto p-1" onMouseLeave={() => {}}>
-          {list.length === 0 && <li className="px-3 py-6 text-center text-[13px] text-muted">{l.noMatch}</li>}
+          {list.length === 0 && <li className="px-3 py-6 text-center text-[0.8125rem] text-muted">{l.noMatch}</li>}
           {list.map((c, i) => (
             <li
               key={c.code}

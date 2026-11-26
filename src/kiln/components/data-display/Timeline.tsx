@@ -51,7 +51,7 @@ export function Timeline({ items, className }: { items: TimelineItem[]; classNam
                 {item.time}
               </time>
             </div>
-            {item.body && <div className="mt-1.5 text-[13px] text-muted">{item.body}</div>}
+            {item.body && <div className="mt-1.5 text-[0.8125rem] text-muted">{item.body}</div>}
           </div>
         </motion.li>
       ))}

@@ -74,11 +74,11 @@ export function StackedList({
             <span className="flex min-w-0 flex-1 flex-col gap-0.5 @lg:flex-row @lg:items-center @lg:gap-6">
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-sm font-medium text-ink">{r.title}</span>
-                {r.subtitle && <span className="truncate text-[13px] text-muted">{r.subtitle}</span>}
+                {r.subtitle && <span className="truncate text-[0.8125rem] text-muted">{r.subtitle}</span>}
               </span>
               {(r.status || r.detail) && (
                 <span className="flex shrink-0 items-center gap-2 @lg:flex-col @lg:items-end @lg:gap-0.5">
-                  {r.status && <span className="text-[13px] text-ink">{r.status}</span>}
+                  {r.status && <span className="text-[0.8125rem] text-ink">{r.status}</span>}
                   {r.detail && <span className="tabular text-xs text-muted">{r.detail}</span>}
                 </span>
               )}

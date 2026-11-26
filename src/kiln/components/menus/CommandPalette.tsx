@@ -207,7 +207,7 @@ export function CommandPalette({ open, onOpenChange, items, placeholder, emptyTe
                 aria-expanded="true"
                 aria-controls={listId}
                 aria-activedescendant={flat[index] ? `${listId}-${flat[index].id}` : undefined}
-                className="h-14 w-full bg-transparent text-[15px] text-ink outline-none placeholder:text-faint"
+                className="h-14 w-full bg-transparent text-[0.9375rem] text-ink outline-none placeholder:text-faint"
               />
               <kbd className="hidden shrink-0 rounded-md bg-raised px-1.5 py-0.5 text-xs text-muted sm:block">{l.escape}</kbd>
             </div>
@@ -229,7 +229,7 @@ export function CommandPalette({ open, onOpenChange, items, placeholder, emptyTe
                         data-index={i}
                         onPointerMove={() => index !== i && setIndex(i)}
                         onClick={() => choose(it)}
-                        className={cn("relative flex h-11 cursor-pointer items-center gap-3 px-3 text-[14px]", on ? "text-ink" : "text-muted")}
+                        className={cn("relative flex h-11 cursor-pointer items-center gap-3 px-3 text-[0.875rem]", on ? "text-ink" : "text-muted")}
                       >
                         <motion.div aria-hidden initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className="pointer-events-none absolute inset-0 bg-raised" style={{ borderRadius: 10 }} />
                         {it.icon && <span className="relative z-[1] inline-flex shrink-0 [&>svg]:size-4">{it.icon}</span>}

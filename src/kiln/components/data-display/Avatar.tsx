@@ -37,8 +37,8 @@ function custom(px: number) {
 }
 
 const sizes: Record<AvatarSize, string> = {
-  sm: "size-7 text-[11px]",
-  md: "size-9 text-[13px]",
+  sm: "size-7 text-[0.6875rem]",
+  md: "size-9 text-[0.8125rem]",
   lg: "size-12 text-base",
 };
 const dot: Record<AvatarSize, string> = { sm: "size-2", md: "size-2.5", lg: "size-3" };

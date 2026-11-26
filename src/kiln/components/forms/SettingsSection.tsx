@@ -35,7 +35,7 @@ export function SettingsRow({ title, description, control, htmlFor }: { title: R
         ) : (
           <span className="block text-sm font-medium text-ink">{title}</span>
         )}
-        {description && <p className="mt-0.5 text-[13px] text-muted">{description}</p>}
+        {description && <p className="mt-0.5 text-[0.8125rem] text-muted">{description}</p>}
       </div>
       <div className="shrink-0 pt-px">{control}</div>
     </div>

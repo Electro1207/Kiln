@@ -354,7 +354,7 @@ function Trigger({
   return (
     <>
       {label && (
-        <span id={`${id}-label`} className="text-[13px] font-medium text-ink">
+        <span id={`${id}-label`} className="text-[0.8125rem] font-medium text-ink">
           {label}
         </span>
       )}
@@ -586,7 +586,7 @@ export function DateRangePicker({
                   onChange(p.range());
                   setCalKey((k) => k + 1);
                 }}
-                className="shrink-0 rounded-control px-2.5 py-1.5 text-left text-[13px] text-muted transition-colors hover:bg-raised hover:text-ink"
+                className="shrink-0 rounded-control px-2.5 py-1.5 text-left text-[0.8125rem] text-muted transition-colors hover:bg-raised hover:text-ink"
               >
                 {p.label}
               </button>
@@ -603,7 +603,7 @@ export function DateRangePicker({
                   setOpen(false);
                   triggerRef.current?.focus();
                 }}
-                className="rounded-control bg-btn-primary px-3 py-1.5 text-[13px] font-medium text-btn-primary-ink transition-[background-color,opacity] duration-200 hover:bg-btn-primary-hover disabled:opacity-40"
+                className="rounded-control bg-btn-primary px-3 py-1.5 text-[0.8125rem] font-medium text-btn-primary-ink transition-[background-color,opacity] duration-200 hover:bg-btn-primary-hover disabled:opacity-40"
               >
                 {l.done}
               </button>

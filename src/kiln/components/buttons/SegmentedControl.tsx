@@ -7,9 +7,9 @@ import { useControllable, type Size } from "../../controllable";
 export type Segment<T extends string> = { value: T; label: ReactNode; icon?: ReactNode };
 
 const segSizes: Record<Size, string> = {
-  sm: "h-7 px-2.5 text-[13px]",
+  sm: "h-7 px-2.5 text-[0.8125rem]",
   md: "h-8 px-3.5 text-sm",
-  lg: "h-10 px-4 text-[15px]",
+  lg: "h-10 px-4 text-[0.9375rem]",
 };
 
 export type SegmentedControlProps<T extends string> = {

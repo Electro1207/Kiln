@@ -25,9 +25,9 @@ export const numberFieldLabels: NumberFieldLabels = { decrease: "Decrease", incr
 
 /** A stepper. Digits roll up or down as the number changes. Hold a button to repeat. */
 const nfSizes: Record<Size, { box: string; btn: string; text: string }> = {
-  sm: { box: "h-8", btn: "size-8", text: "text-[13px] min-w-12" },
+  sm: { box: "h-8", btn: "size-8", text: "text-[0.8125rem] min-w-12" },
   md: { box: "h-10", btn: "size-10", text: "text-sm min-w-16" },
-  lg: { box: "h-12", btn: "size-12", text: "text-[15px] min-w-20" },
+  lg: { box: "h-12", btn: "size-12", text: "text-[0.9375rem] min-w-20" },
 };
 
 /** A number input with stepper buttons and arrow-key stepping. Controlled with `value` + `onChange`, or uncontrolled with `defaultValue`. */

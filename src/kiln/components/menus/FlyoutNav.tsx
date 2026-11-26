@@ -66,7 +66,7 @@ function LinkRow({ link, onNavigate, compact }: { link: FlyoutLink; onNavigate?:
       )}
       <span className="min-w-0">
         <span className="block text-sm font-medium text-ink">{link.label}</span>
-        {link.description && <span className="mt-0.5 block text-[13px] leading-snug text-muted">{link.description}</span>}
+        {link.description && <span className="mt-0.5 block text-[0.8125rem] leading-snug text-muted">{link.description}</span>}
       </span>
     </a>
   );
@@ -262,7 +262,7 @@ export function FlyoutNav({ brand, items, action, onNavigate, labels, icons, cla
                       <div className="grid grid-cols-[1fr_1fr_minmax(0,18rem)] gap-2">
                         {current.groups.map((g) => (
                           <div key={g.title} className="min-w-0">
-                            <p className="px-3 pb-1 pt-2 text-[13px] font-medium text-muted">{g.title}</p>
+                            <p className="px-3 pb-1 pt-2 text-[0.8125rem] font-medium text-muted">{g.title}</p>
                             {g.links.map((l) => (
                               <LinkRow key={l.href} link={l} onNavigate={onNavigate ? go : undefined} />
                             ))}
@@ -275,7 +275,7 @@ export function FlyoutNav({ brand, items, action, onNavigate, labels, icons, cla
                         {current.links.map((l) => (
                           <LinkRow key={l.href} link={l} onNavigate={onNavigate ? go : undefined} />
                         ))}
-                        {current.footer && <div className="col-span-2 mt-1 rounded-card bg-raised px-3 py-2.5 text-[13px] text-muted">{current.footer}</div>}
+                        {current.footer && <div className="col-span-2 mt-1 rounded-card bg-raised px-3 py-2.5 text-[0.8125rem] text-muted">{current.footer}</div>}
                       </div>
                     )}
                   </motion.div>
@@ -307,7 +307,7 @@ export function FlyoutNav({ brand, items, action, onNavigate, labels, icons, cla
                       go(it.href);
                     }
                   }}
-                  className="flex h-12 items-center rounded-control px-3 text-[15px] text-ink transition-colors hover:bg-raised"
+                  className="flex h-12 items-center rounded-control px-3 text-[0.9375rem] text-ink transition-colors hover:bg-raised"
                 >
                   {it.label}
                 </a>
@@ -317,7 +317,7 @@ export function FlyoutNav({ brand, items, action, onNavigate, labels, icons, cla
                     type="button"
                     aria-expanded={section === i}
                     onClick={() => setSection((s) => (s === i ? null : i))}
-                    className="flex h-12 w-full items-center justify-between rounded-control px-3 text-[15px] text-ink transition-colors hover:bg-raised"
+                    className="flex h-12 w-full items-center justify-between rounded-control px-3 text-[0.9375rem] text-ink transition-colors hover:bg-raised"
                   >
                     {it.label}
                     <motion.span initial={false} animate={{ rotate: section === i ? 180 : 0 }} transition={springSnappy} className="grid text-muted [&>svg]:size-4">

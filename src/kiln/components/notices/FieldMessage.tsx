@@ -42,7 +42,7 @@ export function FieldMessage({ id, tone = "hint", children, icons, className }: 
           >
             <p
               className={cn(
-                "flex items-start gap-1.5 pt-2 text-[13px] leading-snug",
+                "flex items-start gap-1.5 pt-2 text-[0.8125rem] leading-snug",
                 tone === "error" && "text-negative",
                 tone === "success" && "text-positive",
                 tone === "hint" && "text-muted",

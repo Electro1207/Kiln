@@ -147,7 +147,7 @@ export function NotificationPreferences({ channels, groups, value: valueProp, de
                 <tr key={e.id} className="border-b border-line last:border-b-0 transition-colors hover:bg-raised/40">
                   <th scope="row" className="px-5 py-3.5 text-left font-normal">
                     <span className="block text-ink">{e.label}</span>
-                    {e.description && <span className="block text-[13px] text-muted">{e.description}</span>}
+                    {e.description && <span className="block text-[0.8125rem] text-muted">{e.description}</span>}
                   </th>
                   {channels.map((c) => (
                     <td key={c.id} className="px-3 py-3.5">
@@ -177,13 +177,13 @@ export function NotificationPreferences({ channels, groups, value: valueProp, de
                 <div className="flex items-start justify-between gap-3">
                   <span className="min-w-0">
                     <span className="block text-sm text-ink">{e.label}</span>
-                    {e.description && <span className="block text-[13px] text-muted">{e.description}</span>}
+                    {e.description && <span className="block text-[0.8125rem] text-muted">{e.description}</span>}
                   </span>
                   <Box icons={ic} size="sm" mark={markOf(channels.map((c) => get(e.id, c.id)))} label={l.eventOnEveryChannel(e.label)} onToggle={() => toggleRow(e.id)} />
                 </div>
                 <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
                   {channels.map((c) => (
-                    <label key={c.id} className="flex items-center gap-2 text-[13px] text-ink">
+                    <label key={c.id} className="flex items-center gap-2 text-[0.8125rem] text-ink">
                       <Box icons={ic} mark={get(e.id, c.id)} label={l.eventBy(e.label, c.label)} onToggle={() => setCells([[e.id, c.id]], !get(e.id, c.id))} />
                       {c.label}
                     </label>

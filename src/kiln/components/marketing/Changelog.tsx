@@ -176,7 +176,7 @@ export function Changelog({ title, description, releases, filter = false, initia
   return (
     <section className={cn("@container w-full", className)}>
       {title && <h2 className="text-2xl font-semibold tracking-[-0.02em] text-ink text-balance @2xl:text-[1.75rem]">{title}</h2>}
-      {description && <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-ink">{description}</p>}
+      {description && <p className="mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-ink">{description}</p>}
 
       {filter && present.length > 1 && (
         <div role="radiogroup" aria-label={l.filter} className={cn("flex w-fit max-w-full flex-wrap gap-1 rounded-[20px] bg-raised p-1", !!(title || description) && "mt-6")}>
@@ -210,8 +210,8 @@ export function Changelog({ title, description, releases, filter = false, initia
               className="grid scroll-mt-24 gap-3 @3xl:grid-cols-[10rem_minmax(0,1fr)] @3xl:gap-8"
             >
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 @3xl:flex-col @3xl:gap-1">
-                <span className="text-[15px] font-semibold text-ink tabular">{isUnreleased(r) ? l.unreleased : `v${r.version}`}</span>
-                {r.date && <time dateTime={r.date} className="text-[13px] text-muted tabular">{formatDate ? formatDate(r.date) : r.date}</time>}
+                <span className="text-[0.9375rem] font-semibold text-ink tabular">{isUnreleased(r) ? l.unreleased : `v${r.version}`}</span>
+                {r.date && <time dateTime={r.date} className="text-[0.8125rem] text-muted tabular">{formatDate ? formatDate(r.date) : r.date}</time>}
                 {r === latest && <span className="rounded-full bg-positive-soft px-2 text-xs leading-5 text-positive">{l.latest}</span>}
               </div>
               <div className={cn("rounded-card bg-surface p-5 @2xl:p-6", cardClassName)}>

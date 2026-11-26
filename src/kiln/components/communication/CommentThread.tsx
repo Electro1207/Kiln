@@ -240,7 +240,7 @@ function CommentItem({ comment: c, depth, root, onChange, me, maxDepth, l, ic }:
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0, transition: { duration: 0.1 } }}
                 transition={fade}
-                className="mt-0.5 text-[14px] leading-[21px] text-ink [overflow-wrap:anywhere]"
+                className="mt-0.5 text-[0.875rem] leading-[21px] text-ink [overflow-wrap:anywhere]"
               >
                 {c.text}
               </motion.p>
@@ -439,7 +439,7 @@ function Composer({ initial, submitLabel, placeholder, autoFocus, onSubmit, onCa
           if (e.key === "Escape") { e.stopPropagation(); onCancel(); }
           if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && text.trim()) onSubmit(text.trim());
         }}
-        className="block w-full resize-none rounded-control border border-line-strong bg-surface px-3 py-2 text-[14px] leading-[21px] text-ink outline-none transition-[border-color,box-shadow] placeholder:text-faint focus:border-accent focus:ring-2 focus:ring-accent-soft"
+        className="block w-full resize-none rounded-control border border-line-strong bg-surface px-3 py-2 text-[0.875rem] leading-[21px] text-ink outline-none transition-[border-color,box-shadow] placeholder:text-faint focus:border-accent focus:ring-2 focus:ring-accent-soft"
       />
       <div className="mt-2 flex justify-end gap-2">
         <Button type="button" size="sm" variant="ghost" onClick={onCancel}>{l.cancel}</Button>
