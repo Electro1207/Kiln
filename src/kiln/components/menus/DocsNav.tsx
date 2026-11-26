@@ -170,13 +170,21 @@ export function DocsNav({
     return () => window.removeEventListener("keydown", onKey);
   }, [searchable, shortcut]);
 
-  /* Keep the active row in view, without animating: the list must never drift on its own. */
+  /* Keep the active row in view, without animating: the list must never drift on its own.
+     Only a change of the active row (or clearing a search) asks for this. Opening or closing a
+     group by hand never does, or the list would jump back to the active row on every toggle.
+     The request waits until the row exists, since its group may open in a later render. */
   const viewport = useRef<HTMLDivElement>(null);
+  const wantReveal = useRef(true);
+  // Declared before the effect below, so on the same commit the request is set before it is read.
+  useEffect(() => { wantReveal.current = true; }, [value]);
+  useEffect(() => { if (!q) wantReveal.current = true; }, [q]);
   useEffect(() => {
     const vp = viewport.current;
-    if (!vp || !value || q) return;
+    if (!vp || !value || q || !wantReveal.current) return;
     const row = vp.querySelector<HTMLElement>(`[data-nav-id="${CSS.escape(value)}"]`);
     if (!row) return;
+    wantReveal.current = false;
     const r = row.getBoundingClientRect();
     const v = vp.getBoundingClientRect();
     const pad = 32;
