@@ -108,6 +108,17 @@ Things measured in pixels take a number:
 - **Overriding a built-in value.** `cn` joins classes and does not dedupe, so when two classes set the same property, the stylesheet decides which wins, not the order you wrote them in. To beat a built-in height or padding, prefer the `size` prop. Otherwise use Tailwind's important modifier, e.g. `boxClassName="h-14!"`.
 - **Rest props.** Button (an `<a>` when you pass `href`, plus `external` for a new tab), IconButton, Card, Badge, Switch, Tag, Link the text inputs, Kbd, StatusDot, Separator, Skeleton, Spinner, Progress and Avatar spread any other prop (`id`, `data-*`, `aria-*`, event handlers) onto their root or their native element, and forward `ref` to it. Where the default width is `k-fill` or the height is `k-ctl-*`, a utility in `className` wins.
 
+### Switchable parts: VideoPlayer
+
+A component with many built-in parts lets you switch each one with a boolean prop that defaults to today's behaviour (`<VideoPlayer volume={false} pip={false} />`), and takes render props for parts of your own.
+
+- **Switches:** `showTitle`, `skipButtons` (seconds, or `false`), `volume`, `speed`, `quality`, `captions` (`false` leaves them out), `pip`, `theaterButton`, `fullscreen`, `keyboard`, `autoHideControls` (ms, or `false`), `bigPlayButton`, `timelineSplit`, `showChapterTitle`. A switched-off control also drops its keys and its shortcuts-sheet row.
+- **Data in place of files:** `src` (one video) or `renditions` (several, with a quality menu): give exactly one. `cues` gives captions without a `.vtt`. `chapters` and `markers` are arrays of data.
+- **Slots:** `controlsStart(player)` and `controlsEnd(player)` put your controls in the bar; build them with `VideoPlayerControl` (`label`, `keyHint`, `active`, `onClick`, an icon as children) so they match. `overlay(player)` renders inside the player box, so it stays visible in full screen; its layer lets pointer events through, so give your own panel `pointer-events-auto`. `player` is the same `VideoPlayerHandle` the `ref` gives.
+- **Handle:** `ref` gives `play() pause() toggle() seek(t) setRate(r) setVolume(v) enterFullscreen() exitFullscreen()`, read-only `currentTime duration paused video time`. `useVideoTime(ref)` returns the time as a motion value: drive a playhead or a highlighted row with it and nothing re-renders.
+- **Events:** `onTimeUpdate onPlay onPause onEnded onSeek onLoadedMetadata onRateChange onVolumeChange onFullscreenChange`. `onKeyDown(e, player)` runs first for keys pressed in the player (never for typing in a field of your own); `preventDefault()` skips the built-in key. `shortcuts={[{ keys: ["W"], label: "…" }]}` lists your keys in the shortcuts sheet.
+- `theater` is the current theater state (with `onTheaterChange`), as before, so its on/off switch for the button is `theaterButton`.
+
 ## 5. Labels and accessibility
 
 - `label` is the visible label, and it becomes the accessible name.
