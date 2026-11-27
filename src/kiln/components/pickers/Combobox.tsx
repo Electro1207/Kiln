@@ -1,10 +1,12 @@
-import { useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Search, X } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable, type Size } from "../../controllable";
 import { inputSizes } from "../shared/Field";
 import { springSnappy, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { announce } from "../accessibility/announce";
 import { AnchoredLayer, RowHighlight, optionClass } from "../shared/Anchored";
 
 export type ComboboxOption = { value: string; label: string; hint?: string };
@@ -17,6 +19,8 @@ export interface ComboboxLabels {
   empty: (query: string) => string;
   /** aria-label of the clear button. */
   clear: string;
+  /** Spoken (with `screenReaderHints`) when the list of matches changes. */
+  results: (count: number) => string;
 }
 /** Icons used by Combobox. Pass a partial via `icons` to replace them. */
 export interface ComboboxIcons {
@@ -30,6 +34,7 @@ export const comboboxIcons: ComboboxIcons = { search: <Search />, clear: <X /> }
 export const comboboxLabels: ComboboxLabels = {
   placeholder: "Search…",
   empty: (q) => `Nothing matches “${q}”`,
+  results: (n) => (n === 1 ? "1 result" : `${n} results`),
   clear: "Clear",
 };
 
@@ -50,6 +55,8 @@ export type ComboboxProps = {
   /** Replace any built-in icon. Merged over `comboboxIcons`. */
   icons?: Partial<ComboboxIcons>;
   className?: string;
+  /** Accessibility features to add for this combobox only (`screenReaderHints` announces how many options match; `calm` and `reduceMotion` stop the list rows sliding in; adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Bold the part of `text` that matches `query`. */
@@ -68,7 +75,9 @@ export function Highlight({ text, query }: { text: string; query: string }): Rea
 }
 
 /** A text box that filters a list as you type and picks one option. */
-export function Combobox({ options, value: valueProp, defaultValue = null, onChange: onChangeProp, label, placeholder, emptyText, size = "md", labels, icons, className }: ComboboxProps) {
+export function Combobox({ options, value: valueProp, defaultValue = null, onChange: onChangeProp, label, placeholder, emptyText, size = "md", labels, icons, className, accessibilityFeatures }: ComboboxProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...comboboxLabels, ...labels };
   const ic = useMemo(() => ({ ...comboboxIcons, ...icons }), [icons]);
   const [value, onChange] = useControllable<string | null>(valueProp, defaultValue, onChangeProp);
@@ -89,6 +98,11 @@ export function Combobox({ options, value: valueProp, defaultValue = null, onCha
       .filter((o) => o.label.toLowerCase().includes(q) || o.hint?.toLowerCase().includes(q))
       .sort((a, b) => Number(!a.label.toLowerCase().startsWith(q)) - Number(!b.label.toLowerCase().startsWith(q)));
   }, [options, query, typing]);
+
+  useEffect(() => {
+    if (open && typing && a11y.screenReaderHints) announce(results.length === 0 ? (typeof emptyText === "function" ? emptyText(query) : (emptyText ?? l.empty(query))) : l.results(results.length));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [results.length, open, typing, a11y.screenReaderHints]);
 
   const show = () => {
     if (!open) setOpenCount((c) => c + 1);
@@ -114,7 +128,7 @@ export function Combobox({ options, value: valueProp, defaultValue = null, onCha
   };
 
   return (
-    <div className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
+    <div {...rootProps} className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
       {label && (
         <label htmlFor={`${id}-input`} className="text-[0.8125rem] font-medium text-ink">
           {label}
@@ -125,7 +139,7 @@ export function Combobox({ options, value: valueProp, defaultValue = null, onCha
         className={cn(
           "flex items-center gap-2 rounded-control border border-line-strong bg-surface",
           inputSizes[size],
-          "transition-[border-color] duration-200 ease-out-soft hover:border-faint focus-within:border-accent",
+          "transition-[border-color] duration-200 ease-out-soft hover:border-faint focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/20",
         )}
       >
         <span className="grid shrink-0 place-items-center text-muted [&>svg]:size-4" aria-hidden>{ic.search}</span>
@@ -156,9 +170,9 @@ export function Combobox({ options, value: valueProp, defaultValue = null, onCha
             <motion.button
               type="button"
               aria-label={l.clear}
-              initial={{ opacity: 0, scale: 0.6 }}
+              initial={{ opacity: 0, scale: still ? 1 : 0.6 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.6 }}
+              exit={{ opacity: 0, scale: still ? 1 : 0.6 }}
               transition={springSnappy}
               onClick={() => {
                 setQuery("");
@@ -188,12 +202,12 @@ export function Combobox({ options, value: valueProp, defaultValue = null, onCha
         <AnimatePresence initial={false} mode="popLayout">
           {results.map((o, i) => (
             <motion.div
-              layout="position"
+              layout={still ? false : "position"}
               key={o.value}
               id={`${id}-opt-${o.value}`}
               role="option"
               aria-selected={o.value === value}
-              initial={{ opacity: 0, y: -4 }}
+              initial={{ opacity: 0, y: still ? 0 : -4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, transition: { duration: 0.1 } }}
               transition={springSoft}

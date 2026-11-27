@@ -5,6 +5,8 @@ import { fade } from "../../motion";
 import { AnchoredLayer, RowHighlight, optionClass, panelClass } from "../shared/Anchored";
 import { Avatar } from "../data-display/Avatar";
 import { useControllable } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { announce } from "../accessibility/announce";
 
 export type Mentionable = { id: string; name: string; handle?: string; avatar?: string; detail?: string };
 
@@ -72,7 +74,7 @@ export const mentionsTextareaLabels: MentionsTextareaLabels = {
   people: "People",
 };
 
-export function MentionsTextarea({ people, value, defaultValue, onValueChange, onChange, label: labelProp, placeholder: placeholderProp, minRows = 3, className, labels }: {
+export function MentionsTextarea({ people, value, defaultValue, onValueChange, onChange, label: labelProp, placeholder: placeholderProp, minRows = 3, className, labels, accessibilityFeatures }: {
   people: Mentionable[];
   /** Controlled text, mentions written as `@[Name](id)`. Leave out and use `defaultValue` to let the box keep its own. */
   value?: string;
@@ -88,7 +90,10 @@ export function MentionsTextarea({ people, value, defaultValue, onValueChange, o
   className?: string;
   /** Override any UI text. Merged over `mentionsTextareaLabels`. */
   labels?: Partial<MentionsTextareaLabels>;
+  /** Accessibility features to add for this box only (`screenReaderHints` announces how many people match; adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...mentionsTextareaLabels, ...labels };
   const label = labelProp ?? l.label;
   const placeholder = placeholderProp ?? l.placeholder;
@@ -181,9 +186,13 @@ export function MentionsTextarea({ people, value, defaultValue, onValueChange, o
   }, []);
 
   const open = query != null && matches.length > 0;
+  useEffect(() => {
+    if (open && a11y.screenReaderHints) announce(`${matches.length} ${l.people}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, matches.length, a11y.screenReaderHints]);
 
   return (
-    <div className={cn("flex w-full flex-col gap-2", className)}>
+    <div {...rootProps} className={cn("flex w-full flex-col gap-2", className)}>
       <span id={`${id}-l`} className="text-sm font-medium text-ink">{label}</span>
       <div className="relative">
         <motion.span aria-hidden initial={false} animate={{ opacity: empty ? 1 : 0 }} transition={fade}

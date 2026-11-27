@@ -6,6 +6,8 @@ import { useControllable, type Size } from "../../controllable";
 import { spring, springSoft } from "../../motion";
 import { AnchoredLayer, RowHighlight, optionClass } from "../shared/Anchored";
 import { Highlight } from "./Combobox";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { announce } from "../accessibility/announce";
 
 /** Icons used by TagInput. Pass a partial via `icons` to replace them. */
 export interface TagInputIcons {
@@ -30,6 +32,12 @@ export interface TagInputLabels {
   quote: (tag: string) => string;
   /** Counter under the box when `max` is set: "2 of 5". */
   count: (n: number, max: number) => string;
+  /** Spoken after a tag is added: "Added design". */
+  added: (tag: string) => string;
+  /** Spoken after a tag is removed: "Removed design". */
+  removed: (tag: string) => string;
+  /** Spoken when Backspace has marked the last tag for removal. */
+  armed: (tag: string) => string;
 }
 export const tagInputLabels: TagInputLabels = {
   placeholder: "Add a tag",
@@ -38,6 +46,9 @@ export const tagInputLabels: TagInputLabels = {
   create: "Create",
   quote: (tag) => `“${tag}”`,
   count: (n, max) => `${n} of ${max}`,
+  added: (tag) => `Added ${tag}`,
+  removed: (tag) => `Removed ${tag}`,
+  armed: (tag) => `${tag} marked. Press Backspace again to remove it.`,
 };
 
 export type TagInputProps = {
@@ -59,6 +70,8 @@ export type TagInputProps = {
   /** Replace any built-in icon. Merged over `tagInputIcons`. */
   icons?: Partial<TagInputIcons>;
   className?: string;
+  /** Accessibility features to add for this field only (`calm` and `reduceMotion` stop chips scaling in and out; `colourSafe` strikes through the tag marked for removal; adds to the person's settings, never removes them). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const boxSizes: Record<Size, string> = { sm: "min-h-8", md: "min-h-10", lg: "min-h-12" };
@@ -78,7 +91,10 @@ export function TagInput({
   labels,
   icons,
   className,
+  accessibilityFeatures,
 }: TagInputProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...tagInputLabels, ...labels };
   const ic = useMemo(() => ({ ...tagInputIcons, ...icons }), [icons]);
   const [value, onChange] = useControllable(valueProp, defaultValue, onChangeProp);
@@ -105,10 +121,14 @@ export function TagInput({
     const t = tag.trim();
     if (!t || full || value.includes(t)) return;
     onChange([...value, t]);
+    announce(l.added(t));
     setText("");
     setActive(0);
   };
-  const remove = (tag: string) => onChange(value.filter((v) => v !== tag));
+  const remove = (tag: string) => {
+    onChange(value.filter((v) => v !== tag));
+    announce(l.removed(tag));
+  };
 
   const show = () => {
     if (!open) setOpenCount((c) => c + 1);
@@ -121,7 +141,10 @@ export function TagInput({
       if (armed) {
         remove(value[value.length - 1]);
         setArmed(false);
-      } else setArmed(true);
+      } else {
+        setArmed(true);
+        announce(l.armed(value[value.length - 1]));
+      }
       return;
     }
     setArmed(false);
@@ -136,7 +159,7 @@ export function TagInput({
   };
 
   return (
-    <div className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
+    <div {...rootProps} className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
       {label && (
         <label htmlFor={`${id}-input`} className="text-[0.8125rem] font-medium text-ink">
           {label}
@@ -148,7 +171,7 @@ export function TagInput({
         className={cn(
           boxSizes[size],
           "flex flex-wrap items-center gap-1.5 rounded-control border border-line-strong bg-surface px-1.5 py-1.5",
-          "transition-[border-color] duration-200 ease-out-soft hover:border-faint focus-within:border-accent",
+          "transition-[border-color] duration-200 ease-out-soft hover:border-faint focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/20",
         )}
       >
         <AnimatePresence initial={false} mode="popLayout">
@@ -157,15 +180,16 @@ export function TagInput({
             return (
               <motion.span
                 key={tag}
-                layout="position"
-                initial={{ opacity: 0, scale: 0.6 }}
+                layout={still ? false : "position"}
+                initial={{ opacity: 0, scale: still ? 1 : 0.6 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.6, transition: { duration: 0.14 } }}
+                exit={{ opacity: 0, scale: still ? 1 : 0.6, transition: { duration: 0.14 } }}
                 transition={spring}
                 className={cn(
                   "inline-flex items-center gap-1 rounded-[6px] pl-2.5 pr-1 transition-colors duration-200",
                   chipSizes[size],
                   marked ? "bg-negative-soft text-negative" : "bg-accent-soft text-ink",
+                  marked && a11y.colourSafe && "line-through",
                 )}
               >
                 {tag}
@@ -184,7 +208,7 @@ export function TagInput({
             );
           })}
           <motion.input
-            layout="position"
+            layout={still ? false : "position"}
             transition={spring}
             key="input"
             ref={inputRef}
@@ -249,7 +273,7 @@ export function TagInput({
         })}
       </AnchoredLayer>
       {max != null && (
-        <motion.span layout="position" transition={springSoft} className="text-xs text-muted tabular">
+        <motion.span layout={still ? false : "position"} transition={springSoft} className="text-xs text-muted tabular">
           {l.count(value.length, max)}
         </motion.span>
       )}

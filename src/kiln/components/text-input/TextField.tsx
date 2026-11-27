@@ -5,6 +5,7 @@ import { cn } from "../../cn";
 import { springSnappy } from "../../motion";
 import { Field, inputBox } from "../shared/Field";
 import type { Size } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by TextField. Pass a partial via `labels` to translate or reword. */
 export interface TextFieldLabels {
@@ -45,14 +46,18 @@ export type TextFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size">
   labels?: Partial<TextFieldLabels>;
   /** Replace any built-in icon. Merged over `textFieldIcons`. */
   icons?: Partial<TextFieldIcons>;
+  /** Accessibility features to add for this field only (`calm` and `reduceMotion` skip the error shake and the clear button pop; adds to the person's settings, never removes them). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A labelled text input: native `<input>` props plus label, hint, error, icons and a clear button. */
 
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
-  { label, hint, error, leading, trailing, clearable, onClear, optional, size = "md", onValueChange, id: idProp, className, containerClassName, boxClassName, value, defaultValue, onChange, labels, icons, ...rest },
+  { label, hint, error, leading, trailing, clearable, onClear, optional, size = "md", onValueChange, id: idProp, className, containerClassName, boxClassName, value, defaultValue, onChange, labels, icons, accessibilityFeatures, ...rest },
   ref,
 ) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...textFieldLabels, ...labels };
   const ic = { ...textFieldIcons, ...icons };
   const autoId = useId();
@@ -65,13 +70,14 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
 
   const lastError = useRef(error);
   useEffect(() => {
-    if (error && error !== lastError.current && scope.current) {
+    if (error && error !== lastError.current && scope.current && !still) {
       animate(scope.current, { x: [0, -6, 5, -3, 2, 0] }, { duration: 0.42, ease: "easeOut" });
     }
     lastError.current = error;
-  }, [error, animate, scope]);
+  }, [error, animate, scope, still]);
 
   return (
+    <div className="contents" {...rootProps}>
     <Field id={id} label={label} hint={hint} error={error} optional={optional} labels={{ optional: l.optional }} className={containerClassName}>
       <div ref={scope} className={cn(inputBox(!!error, size), boxClassName)}>
         {leading && <span className="shrink-0 text-faint transition-colors group-focus-within/box:text-muted [&_svg]:size-4">{leading}</span>}
@@ -91,9 +97,9 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
             <motion.button
               type="button"
               aria-label={l.clear}
-              initial={{ opacity: 0, scale: 0.5 }}
+              initial={{ opacity: 0, scale: still ? 1 : 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5 }}
+              exit={{ opacity: 0, scale: still ? 1 : 0.5 }}
               transition={springSnappy}
               onClick={() => {
                 if (value === undefined) { setInner(""); if (input.current) input.current.value = ""; }
@@ -110,5 +116,6 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
         {trailing && <span className="shrink-0 text-faint [&_svg]:size-4">{trailing}</span>}
       </div>
     </Field>
+    </div>
   );
 });

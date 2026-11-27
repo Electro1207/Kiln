@@ -4,6 +4,7 @@ import { Search, X } from "lucide-react";
 import { cn } from "../../cn";
 import { fade, springSnappy } from "../../motion";
 import { useControllable, type Size } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 const searchSizes: Record<Size, string> = {
   sm: "k-ctl-sm px-3",
@@ -55,7 +56,11 @@ export const SearchField = forwardRef<HTMLInputElement, Omit<InputHTMLAttributes
   labels?: Partial<SearchFieldLabels>;
   /** Replace any built-in icon. Merged over `searchFieldIcons`. */
   icons?: Partial<SearchFieldIcons>;
-}>(function SearchField({ value: valueProp, defaultValue = "", onValueChange: onValueProp, shortcut, loading, size = "md", className, placeholder: placeholderProp, labels, icons, ...rest }, ref) {
+  /** Accessibility features to add for this field only (`calm` stops the loading spinner and the clear button pop; adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
+}>(function SearchField({ value: valueProp, defaultValue = "", onValueChange: onValueProp, shortcut, loading, size = "md", className, placeholder: placeholderProp, labels, icons, accessibilityFeatures, ...rest }, ref) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...searchFieldLabels, ...labels };
   const ic = { ...searchFieldIcons, ...icons };
   const placeholder = placeholderProp ?? l.placeholder;
@@ -63,6 +68,7 @@ export const SearchField = forwardRef<HTMLInputElement, Omit<InputHTMLAttributes
   const [focused, setFocused] = useState(false);
   return (
     <div
+      {...rootProps}
       className={cn(
         "k-fill relative flex items-center gap-2 rounded-full border border-line-strong bg-surface transition-[border-color,box-shadow] duration-200 ease-out-soft",
         "hover:border-faint focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/20",
@@ -95,7 +101,7 @@ export const SearchField = forwardRef<HTMLInputElement, Omit<InputHTMLAttributes
         <AnimatePresence initial={false}>
           {value && (
             <motion.button key="x" type="button" aria-label={l.clear} onClick={() => onValueChange("")}
-              initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }} transition={springSnappy}
+              initial={{ opacity: 0, scale: still ? 1 : 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: still ? 1 : 0.7 }} transition={springSnappy}
               className="grid size-5 place-items-center rounded-full bg-active text-muted hover:text-ink [&>svg]:size-3 [&>svg]:[stroke-width:2.5]">
               {ic.clear}
             </motion.button>

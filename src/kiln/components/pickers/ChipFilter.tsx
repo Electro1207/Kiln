@@ -2,7 +2,8 @@ import { LayoutGroup, motion } from "motion/react";
 import { Check } from "lucide-react";
 import { useId, useMemo, useState, type ReactNode } from "react";
 import { cn } from "../../cn";
-import { fade, press, springFirm, springSoft } from "../../motion";
+import { fade, press, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ChipOption = { value: string; label: string; count?: number };
 
@@ -20,6 +21,8 @@ type Base = {
   /** Replace any built-in icon. Merged over `chipFilterIcons`. */
   icons?: Partial<ChipFilterIcons>;
   className?: string;
+  /** Accessibility features to add for this group only (`calm` and `reduceMotion` stop neighbours gliding aside and the press shrink; adds to the person's settings, never removes them). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 export type ChipFilterProps =
   | (Base & {
@@ -45,6 +48,8 @@ export type ChipFilterProps =
  */
 export function ChipFilter(props: ChipFilterProps) {
   const id = useId();
+  const { a11y, rootProps } = useA11yProps(props.accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const ic = useMemo(() => ({ ...chipFilterIcons, ...props.icons }), [props.icons]);
   const single = props.multiple === false;
   const [inner, setInner] = useState<string[] | string | null>(props.defaultValue ?? (single ? null : []));
@@ -65,7 +70,7 @@ export function ChipFilter(props: ChipFilterProps) {
 
   return (
     <LayoutGroup id={id}>
-      <div role="group" aria-label={props.label} className={cn("flex flex-wrap gap-2", props.className)}>
+      <div role="group" aria-label={props.label} {...rootProps} className={cn("flex flex-wrap gap-2", props.className)}>
         {props.options.map((o) => {
           const on = isOn(o.value);
           return (
@@ -74,7 +79,8 @@ export function ChipFilter(props: ChipFilterProps) {
               type="button"
               aria-pressed={on}
               onClick={() => toggle(o.value)}
-              whileTap={press}
+              layout={still ? false : "position"}
+              whileTap={still ? undefined : press}
               transition={springSoft}
               className={cn(
                 // The fill cross-fades over 160ms; the text colour switches in one step once the
@@ -83,17 +89,19 @@ export function ChipFilter(props: ChipFilterProps) {
                 on ? "bg-btn-primary text-btn-primary-ink hover:bg-btn-primary-hover" : "bg-surface text-ink hover:bg-active",
               )}
             >
-              {/* The tick's slot opens to make room, so the chip and its neighbours reflow
-                  smoothly instead of scaling; the tick fades in inside it. */}
-              <motion.span
-                aria-hidden
-                initial={false}
-                animate={{ width: on ? 20 : 0, opacity: on ? 1 : 0 }}
-                transition={{ width: springFirm, opacity: fade }}
-                className="inline-flex shrink-0 overflow-hidden [&>svg]:size-3.5 [&>svg]:shrink-0 [&>svg]:[stroke-width:2.75]"
-              >
-                {ic.check}
-              </motion.span>
+              {/* The tick takes a fixed 20px slot, so the chip changes width in one step and its
+                  neighbours glide aside on a transform (layout="position"); no width is animated. */}
+              {on && (
+                <motion.span
+                  aria-hidden
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={fade}
+                  className="inline-flex w-5 shrink-0 [&>svg]:size-3.5 [&>svg]:shrink-0 [&>svg]:[stroke-width:2.75]"
+                >
+                  {ic.check}
+                </motion.span>
+              )}
               <span>{o.label}</span>
               {o.count != null && (
                 <span className={cn("ml-1.5 tabular transition-colors [transition-delay:100ms] duration-0", on ? "text-btn-primary-ink/75" : "text-muted")}>{o.count}</span>

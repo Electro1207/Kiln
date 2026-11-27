@@ -4,6 +4,7 @@ import { Minus, Plus } from "lucide-react";
 import { cn } from "../../cn";
 import { springSnappy } from "../../motion";
 import { useControllable, type Size } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Icons used by NumberField. Pass a partial via `icons` to replace them. */
 export interface NumberFieldIcons {
@@ -32,7 +33,7 @@ const nfSizes: Record<Size, { box: string; btn: string; text: string }> = {
 
 /** A number input with stepper buttons and arrow-key stepping. Controlled with `value` + `onChange`, or uncontrolled with `defaultValue`. */
 export function NumberField({
-  value: valueProp, defaultValue, onChange: onChangeProp, min = -Infinity, max = Infinity, step = 1, label, suffix, size = "md", className, labels, icons,
+  value: valueProp, defaultValue, onChange: onChangeProp, min = -Infinity, max = Infinity, step = 1, label, suffix, size = "md", className, labels, icons, accessibilityFeatures,
 }: {
   /** Controlled number. Leave out and use `defaultValue` to let the field keep its own. */
   value?: number;
@@ -50,7 +51,11 @@ export function NumberField({
   labels?: Partial<NumberFieldLabels>;
   /** Replace any built-in icon. Merged over `numberFieldIcons`. */
   icons?: Partial<NumberFieldIcons>;
+  /** Accessibility features to add for this field only (`calm` and `reduceMotion` swap the rolling digits for a fade; adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...numberFieldLabels, ...labels };
   const ic = { ...numberFieldIcons, ...icons };
   const [value, onChange] = useControllable(valueProp, defaultValue ?? (Number.isFinite(min) ? min : 0), onChangeProp);
@@ -91,10 +96,10 @@ export function NumberField({
   const btn = cn(sz.btn, "grid shrink-0 place-items-center text-muted transition-colors hover:bg-raised hover:text-ink disabled:opacity-40 disabled:hover:bg-transparent");
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div {...rootProps} className={cn("flex flex-col gap-2", className)}>
       {label && <label htmlFor={id} className="text-sm font-medium text-ink">{label}</label>}
       <div className={cn(sz.box, "inline-flex w-fit items-center overflow-hidden rounded-control border border-line-strong bg-surface transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/20")}>
-        <motion.button type="button" aria-label={l.decrease} tabIndex={-1} disabled={value <= min} whileTap={{ scale: 0.85 }} transition={springSnappy}
+        <motion.button type="button" aria-label={l.decrease} tabIndex={-1} disabled={value <= min} whileTap={still ? undefined : { scale: 0.85 }} transition={springSnappy}
           onPointerDown={(e) => { e.preventDefault(); startRepeat(-1); }} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop}
           className={cn(btn, "[&>svg]:size-4")}>
           {ic.decrease}
@@ -127,9 +132,9 @@ export function NumberField({
                       key={c}
                       custom={dir}
                       variants={{
-                        enter: (d: number) => ({ y: d > 0 ? "100%" : "-100%", opacity: 0 }),
+                        enter: (d: number) => ({ y: still ? "0%" : d > 0 ? "100%" : "-100%", opacity: 0 }),
                         center: { y: "0%", opacity: 1 },
-                        exit: (d: number) => ({ y: d > 0 ? "-100%" : "100%", opacity: 0 }),
+                        exit: (d: number) => ({ y: still ? "0%" : d > 0 ? "-100%" : "100%", opacity: 0 }),
                       }}
                       initial="enter"
                       animate="center"
@@ -146,7 +151,7 @@ export function NumberField({
             </span>
           )}
         </div>
-        <motion.button type="button" aria-label={l.increase} tabIndex={-1} disabled={value >= max} whileTap={{ scale: 0.85 }} transition={springSnappy}
+        <motion.button type="button" aria-label={l.increase} tabIndex={-1} disabled={value >= max} whileTap={still ? undefined : { scale: 0.85 }} transition={springSnappy}
           onPointerDown={(e) => { e.preventDefault(); startRepeat(1); }} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop}
           className={cn(btn, "[&>svg]:size-4")}>
           {ic.increase}

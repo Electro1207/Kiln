@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, CalendarCheck, Clock, Globe } from "lucide-react";
 import { cn } from "../../cn";
@@ -9,6 +9,8 @@ import { TextField } from "../text-input/TextField";
 import { Textarea } from "../text-input/Textarea";
 import { Button } from "../buttons/Button";
 import { Avatar } from "../data-display/Avatar";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { announce } from "../accessibility/announce";
 
 export type Booking = { start: Date; minutes: number; name: string; email: string; notes: string; timeZone: string };
 
@@ -32,6 +34,8 @@ export interface BookingSlotsLabels {
   chooseDay: string;
   /** Empty state when the day has no free times. */
   noSlots: string;
+  /** Spoken when a day is chosen and has open times (with `screenReaderHints`). */
+  available: (count: number) => string;
   /** Continue button on the first step. */
   next: string;
   /** Name field label. */
@@ -91,6 +95,7 @@ export const bookingSlotsLabels: BookingSlotsLabels = {
   pickDay: "Pick a day",
   chooseDay: "Choose a day to see open times.",
   noSlots: "Nothing free that day. Try another.",
+  available: (n) => (n === 1 ? "1 time available" : `${n} times available`),
   next: "Next",
   name: "Your name",
   email: "Email",
@@ -106,18 +111,18 @@ export const bookingSlotsLabels: BookingSlotsLabels = {
 };
 
 /** Steps hand over: the old one fades out, the new one fades in with a small drift. */
-const step = {
-  initial: { opacity: 0, x: 10 },
+const stepFor = (still: boolean) => ({
+  initial: { opacity: 0, x: still ? 0 : 10 },
   animate: { opacity: 1, x: 0, transition: { duration: 0.24, ease: easeOut } },
-  exit: { opacity: 0, x: -6, transition: { duration: 0.12, ease: easeOut } },
-};
+  exit: { opacity: 0, x: still ? 0 : -6, transition: { duration: 0.12, ease: easeOut } },
+});
 
 /**
  * A scheduler: pick a length, a day and a time (shown in the visitor's own
  * time zone), then confirm with a name and email.
  */
 export function BookingSlots({
-  title, host, description, durations = [15, 30, 60], getSlots, min, max, onBook, locale, labels, icons, className,
+  title, host, description, durations = [15, 30, 60], getSlots, min, max, onBook, locale, labels, icons, className, accessibilityFeatures,
 }: {
   title: string;
   host: { name: string; avatar?: string; role?: string };
@@ -136,7 +141,11 @@ export function BookingSlots({
   /** Replace any built-in icon. Merged over `bookingSlotsIcons`. */
   icons?: Partial<BookingSlotsIcons>;
   className?: string;
+  /** Accessibility features to add for this scheduler only (`calm` and `reduceMotion` swap the sliding steps for a fade; `screenReaderHints` announces how many times a day has; adds to the person's settings, never removes them). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const step = stepFor(a11y.calm || a11y.reduceMotion);
   const l = { ...bookingSlotsLabels, ...labels };
   const ic = useMemo(() => ({ ...bookingSlotsIcons, ...icons }), [icons]);
   const timeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
@@ -150,6 +159,10 @@ export function BookingSlots({
   const [busy, setBusy] = useState(false);
 
   const slots = useMemo(() => (day ? getSlots(day, minutes) : []), [day, minutes, getSlots]);
+  useEffect(() => {
+    if (day && a11y.screenReaderHints) announce(slots.length ? l.available(slots.length) : l.noSlots);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [day, minutes, slots.length, a11y.screenReaderHints]);
   const time = (d: Date) => new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit", hour12: clock === "12h", timeZone }).format(d);
   const longDay = (d: Date) => new Intl.DateTimeFormat(locale, { weekday: "long", month: "long", day: "numeric", timeZone }).format(d);
   const end = slot ? new Date(slot.getTime() + minutes * 60000) : null;
@@ -190,7 +203,7 @@ export function BookingSlots({
   );
 
   return (
-    <div className={cn("w-full overflow-hidden rounded-sheet bg-surface", className)}>
+    <div {...rootProps} className={cn("w-full overflow-hidden rounded-sheet bg-surface", className)}>
       <AnimatePresence initial={false} mode="wait">
         {stage === "pick" && (
           <motion.div key="pick" {...step} className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,240px)_auto_minmax(0,220px)] lg:gap-8">
@@ -200,6 +213,7 @@ export function BookingSlots({
                 options={durations.map((d) => ({ value: String(d), label: l.durationShort(d) }))} />
             </div>
             <Calendar
+              accessibilityFeatures={accessibilityFeatures}
               locale={locale}
               labels={l.calendar}
               icons={ic.calendar}
@@ -240,9 +254,9 @@ export function BookingSlots({
           <motion.div key="details" {...step} className="grid gap-6 p-5 sm:p-6 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)] md:gap-10">
             {summary}
             <form onSubmit={submit} noValidate className="flex flex-col gap-4">
-              <TextField label={l.name} autoComplete="name" value={form.name} error={errors.name} onChange={(e) => { setForm((f) => ({ ...f, name: e.target.value })); setErrors((x) => ({ ...x, name: undefined })); }} />
-              <TextField label={l.email} type="email" autoComplete="email" value={form.email} error={errors.email} onChange={(e) => { setForm((f) => ({ ...f, email: e.target.value })); setErrors((x) => ({ ...x, email: undefined })); }} />
-              <Textarea label={l.notes} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} minRows={3} maxLength={500} showCount />
+              <TextField accessibilityFeatures={accessibilityFeatures} label={l.name} autoComplete="name" value={form.name} error={errors.name} onChange={(e) => { setForm((f) => ({ ...f, name: e.target.value })); setErrors((x) => ({ ...x, name: undefined })); }} />
+              <TextField accessibilityFeatures={accessibilityFeatures} label={l.email} type="email" autoComplete="email" value={form.email} error={errors.email} onChange={(e) => { setForm((f) => ({ ...f, email: e.target.value })); setErrors((x) => ({ ...x, email: undefined })); }} />
+              <Textarea accessibilityFeatures={accessibilityFeatures} label={l.notes} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} minRows={3} maxLength={500} showCount />
               <div className="flex gap-2">
                 <Button type="button" variant="ghost" leading={ic.back} onClick={() => setStage("pick")}>{l.back}</Button>
                 <Button type="submit" loading={busy} className="flex-1">{l.confirm}</Button>

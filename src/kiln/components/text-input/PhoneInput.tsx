@@ -7,6 +7,7 @@ import { Field, inputBox } from "../shared/Field";
 import { AnchoredLayer, RowHighlight, optionClass, panelClass } from "../shared/Anchored";
 import { countBefore, placeCaret, positionAfter } from "./caret";
 import { useControllable, type Size } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type Country = {
   /** ISO 3166-1 alpha-2, e.g. "GB". */
@@ -94,7 +95,7 @@ export const phoneInputLabels: PhoneInputLabels = {
   wrongLength: (name, need, have) => `A ${name} number has ${need} digits; this has ${have}.`,
 };
 
-export function PhoneInput({ value: valueProp, defaultValue, onChange: onChangeProp, countries = COUNTRIES, label: labelProp, hint, size = "md", className, labels, icons }: {
+export function PhoneInput({ value: valueProp, defaultValue, onChange: onChangeProp, countries = COUNTRIES, label: labelProp, hint, size = "md", className, labels, icons, accessibilityFeatures }: {
   /** The number; leave out to let the component keep it. */
   value?: PhoneValue;
   /** Starting number when uncontrolled. Defaults to the first country, empty. */
@@ -111,7 +112,10 @@ export function PhoneInput({ value: valueProp, defaultValue, onChange: onChangeP
   labels?: Partial<PhoneInputLabels>;
   /** Replace any built-in icon. Merged over `phoneInputIcons`. */
   icons?: Partial<PhoneInputIcons>;
+  /** Accessibility features to add for this field only (`calm` and `reduceMotion` stop the chevron turning; adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...phoneInputLabels, ...labels };
   const ic = { ...phoneInputIcons, ...icons };
   const label = labelProp ?? l.label;
@@ -152,6 +156,7 @@ export function PhoneInput({ value: valueProp, defaultValue, onChange: onChangeP
   };
 
   return (
+    <div className="contents" {...rootProps}>
     <Field id={id} label={label} hint={hint} error={error} className={className}>
       <div className={inputBox(!!error, size)}>
         <button
@@ -165,7 +170,7 @@ export function PhoneInput({ value: valueProp, defaultValue, onChange: onChangeP
         >
           <span className="font-medium">{country.code}</span>
           <span className="text-muted tabular">+{country.dial}</span>
-          <motion.span initial={false} animate={{ rotate: open ? 180 : 0 }} transition={springSnappy} className="grid text-faint [&>svg]:size-3.5">{ic.chevron}</motion.span>
+          <motion.span initial={false} animate={{ rotate: open && !(a11y.calm || a11y.reduceMotion) ? 180 : 0 }} transition={springSnappy} className="grid text-faint [&>svg]:size-3.5">{ic.chevron}</motion.span>
         </button>
         <span aria-hidden className="h-5 w-px shrink-0 bg-line" />
         <input
@@ -231,6 +236,7 @@ export function PhoneInput({ value: valueProp, defaultValue, onChange: onChangeP
         </ul>
       </AnchoredLayer>
     </Field>
+    </div>
   );
 }
 

@@ -3,6 +3,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { Check, FileImage, FileText, FileArchive, File as FileIcon, UploadCloud, X, RotateCw } from "lucide-react";
 import { cn } from "../../cn";
 import { fade, spring, springFirm, springSnappy, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { announce } from "../accessibility/announce";
 
 /** Icons used by FileDropzone. Pass a partial via `icons` to replace them. */
 export interface FileDropzoneIcons {
@@ -58,6 +60,10 @@ export interface FileDropzoneLabels {
   retry: (name: string) => string;
   /** aria-label of the remove button. */
   remove: (name: string) => string;
+  /** Spoken when a file finishes uploading. */
+  uploadedAnnounce: (name: string) => string;
+  /** Spoken when a file fails or is refused: "report.pdf: Upload failed". */
+  failedAnnounce: (name: string, reason: string) => string;
 }
 export const fileDropzoneLabels: FileDropzoneLabels = {
   prompt: "Drop files here or browse",
@@ -71,6 +77,8 @@ export const fileDropzoneLabels: FileDropzoneLabels = {
   uploaded: "Uploaded",
   retry: (n) => `Retry ${n}`,
   remove: (n) => `Remove ${n}`,
+  uploadedAnnounce: (n) => `${n} uploaded`,
+  failedAnnounce: (n, r) => `${n}: ${r}`,
 };
 
 export type UploadFn = (file: File, onProgress: (fraction: number) => void, signal: AbortSignal) => Promise<void>;
@@ -90,6 +98,8 @@ export type FileDropzoneProps = {
   /** Replace any built-in icon. Merged over `fileDropzoneIcons`. */
   icons?: Partial<FileDropzoneIcons>;
   className?: string;
+  /** Accessibility features to add for this dropzone only (`calm` and `reduceMotion` stop the cloud lifting and the files sliding in; adds to the person's settings, never removes them). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 type Item = { id: string; file: File; progress: number; state: "uploading" | "done" | "error"; error?: string };
@@ -136,7 +146,10 @@ export function FileDropzone({
   labels,
   icons,
   className,
+  accessibilityFeatures,
 }: FileDropzoneProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...fileDropzoneLabels, ...labels };
   const ic = useMemo(() => ({ ...fileDropzoneIcons, ...icons }), [icons]);
   const prompt = label ?? l.prompt;
@@ -162,9 +175,13 @@ export function FileDropzone({
       .then(() => {
         patch(item.id, { progress: 1, state: "done" });
         onComplete?.(item.file);
+        announce(l.uploadedAnnounce(item.file.name));
       })
       .catch((e: unknown) => {
-        if ((e as DOMException)?.name !== "AbortError") patch(item.id, { state: "error", error: l.uploadFailed });
+        if ((e as DOMException)?.name !== "AbortError") {
+          patch(item.id, { state: "error", error: l.uploadFailed });
+          announce(l.failedAnnounce(item.file.name, l.uploadFailed), "assertive");
+        }
       })
       .finally(() => controllers.current.delete(item.id));
   };
@@ -179,6 +196,7 @@ export function FileDropzone({
       return { id: itemId, file, progress: 0, state: "uploading" };
     });
     setItems((cur) => (multiple ? [...next, ...cur] : next));
+    next.forEach((n) => n.error && announce(l.failedAnnounce(n.file.name, n.error), "assertive"));
     next.filter((n) => n.state === "uploading").forEach(start);
   };
 
@@ -205,7 +223,7 @@ export function FileDropzone({
     .join(" · ");
 
   return (
-    <div className={cn("flex w-full min-w-0 flex-col gap-3", className)}>
+    <div {...rootProps} className={cn("flex w-full min-w-0 flex-col gap-3", className)}>
       <div
         onDragEnter={(e) => onDrag(e, "enter")}
         onDragLeave={(e) => onDrag(e, "leave")}
@@ -218,7 +236,7 @@ export function FileDropzone({
         )}
       >
         <motion.span
-          animate={over ? { y: -4 } : { y: 0 }}
+          animate={over && !still ? { y: -4 } : { y: 0 }}
           transition={springSoft}
           className={cn("grid size-11 place-items-center rounded-full transition-colors duration-200", over ? "bg-btn-primary text-btn-primary-ink" : "bg-raised text-muted", "[&>svg]:size-5")}
         >
@@ -228,11 +246,11 @@ export function FileDropzone({
           {over ? l.release : (
             <>
               {prompt.endsWith(l.browse) ? prompt.slice(0, -l.browse.length) : prompt}
-              {prompt.endsWith(l.browse) && (
-                <button type="button" onClick={() => inputRef.current?.click()} className="font-medium text-accent underline-offset-4 hover:underline">
-                  {l.browse}
-                </button>
-              )}
+              {/* Always a keyboard way in: a custom label with no trailing "browse" gets its own button. */}
+              {!prompt.endsWith(l.browse) && " "}
+              <button type="button" onClick={() => inputRef.current?.click()} className="font-medium text-accent underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+                {l.browse}
+              </button>
             </>
           )}
         </p>
@@ -251,16 +269,16 @@ export function FileDropzone({
         />
       </div>
 
-      <ul className="flex flex-col gap-2" aria-live="polite">
+      <ul className="flex flex-col gap-2">
         <AnimatePresence initial={false} mode="popLayout">
           {items.map((it) => {
             return (
               <motion.li
                 key={it.id}
-                layout="position"
-                initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                layout={still ? false : "position"}
+                initial={{ opacity: 0, y: still ? 0 : -8, scale: still ? 1 : 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.16 } }}
+                exit={{ opacity: 0, scale: still ? 1 : 0.96, transition: { duration: 0.16 } }}
                 transition={spring}
                 className="flex items-center gap-3 rounded-card bg-surface p-3"
               >
@@ -290,7 +308,7 @@ export function FileDropzone({
                 <span className="grid size-7 shrink-0 [&>*]:[grid-area:1/1]">
                 <AnimatePresence initial={false}>
                   {it.state === "done" ? (
-                    <motion.span key="ok" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ opacity: fade, scale: springSnappy }} className="grid size-7 place-items-center rounded-full bg-positive-soft text-positive [&>svg]:size-3.5 [&>svg]:[stroke-width:3]" aria-label={l.uploaded}>
+                    <motion.span key="ok" initial={{ opacity: 0, scale: still ? 1 : 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ opacity: fade, scale: springSnappy }} className="grid size-7 place-items-center rounded-full bg-positive-soft text-positive [&>svg]:size-3.5 [&>svg]:[stroke-width:3]" aria-label={l.uploaded}>
                       {ic.done}
                     </motion.span>
                   ) : it.state === "error" && matchesAccept(it.file, accept) && !(maxSize && it.file.size > maxSize) ? (

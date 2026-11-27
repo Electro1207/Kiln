@@ -1,7 +1,7 @@
 import { forwardRef, useImperativeHandle, useLayoutEffect, useRef, type ChangeEvent } from "react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
-import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { type AccessibilityFeaturesProp } from "../../a11y";
 import { TextField, type TextFieldProps } from "./TextField";
 
 /**
@@ -84,7 +84,6 @@ export const MaskedInput = forwardRef<HTMLInputElement, MaskedInputProps>(functi
   { mask, value, defaultValue = "", onValueChange, onComplete, uppercase, onChange, onClear, placeholder, inputMode, labels, accessibilityFeatures, containerClassName, ...rest },
   ref,
 ) {
-  const { rootProps } = useA11yProps(accessibilityFeatures);
   const input = useRef<HTMLInputElement>(null);
   useImperativeHandle(ref, () => input.current!);
   const [raw, setRaw] = useControllable<string>(value, defaultValue, onValueChange);
@@ -129,7 +128,7 @@ export const MaskedInput = forwardRef<HTMLInputElement, MaskedInputProps>(functi
     <TextField
       ref={input}
       {...rest}
-      {...rootProps}
+      accessibilityFeatures={accessibilityFeatures}
       value={display}
       onChange={handle}
       onClear={() => { setRaw(""); onClear?.(); }}
