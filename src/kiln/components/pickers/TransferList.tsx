@@ -287,7 +287,7 @@ function Panel({ title, rows, total, selected, active, filter, filterable, heigh
         onKeyDown={onKey}
         onFocus={() => { if (!current && enabled[0]) setActive(enabled[0].id); }}
         style={{ height }}
-        className={cn("group/list min-h-0 flex-1 overflow-y-auto border-t border-line p-1 outline-none", rows.length === 0 && "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent")}
+        className={cn("group/list min-h-0 flex-1 overflow-y-auto border-t border-line p-1 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent")}
       >
         {rows.length === 0 && <p className="grid h-full place-items-center px-4 text-center text-sm text-muted">{filter ? l.noMatch : l.empty}</p>}
         {rows.map((r) => {
