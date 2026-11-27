@@ -5,6 +5,7 @@ import { useControllable } from "../../controllable";
 import { springSoft } from "../../motion";
 import { Avatar } from "../data-display/Avatar";
 import { Button } from "../buttons/Button";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type FeedEntry =
   | { kind: "comment"; id: string; author: string; avatar?: string; time: string; dateTime?: string; body: ReactNode }
@@ -27,7 +28,7 @@ export const commentFeedLabels: CommentFeedLabels = { addComment: "Add a comment
  * into place at the end.
  */
 export function CommentFeed({
-  entries, me, value, defaultValue = "", onChange, onComment, className, labels,
+  entries, me, value, defaultValue = "", onChange, onComment, className, labels, accessibilityFeatures,
 }: {
   entries: FeedEntry[];
   /** The current person, shown beside the composer. */
@@ -42,7 +43,10 @@ export function CommentFeed({
   className?: string;
   /** Override any UI text. Merged over `commentFeedLabels`. */
   labels?: Partial<CommentFeedLabels>;
+  /** Accessibility features to add for this component only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...commentFeedLabels, ...labels };
   const [draft, setDraft] = useControllable(value, defaultValue, onChange);
   const id = useId();
@@ -53,7 +57,7 @@ export function CommentFeed({
     setDraft("");
   };
   return (
-    <div className={cn("flex w-full flex-col", className)}>
+    <div {...rootProps} className={cn("flex w-full flex-col", className)}>
       <ol className="flex flex-col">
         <AnimatePresence initial={false}>
           {entries.map((e, i) => (

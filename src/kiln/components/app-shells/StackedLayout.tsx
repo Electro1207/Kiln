@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Menu, X } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, fade, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type StackedLink = { id: string; label: string };
 
@@ -42,6 +43,8 @@ export type StackedLayoutProps = {
   labels?: Partial<StackedLayoutLabels>;
   /** Replace any built-in icon. Merged over `stackedLayoutIcons`. */
   icons?: Partial<StackedLayoutIcons>;
+  /** Accessibility features to add for this layout only (`reduceMotion` and `calm` stop the menu panel sliding; `largeTargets` and `strongFocus` apply to its links). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -49,13 +52,14 @@ export type StackedLayoutProps = {
  * the content on a sheet. Below 768px of its own width the links fold into a
  * panel under the bar.
  */
-export function StackedLayout({ brand, links, value, onNavigate, actions, header, children, height = 640, className, labels, icons }: StackedLayoutProps) {
+export function StackedLayout({ brand, links, value, onNavigate, actions, header, children, height = 640, className, labels, icons, accessibilityFeatures }: StackedLayoutProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...stackedLayoutLabels, ...labels };
   const ic = useMemo(() => ({ ...stackedLayoutIcons, ...icons }), [icons]);
   const [open, setOpen] = useState(false);
   const panel = useId();
   return (
-    <div className={cn("@container relative flex w-full flex-col overflow-hidden bg-ground", className)} style={{ height }}>
+    <div {...rootProps} className={cn("@container relative flex w-full flex-col overflow-hidden bg-ground", className)} style={{ ...rootProps.style, height }}>
       <header className="relative z-20 shrink-0 bg-ground">
         <div className="flex h-14 items-center gap-6 px-4 @3xl:px-6">
           <div className="shrink-0">{brand}</div>
@@ -69,7 +73,7 @@ export function StackedLayout({ brand, links, value, onNavigate, actions, header
                   aria-current={on ? "page" : undefined}
                   onClick={() => onNavigate(l.id)}
                   className={cn(
-                    "relative flex items-center px-3 text-sm transition-colors duration-200",
+                    "relative flex items-center px-3 text-sm transition-colors duration-200 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent",
                     on ? "font-medium text-ink" : "text-muted hover:text-ink",
                   )}
                 >
@@ -128,7 +132,7 @@ export function StackedLayout({ brand, links, value, onNavigate, actions, header
                         setOpen(false);
                       }}
                       className={cn(
-                        "flex h-11 items-center rounded-control px-3 text-left text-[0.9375rem] transition-colors duration-200",
+                        "flex h-11 items-center rounded-control px-3 text-left text-[0.9375rem] transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-accent",
                         on ? "bg-active font-medium text-ink" : "text-muted hover:bg-raised hover:text-ink",
                       )}
                     >

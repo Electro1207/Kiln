@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowDown, Pause } from "lucide-react";
 import { cn } from "../../cn";
 import { fade, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 export type LogEntry = { id: number; time: string; level: LogLevel; source: string; message: string };
@@ -59,6 +60,8 @@ export type LogStreamProps = {
   labels?: Partial<LogStreamLabels>;
   /** Replace any built-in icon. Merged over `logStreamIcons`. */
   icons?: Partial<LogStreamIcons>;
+  /** Accessibility features to add for this log only (`calm` holds the tail still and waits behind the jump pill; `reduceMotion` makes the pill appear without sliding; `colourSafe` is covered by the level words). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -66,11 +69,15 @@ export type LogStreamProps = {
  * holds still while the pointer is over it (new lines wait behind a "new" pill),
  * and renders only the rows in view, so a hundred thousand lines cost the same as fifty.
  */
-export function LogStream({ entries, title, height = 360, rowHeight = 26, locale, className, labels, icons }: LogStreamProps) {
+export function LogStream({ entries, title, height = 360, rowHeight = 26, locale, className, labels, icons, accessibilityFeatures }: LogStreamProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const lb = { ...logStreamLabels, ...labels };
   const ic = useMemo(() => ({ ...logStreamIcons, ...icons }), [icons]);
   const [on, setOn] = useState<Set<LogLevel>>(new Set(["info", "warn", "error"]));
-  const [hover, setHover] = useState(false);
+  const [pointer, setPointer] = useState(false);
+  const [focused, setFocused] = useState(false);
+  // Nothing moves on its own: pointer over it, focus inside it, or calm all hold the tail still.
+  const hover = pointer || focused || a11y.calm;
   const [follow, setFollow] = useState(true);
   const scroller = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
@@ -82,6 +89,15 @@ export function LogStream({ entries, title, height = 360, rowHeight = 26, locale
     count.current = entries.length;
   });
   useEffect(() => setFrozenAt(hover ? count.current : null), [hover]);
+  const jump = () => {
+    setFollow(true);
+    setPointer(false);
+    if (a11y.calm) setFrozenAt(count.current);
+    requestAnimationFrame(() => {
+      const el = scroller.current;
+      if (el) el.scrollTop = el.scrollHeight;
+    });
+  };
   const live = frozenAt == null ? entries : entries.slice(0, frozenAt);
   const waiting = frozenAt == null ? 0 : entries.slice(frozenAt).filter((e) => on.has(e.level)).length;
 
@@ -106,9 +122,12 @@ export function LogStream({ entries, title, height = 360, rowHeight = 26, locale
 
   return (
     <div
+      {...rootProps}
       className={cn("@container relative flex w-full flex-col overflow-hidden rounded-card border border-line bg-surface", className)}
-      onPointerEnter={() => setHover(true)}
-      onPointerLeave={() => setHover(false)}
+      onPointerEnter={() => setPointer(true)}
+      onPointerLeave={() => setPointer(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setFocused(false)}
     >
       <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2">
         {title && <span className="mr-auto truncate text-sm font-medium text-ink">{title}</span>}
@@ -129,7 +148,7 @@ export function LogStream({ entries, title, height = 360, rowHeight = 26, locale
                   })
                 }
                 className={cn(
-                  "relative inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium transition-colors duration-200",
+                  "relative inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-accent",
                   active ? "text-ink" : "text-faint hover:text-muted",
                 )}
               >
@@ -183,13 +202,8 @@ export function LogStream({ entries, title, height = 360, rowHeight = 26, locale
           {(waiting > 0 || (!follow && !hover)) && (
             <motion.button
               type="button"
-              className="pointer-events-auto inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-elevated px-3 text-xs font-medium text-ink shadow-float [&>svg]:size-3.5"
-              onClick={() => {
-                setFollow(true);
-                setHover(false);
-                const el = scroller.current;
-                if (el) el.scrollTop = el.scrollHeight;
-              }}
+              className="pointer-events-auto inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-elevated px-3 text-xs font-medium text-ink shadow-float focus-visible:outline-2 focus-visible:outline-accent [&>svg]:size-3.5"
+              onClick={jump}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8, transition: fade }}

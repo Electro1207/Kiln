@@ -4,6 +4,7 @@ import { Ban, Check, ChevronDown, Loader2, ShieldQuestion, Wrench } from "lucide
 import { cn } from "../../cn";
 import { fade, springFirm } from "../../motion";
 import { Button } from "../buttons/Button";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ToolCallState = "pending" | "running" | "done" | "denied";
 
@@ -64,6 +65,8 @@ export type ToolCallProps = {
   labels?: Partial<ToolCallLabels>;
   /** Replace any built-in icon. Merged over `toolCallIcons`. */
   icons?: Partial<ToolCallIcons>;
+  /** Accessibility features to add for this component only (`reduceMotion` and `calm` fold the body at once and stop the status spinner). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const states: Record<ToolCallState, { tone: string; spin?: boolean }> = {
@@ -78,17 +81,19 @@ const states: Record<ToolCallState, { tone: string; spin?: boolean }> = {
  * laid out plainly; Approve or Deny decides. The status chip cross-fades and
  * the result folds in below.
  */
-export function ToolCall({ name, summary, args, state, result, onApprove, onDeny, className, labels, icons }: ToolCallProps) {
+export function ToolCall({ name, summary, args, state, result, onApprove, onDeny, className, labels, icons, accessibilityFeatures }: ToolCallProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...toolCallLabels, ...labels };
   const ic = useMemo(() => ({ ...toolCallIcons, ...icons }), [icons]);
   const [open, setOpen] = useState(true);
   return (
-    <div className={cn("overflow-hidden rounded-card border border-line bg-surface", className)}>
+    <div {...rootProps} className={cn("overflow-hidden rounded-card border border-line bg-surface", className)}>
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-raised"
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-raised focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
       >
         <span className="grid size-8 shrink-0 place-items-center rounded-[10px] bg-raised text-muted"><span className="grid [&>svg]:size-4" aria-hidden>{ic.tool}</span></span>
         <span className="min-w-0 flex-1">
@@ -96,7 +101,7 @@ export function ToolCall({ name, summary, args, state, result, onApprove, onDeny
           <span className="block truncate text-[0.8125rem] text-muted">{summary}</span>
         </span>
         {/* Every status chip sits in one cell; the cell keeps the widest, so nothing shifts. */}
-        <span className="grid shrink-0 justify-items-end [&>*]:[grid-area:1/1]">
+        <span role="status" className="grid shrink-0 justify-items-end [&>*]:[grid-area:1/1]">
           {(Object.keys(states) as ToolCallState[]).map((k) => (
             <motion.span
               key={k}
@@ -106,7 +111,7 @@ export function ToolCall({ name, summary, args, state, result, onApprove, onDeny
               aria-hidden={k !== state}
               className={cn("inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-full px-2 text-xs font-medium", states[k].tone)}
             >
-              <span className={cn("grid [&>svg]:size-3.5", states[k].spin && "animate-spin")} aria-hidden>{ic[k]}</span>
+              <span className={cn("grid [&>svg]:size-3.5", states[k].spin && !still && "animate-spin")} aria-hidden>{ic[k]}</span>
               {l[k]}
             </motion.span>
           ))}
@@ -121,7 +126,8 @@ export function ToolCall({ name, summary, args, state, result, onApprove, onDeny
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ height: springFirm, opacity: fade }}
+            // One-off fold (allowed height animation): the details opening or closing.
+            transition={still ? { duration: 0 } : { height: springFirm, opacity: fade }}
             className="overflow-hidden"
           >
             <div className="border-t border-line px-4 pb-4 pt-3">

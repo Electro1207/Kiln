@@ -47,7 +47,8 @@ export function ResizablePanels({
   className,
   accessibilityFeatures,
 }: ResizablePanelsProps) {
-  const { rootProps } = useA11yProps(accessibilityFeatures);
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const glide = (to: number) => (a11y.reduceMotion || a11y.calm ? size.set(to) : animate(size, to, springFirm));
   const l = { ...resizablePanelsLabels, ...labels };
   const id = useId();
   const boxRef = useRef<HTMLDivElement>(null);
@@ -105,7 +106,7 @@ export function ResizablePanels({
     else if (e.key === "Enter") to = defaultSize;
     if (to == null) return;
     e.preventDefault();
-    animate(size, clamp(to), springFirm);
+    glide(clamp(to));
   };
 
   return (
@@ -130,11 +131,11 @@ export function ResizablePanels({
         onPointerMove={(e) => dragging && fromPointer(e)}
         onPointerUp={() => setDragging(false)}
         onPointerCancel={() => setDragging(false)}
-        onDoubleClick={() => animate(size, clamp(defaultSize), springFirm)}
+        onDoubleClick={() => glide(clamp(defaultSize))}
         onKeyDown={onKey}
         className={cn(
           // The separator is the 1px line itself, so it sits on whole pixels.
-          "group relative z-10 flex shrink-0 touch-none items-center justify-center outline-none transition-colors duration-200",
+          "group relative z-10 flex shrink-0 touch-none items-center justify-center outline-none focus-visible:outline-2 focus-visible:outline-accent transition-colors duration-200",
           horizontal ? "w-px cursor-col-resize" : "h-px cursor-row-resize",
           dragging ? "bg-accent" : "bg-line hover:bg-line-strong focus-visible:bg-accent",
         )}

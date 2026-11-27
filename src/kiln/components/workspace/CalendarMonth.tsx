@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { springFirm, springSoft } from "../../motion";
 import { AnchoredLayer } from "../shared/Anchored";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type CalTone = "accent" | "info" | "positive" | "warning" | "negative";
 export type CalEvent = { id: string; date: Date; title: string; time?: string; place?: string; tone?: CalTone };
@@ -28,6 +29,8 @@ export type CalendarMonthProps = {
   /** Replace any built-in icon. Merged over `calendarMonthIcons`. */
   icons?: Partial<CalendarMonthIcons>;
   className?: string;
+  /** Accessibility features to add for this calendar only (`reduceMotion` and `calm` stop the month and day slides). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Text used by CalendarMonth. Pass a partial via `labels` to translate or reword. */
@@ -101,7 +104,8 @@ function grid(month: Date) {
 }
 
 /** A month of events with a day agenda. Months slide in the direction you move; so do days. */
-export function CalendarMonth({ events, value, defaultValue, defaultDate, onChange, maxPerDay = 2, locale, labels, icons, className }: CalendarMonthProps) {
+export function CalendarMonth({ events, value, defaultValue, defaultDate, onChange, maxPerDay = 2, locale, labels, icons, className, accessibilityFeatures }: CalendarMonthProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...calendarMonthLabels, ...labels };
   const ic = { ...calendarMonthIcons, ...icons };
   const loc = locale ?? "en-GB";
@@ -162,20 +166,10 @@ export function CalendarMonth({ events, value, defaultValue, defaultDate, onChan
     pick(plus(selected, map[e.key]), true);
   };
 
-  const agendaRef = useRef<HTMLDivElement>(null);
-  const [agendaH, setAgendaH] = useState<number | "auto">("auto");
-  useLayoutEffect(() => {
-    const el = agendaRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setAgendaH(el.offsetHeight));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [selected]);
-
   const dayEvents = byDay.get(key(selected)) ?? [];
 
   return (
-    <div className={cn("@container w-full", className)}>
+    <div {...rootProps} className={cn("@container w-full", className)}>
       <div className="mb-3 flex items-center gap-2">
         <div className="grid min-w-0 flex-1 overflow-hidden [&>*]:[grid-area:1/1]" aria-live="polite">
           <AnimatePresence initial={false} custom={mDir}>
@@ -289,7 +283,7 @@ export function CalendarMonth({ events, value, defaultValue, defaultDate, onChan
                       <button
                         type="button"
                         onClick={(ev) => { moreRef.current = ev.currentTarget; setMore({ date: d }); }}
-                        className="relative hidden w-fit rounded-[4px] px-1.5 text-left text-[0.6875rem] leading-5 text-muted transition-colors hover:bg-active hover:text-ink @xl:block"
+                        className="relative hidden w-fit rounded-[4px] px-1.5 text-left text-[0.6875rem] leading-5 text-muted transition-colors hover:bg-active hover:text-ink focus-visible:outline-2 focus-visible:outline-accent @xl:block"
                       >
                         {l.more(hidden)}
                       </button>
@@ -317,11 +311,11 @@ export function CalendarMonth({ events, value, defaultValue, defaultDate, onChan
         )}
       </AnchoredLayer>
 
-      <motion.div initial={false} animate={{ height: agendaH }} transition={springSoft} className="relative mt-4 overflow-hidden">
+      {/* No animated height: the agenda is a content swap, not a fold, so its box changes at once. */}
+      <div className="relative mt-4 overflow-hidden">
         <AnimatePresence initial={false} mode="popLayout" custom={dDir}>
           <motion.div
             key={key(selected)}
-            ref={agendaRef}
             custom={dDir}
             variants={{
               enter: (d: number) => ({ opacity: 0, x: d * 20 }),
@@ -352,7 +346,7 @@ export function CalendarMonth({ events, value, defaultValue, defaultDate, onChan
             )}
           </motion.div>
         </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   );
 }

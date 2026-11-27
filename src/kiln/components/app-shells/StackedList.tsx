@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { TickBox } from "../tables/Table";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Icons used by StackedList. Pass a partial via `icons` to replace any. */
 export interface StackedListIcons {
@@ -38,7 +39,7 @@ export type StackedRow = {
  * The right column folds under the title on narrow containers.
  */
 export function StackedList({
-  rows, selected: selectedProp, defaultSelected, onSelectedChange, onOpen, label, className, labels, icons,
+  rows, selected: selectedProp, defaultSelected, onSelectedChange, onOpen, label, className, labels, icons, accessibilityFeatures,
 }: {
   rows: StackedRow[];
   /** Selected row ids. Passing `selected`, `defaultSelected` or `onSelectedChange` turns on the checkboxes. */
@@ -53,7 +54,10 @@ export function StackedList({
   labels?: Partial<StackedListLabels>;
   /** Replace any built-in icon. Merged over `stackedListIcons`. */
   icons?: Partial<StackedListIcons>;
+  /** Accessibility features to add for this one component. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...stackedListLabels, ...labels };
   const ic = useMemo(() => ({ ...stackedListIcons, ...icons }), [icons]);
   const selectable = !!(selectedProp || defaultSelected || onSelectedChange);
@@ -65,7 +69,7 @@ export function StackedList({
     setSelected(next);
   };
   return (
-    <ul aria-label={label} className={cn("@container w-full overflow-hidden rounded-card border border-line bg-surface", className)}>
+    <ul {...rootProps} aria-label={label} className={cn("@container w-full overflow-hidden rounded-card border border-line bg-surface", className)}>
       {rows.map((r) => {
         const on = selected?.has(r.id) ?? false;
         const body = (
@@ -87,7 +91,7 @@ export function StackedList({
           </>
         );
         const rowCls = cn(
-          "group flex min-h-16 w-full items-center gap-4 px-4 py-3 text-left transition-colors duration-200",
+          "group flex min-h-16 w-full items-center gap-4 px-4 py-3 text-left transition-colors duration-200 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent",
           on ? "bg-accent-soft" : "hover:bg-raised",
         );
         return (

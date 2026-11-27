@@ -4,6 +4,7 @@ import { ChevronDown, ExternalLink } from "lucide-react";
 import { cn } from "../../cn";
 import { fade, springFirm, staggerChild, staggerParent } from "../../motion";
 import { HoverCard } from "../overlays/HoverCard";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type Source = {
   title: string;
@@ -76,14 +77,17 @@ function SourceCard({ s, l, ic }: { s: Source; l: CitationLabels; ic: CitationIc
 }
 
 /** An inline citation chip, after the sentence it supports. Hover or focus shows the source. */
-export function Citation({ sources, className, labels, icons }: {
+export function Citation({ sources, className, labels, icons, accessibilityFeatures }: {
   sources: Source[];
   className?: string;
   /** Override any UI text. Merged over `citationLabels`. */
   labels?: Partial<CitationLabels>;
   /** Replace any built-in icon. Merged over `citationIcons`. */
   icons?: Partial<CitationIcons>;
+  /** Accessibility features to add for this component only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...citationLabels, ...labels };
   const ic = useMemo(() => ({ ...citationIcons, ...icons }), [icons]);
   const first = sources[0];
@@ -100,11 +104,12 @@ export function Citation({ sources, className, labels, icons }: {
       align="start"
     >
       <a
+        {...rootProps}
         href={first.url}
         target="_blank"
         rel="noreferrer"
         className={cn(
-          "mx-0.5 inline-flex h-5 translate-y-[-1px] items-center gap-1 rounded-full bg-raised px-1.5 align-middle text-[0.71875rem] font-medium leading-none text-muted transition-colors hover:bg-active hover:text-ink",
+          "mx-0.5 inline-flex h-5 translate-y-[-1px] items-center gap-1 rounded-full bg-raised px-1.5 align-middle text-[0.71875rem] font-medium leading-none text-muted transition-colors hover:bg-active hover:text-ink focus-visible:outline-2 focus-visible:outline-accent",
           className,
         )}
       >
@@ -116,26 +121,30 @@ export function Citation({ sources, className, labels, icons }: {
 }
 
 /** "Used 4 sources" under an answer; opens into the list. */
-export function Sources({ sources, className, labels, icons }: {
+export function Sources({ sources, className, labels, icons, accessibilityFeatures }: {
   sources: Source[];
   className?: string;
   /** Override any UI text. Merged over `citationLabels`. */
   labels?: Partial<CitationLabels>;
   /** Replace any built-in icon. Merged over `citationIcons`. */
   icons?: Partial<CitationIcons>;
+  /** Accessibility features to add for this component only (`reduceMotion` and `calm` open the list at once). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...citationLabels, ...labels };
   const ic = useMemo(() => ({ ...citationIcons, ...icons }), [icons]);
   const [open, setOpen] = useState(false);
   const id = useId();
   return (
-    <div className={cn("text-sm", className)}>
+    <div {...rootProps} className={cn("text-sm", className)}>
       <button
         type="button"
         aria-expanded={open}
         aria-controls={id}
         onClick={() => setOpen((o) => !o)}
-        className="-ml-1 inline-flex h-8 items-center gap-2 rounded-full px-1 text-muted transition-colors hover:text-ink"
+        className="-ml-1 inline-flex h-8 items-center gap-2 rounded-full px-1 text-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-accent"
       >
         <span className="flex -space-x-1">
           {sources.slice(0, 3).map((s) => (
@@ -153,13 +162,14 @@ export function Sources({ sources, className, labels, icons }: {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ height: springFirm, opacity: fade }}
+            // One-off fold (allowed height animation): the source list opening.
+            transition={still ? { duration: 0 } : { height: springFirm, opacity: fade }}
             className="overflow-hidden"
           >
             <motion.ul variants={staggerParent} initial="hidden" animate="visible" className="grid gap-2 pb-1 pt-2 sm:grid-cols-2">
               {sources.map((s) => (
                 <motion.li key={s.url} variants={staggerChild}>
-                  <a href={s.url} target="_blank" rel="noreferrer" className="flex h-full flex-col gap-1 rounded-[12px] bg-raised p-3 transition-colors hover:bg-active">
+                  <a href={s.url} target="_blank" rel="noreferrer" className="flex h-full flex-col gap-1 rounded-[12px] bg-raised p-3 transition-colors hover:bg-active focus-visible:outline-2 focus-visible:outline-accent">
                     <span className="flex items-center gap-2 text-xs text-muted">
                       <SiteMark url={s.url} />
                       {domain(s.url)}

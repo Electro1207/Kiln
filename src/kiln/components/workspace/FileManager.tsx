@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, fade, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { MenuContent, type MenuEntry } from "../menus/DropdownMenu";
 import { SegmentedControl } from "../buttons/SegmentedControl";
 
@@ -65,6 +66,8 @@ export type FileManagerProps = {
   /** Replace any built-in icon. Merged over `fileManagerIcons`. */
   icons?: Partial<FileManagerIcons>;
   className?: string;
+  /** Accessibility features to add for this component only (`reduceMotion` and `calm` stop the folder and tile fades; `largeTargets` enlarges tiles). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Text used by FileManager. Pass a partial via `labels` to translate or reword. */
@@ -187,7 +190,8 @@ const newId = () => `n${Date.now().toString(36)}${(seq++).toString(36)}`;
  * Keyboard: arrows move, Shift+arrows extend, Space toggles, Enter opens,
  * Backspace goes up, Delete removes, Cmd/Ctrl+A selects all.
  */
-export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, labels, icons, className }: FileManagerProps) {
+export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, labels, icons, className, accessibilityFeatures }: FileManagerProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const ic = useMemo(() => ({ ...fileManagerIcons, ...icons }), [icons]);
   const l = { ...fileManagerLabels, ...labels } as FileManagerLabels;
   const lm = { ...fileManagerLabels.menu, ...labels?.menu };
@@ -498,7 +502,7 @@ export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, 
   };
 
   return (
-    <div className={cn("@container flex w-full flex-col overflow-hidden rounded-sheet bg-surface", className)}>
+    <div {...rootProps} className={cn("@container flex w-full flex-col overflow-hidden rounded-sheet bg-surface", className)}>
       <div className="flex flex-wrap items-center gap-2 px-3 pb-2 pt-3">
         <nav aria-label={l.folderPath} className="flex min-w-0 flex-1 items-center gap-0.5 text-sm">
           {[{ id: null as string | null, name: rootName }, ...path].map((p, i, arr) => {
@@ -563,7 +567,7 @@ export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, 
         onClick={() => !renaming && setSel(new Set())}
         onContextMenu={(e) => openMenu(e, null)}
         {...dropProps(cwd, `here-${cwd ?? "root"}`)}
-        className="relative min-h-72 flex-1 overflow-y-auto bg-raised/50 p-2 outline-none"
+        className="relative min-h-72 flex-1 overflow-y-auto bg-raised/50 p-2 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
       >
         <AnimatePresence initial={false} mode="wait">
           <motion.div

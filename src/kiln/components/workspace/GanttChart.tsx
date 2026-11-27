@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type GanttTask = {
   id: string;
@@ -33,6 +34,8 @@ export type GanttChartProps = {
   /** Override any UI text. Merged over `ganttChartLabels`. */
   labels?: Partial<GanttChartLabels>;
   className?: string;
+  /** Accessibility features to add for this component only (`reduceMotion` and `calm` stop the chain highlight easing; `highContrast` strengthens lines). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Text used by GanttChart. Pass a partial via `labels` to translate or reword. */
@@ -62,7 +65,8 @@ const fromDay = (n: number) => new Date(n * DAY);
  * it, and a line for today. Names stay pinned while the dates scroll. Hovering
  * or focusing a task brings forward its chain of dependencies.
  */
-export function GanttChart({ tasks, from, to, today, dayWidth = 18, rowHeight = 44, title, locale = "en-GB", labels, className }: GanttChartProps) {
+export function GanttChart({ tasks, from, to, today, dayWidth = 18, rowHeight = 44, title, locale = "en-GB", labels, className, accessibilityFeatures }: GanttChartProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const lb = { ...ganttChartLabels, ...labels };
   const [focus, setFocus] = useState<string | null>(null);
   const d0 = toDay(from);
@@ -115,6 +119,7 @@ export function GanttChart({ tasks, from, to, today, dayWidth = 18, rowHeight = 
 
   return (
     <figure
+      {...rootProps}
       className={cn("flex w-full min-w-0 overflow-hidden rounded-card border border-line bg-surface", className)}
       aria-label={title}
       onPointerLeave={() => setFocus(null)}

@@ -1,9 +1,10 @@
 import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AnimatePresence, animate, motion, useMotionValue } from "motion/react";
+import { AnimatePresence, motion, useMotionValue } from "motion/react";
 import { ArrowUp, FileText, Image as ImageIcon, Paperclip, X } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
-import { fade, spring, springFirm, springSnappy } from "../../motion";
+import { fade, spring, springSnappy } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type Attachment = { id: string; name: string; size: number; kind: "image" | "file" };
 
@@ -48,7 +49,7 @@ export interface MessageComposerIcons {
 export const messageComposerIcons: MessageComposerIcons = { attach: <Paperclip />, image: <ImageIcon />, file: <FileText />, remove: <X />, send: <ArrowUp /> };
 
 export function MessageComposer({
-  value, defaultValue = "", onChange, onSend, placeholder = "Write a message", maxRows = 8, className, label = "Message", labels, icons,
+  value, defaultValue = "", onChange, onSend, placeholder = "Write a message", maxRows = 8, className, label = "Message", labels, icons, accessibilityFeatures,
 }: {
   /** Controlled text. Leave out to let the composer keep its own; it clears after a send. */
   value?: string;
@@ -65,7 +66,10 @@ export function MessageComposer({
   labels?: Partial<MessageComposerLabels>;
   /** Replace any built-in icon. Merged over `messageComposerIcons`. */
   icons?: Partial<MessageComposerIcons>;
+  /** Accessibility features to add for this composer only (`reduceMotion` and `calm` stop the send button turning and attachments popping in). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...messageComposerLabels, ...labels };
   const ic = useMemo(() => ({ ...messageComposerIcons, ...icons }), [icons]);
   const [text, setText] = useControllable(value, defaultValue, onChange);
@@ -85,7 +89,8 @@ export function MessageComposer({
     const target = Math.min(Math.max(t.scrollHeight, line), line * maxRows);
     setCapped(t.scrollHeight > line * maxRows);
     t.style.height = prev;
-    animate(height, target, springFirm);
+    // The box follows the text at once: no animated height.
+    height.set(target);
   }, [text, maxRows, height]);
 
   const send = () => {
@@ -103,6 +108,7 @@ export function MessageComposer({
 
   return (
     <div
+      {...rootProps}
       className={cn(
         "flex w-full flex-col rounded-sheet border border-line-strong bg-surface transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/20",
         className,
@@ -136,7 +142,7 @@ export function MessageComposer({
                   <span className="min-w-0 truncate text-ink">{f.name}</span>
                   <span className="shrink-0 text-faint tabular">{l.fileSize(f.size)}</span>
                   <button type="button" aria-label={l.remove(f.name)} onClick={() => setFiles((all) => all.filter((x) => x.id !== f.id))}
-                    className="grid size-7 shrink-0 place-items-center rounded-md text-muted transition-colors hover:bg-active hover:text-ink [&>svg]:size-3.5">
+                    className="grid size-7 shrink-0 place-items-center rounded-md text-muted transition-colors hover:bg-active hover:text-ink focus-visible:outline-2 focus-visible:outline-accent [&>svg]:size-3.5">
                     {ic.remove}
                   </button>
                 </motion.li>
@@ -147,7 +153,7 @@ export function MessageComposer({
       </AnimatePresence>
       <div className="flex items-end gap-2 p-2">
         <button type="button" aria-label={l.attach} onClick={() => picker.current?.click()}
-          className="grid size-9 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink [&>svg]:size-[18px]">
+          className="grid size-9 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink focus-visible:outline-2 focus-visible:outline-accent [&>svg]:size-[18px]">
           {ic.attach}
         </button>
         <input ref={picker} type="file" multiple className="sr-only" tabIndex={-1} aria-hidden onChange={(e) => { add(e.target.files); e.target.value = ""; }} />

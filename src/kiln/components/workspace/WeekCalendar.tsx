@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
 import { fade, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type CalendarTone = "accent" | "info" | "positive" | "warning" | "negative";
 
@@ -34,6 +35,8 @@ export type WeekCalendarProps = {
   onSelect?: (event: CalendarEvent) => void;
   selectedId?: string | null;
   className?: string;
+  /** Accessibility features to add for this calendar only (`highContrast` outlines every event; `reduceMotion` and `calm` stop the fades). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Text used by WeekCalendar. Pass a partial via `labels` to translate or reword. */
@@ -97,8 +100,9 @@ function layoutDay(evts: CalendarEvent[]) {
  * strip of days to switch between.
  */
 export function WeekCalendar({
-  days, events, startHour = 7, endHour = 23, now, hourHeight = 48, height = 520, locale = "en-US", labels, onSelect, selectedId, className,
+  days, events, startHour = 7, endHour = 23, now, hourHeight = 48, height = 520, locale = "en-US", labels, onSelect, selectedId, className, accessibilityFeatures,
 }: WeekCalendarProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...weekCalendarLabels, ...labels };
   const root = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
@@ -127,8 +131,10 @@ export function WeekCalendar({
   const dayName = (d: Date, style: "short" | "narrow") => d.toLocaleDateString(locale, { weekday: style });
   const time = (d: Date) => d.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" });
 
+  // [contain:inline-size] on the root: the measured width must never depend on the children it sizes,
+  // or a content-sized parent could grow it without end.
   return (
-    <div ref={root} className={cn("flex w-full min-w-0 flex-col overflow-hidden rounded-card border border-line bg-surface", className)}>
+    <div {...rootProps} ref={root} className={cn("flex w-full min-w-0 flex-col overflow-hidden rounded-card border border-line bg-surface [contain:inline-size]", className)}>
       {narrow && (
         <div role="tablist" aria-label={l.day} className="grid grid-cols-7 gap-1 border-b border-line p-2">
           {days.map((d, i) => {
@@ -140,6 +146,16 @@ export function WeekCalendar({
                 type="button"
                 role="tab"
                 aria-selected={on}
+                tabIndex={on ? 0 : -1}
+                data-day-tab={i}
+                onKeyDown={(ev) => {
+                  const to = ev.key === "ArrowRight" ? (i + 1) % days.length : ev.key === "ArrowLeft" ? (i - 1 + days.length) % days.length : ev.key === "Home" ? 0 : ev.key === "End" ? days.length - 1 : -1;
+                  if (to < 0) return;
+                  ev.preventDefault();
+                  setDay(to);
+                  const parent = ev.currentTarget.parentElement;
+                  requestAnimationFrame(() => parent?.querySelector<HTMLElement>(`[data-day-tab="${to}"]`)?.focus());
+                }}
                 aria-label={d.toLocaleDateString(locale, { weekday: "long", month: "long", day: "numeric" })}
                 onClick={() => {
                   setDay(i);
@@ -147,7 +163,7 @@ export function WeekCalendar({
                   const first = i === todayIndex && now ? hours(now) : evs.length ? Math.min(...evs.map((e) => hours(e.start))) : null;
                   if (first != null) scroller.current?.scrollTo({ top: Math.max(0, (first - startHour - 0.5) * hourHeight), behavior: "smooth" });
                 }}
-                className="relative flex flex-col items-center gap-1 rounded-control py-1.5 text-xs text-muted"
+                className="relative flex flex-col items-center gap-1 rounded-control py-1.5 text-xs text-muted focus-visible:outline-2 focus-visible:outline-accent"
               >
                 <span>{dayName(d, "narrow")}</span>
                 <span className="relative grid size-8 place-items-center">
@@ -248,6 +264,7 @@ export function WeekCalendar({
                           className={cn(
                             "group absolute flex overflow-hidden rounded-[6px] text-left outline-offset-1",
                             t.fill,
+                            a11y.highContrast && "border border-ink",
                           )}
                           style={{
                             top: top + 1,
@@ -264,7 +281,7 @@ export function WeekCalendar({
                               {!short && e.location ? ` · ${e.location}` : ""}
                             </span>
                           </span>
-                          <span aria-hidden className="pointer-events-none absolute inset-0 bg-ink/[0.04] opacity-0 transition-opacity duration-200 group-hover:opacity-100 dark:bg-ink/[0.06]" />
+                          <span aria-hidden className="pointer-events-none absolute inset-0 bg-ink/[0.05] opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
                           <motion.span
                             aria-hidden
                             className="pointer-events-none absolute inset-0 rounded-[6px] ring-2 ring-inset ring-ink"

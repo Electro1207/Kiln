@@ -5,6 +5,7 @@ import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { fade, springFirm } from "../../motion";
 import { Drawer } from "../overlays/Drawer";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ShellNavItem = { id: string; label: string; icon: ReactNode; badge?: number };
 export type ShellNavSection = { label?: string; items: ShellNavItem[] };
@@ -66,6 +67,8 @@ export type AppShellProps = {
   labels?: Partial<AppShellLabels>;
   /** Replace any built-in icon. Merged over `appShellIcons`. */
   icons?: Partial<AppShellIcons>;
+  /** Accessibility features to add for this shell only (`reduceMotion` and `calm` make the sidebar collapse jump instead of slide; `largeTargets` and `strongFocus` apply to its buttons). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const FULL = 240;
@@ -82,7 +85,8 @@ const RAIL = 64;
  * Below 768px of its own width the sidebar moves into a drawer behind a menu
  * button.
  */
-export function AppShell({ brand, nav, value: valueProp, defaultValue, onNavigate, topBar, footer, children, height = 640, className, labels: labelsProp, icons }: AppShellProps) {
+export function AppShell({ brand, nav, value: valueProp, defaultValue, onNavigate, topBar, footer, children, height = 640, className, labels: labelsProp, icons, accessibilityFeatures }: AppShellProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...appShellLabels, ...labelsProp };
   const ic = useMemo(() => ({ ...appShellIcons, ...icons }), [icons]);
   const [value, setValue] = useControllable<string | undefined>(valueProp, defaultValue ?? nav[0]?.items[0]?.id);
@@ -101,6 +105,11 @@ export function AppShell({ brand, nav, value: valueProp, defaultValue, onNavigat
   const slideTo = (to: number, onDone?: () => void) => {
     anim.current?.stop();
     target.set(to);
+    if (a11y.reduceMotion || a11y.calm) {
+      edge.set(to);
+      onDone?.();
+      return;
+    }
     anim.current = animate(edge, to, { ...springFirm, onComplete: onDone });
   };
   const collapse = () => {
@@ -145,7 +154,7 @@ export function AppShell({ brand, nav, value: valueProp, defaultValue, onNavigat
                   onPick?.();
                 }}
                 className={cn(
-                  "relative flex h-9 w-full items-center gap-3 rounded-control px-3 text-left text-sm transition-colors duration-200",
+                  "relative flex h-9 w-full items-center gap-3 rounded-control px-3 text-left text-sm transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-accent",
                   on ? "font-medium text-ink" : "text-muted hover:bg-raised hover:text-ink",
                 )}
               >
@@ -188,7 +197,7 @@ export function AppShell({ brand, nav, value: valueProp, defaultValue, onNavigat
   );
 
   return (
-    <div className={cn("@container relative w-full overflow-hidden bg-ground", className)} style={{ height }}>
+    <div {...rootProps} className={cn("@container relative w-full overflow-hidden bg-ground", className)} style={{ ...rootProps.style, height }}>
       <div className="flex h-full">
         {/* Sidebar: always laid out at full width, sitting behind the sheet. */}
         <aside
