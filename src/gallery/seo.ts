@@ -12,23 +12,23 @@ export const SITE_DESCRIPTION =
 export function pageMeta(r: Route): { title: string; description: string } {
   switch (r.page) {
     case "overview":
-      return { title: "Kiln — Animated React Components", description: SITE_DESCRIPTION };
+      return { title: "Kiln | Animated React Components", description: SITE_DESCRIPTION };
     case "about":
-      return { title: "About Kiln — Animated React Components", description: "Why Kiln exists, how it is built, and how to use it: npm package or copy-in components for React 19, Tailwind CSS v4 and Motion." };
+      return { title: "About Kiln | Animated React Components", description: "Why Kiln exists, how it is built, and how to use it: npm package or copy-in components for React 19, Tailwind CSS v4 and Motion." };
     case "whats-new":
-      return { title: "What's New in Kiln — Changelog", description: "Every Kiln release, newest first: new components, new props, changes and fixes, for the npm package and the copy-in registry alike." };
+      return { title: "What's New in Kiln | Changelog", description: "Every Kiln release, newest first: new components, new props, changes and fixes, for the npm package and the copy-in registry alike." };
     case "studio":
-      return { title: "Theme Studio — Kiln", description: "Make a Kiln theme: set the colours for light and dark, watch every component update, and download the tokens.css." };
+      return { title: "Theme Studio | Kiln", description: "Make a Kiln theme: set the colours for light and dark, watch every component update, and download the tokens.css." };
     case "privacy":
-      return { title: "Privacy Policy — Kiln", description: "Kiln collects no personal information: no accounts, cookies, analytics or tracking." };
+      return { title: "Privacy Policy | Kiln", description: "Kiln collects no personal information: no accounts, cookies, analytics or tracking." };
     case "terms":
-      return { title: "Terms of Use — Kiln", description: "The terms for using the Kiln website, the npm package and the copy-in registry." };
+      return { title: "Terms of Use | Kiln", description: "The terms for using the Kiln website, the npm package and the copy-in registry." };
     case "category": {
       const c = categories.find((x) => x.id === r.category);
       const e = c?.entries.find((x) => x.id === r.entry);
-      if (e) return { title: `${e.name} — Animated React Component | Kiln`, description: `${e.summary} A free React component for Tailwind CSS v4 and Motion, in light and dark.` };
-      if (c) return { title: `${c.name} — Animated React Components | Kiln`, description: `${c.summary} ${c.entries.length} free React components for Tailwind CSS v4 and Motion.` };
-      return { title: "Not found — Kiln", description: SITE_DESCRIPTION };
+      if (e) return { title: `${e.name}: Animated React Component | Kiln`, description: `${e.summary} A free React component for Tailwind CSS v4 and Motion, in light and dark.` };
+      if (c) return { title: `${c.name}: Animated React Components | Kiln`, description: `${c.summary} ${c.entries.length} free React components for Tailwind CSS v4 and Motion.` };
+      return { title: "Not found | Kiln", description: SITE_DESCRIPTION };
     }
   }
 }
