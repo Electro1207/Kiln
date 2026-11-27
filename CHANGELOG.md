@@ -4,17 +4,23 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
-Accessibility for every component, checked on every demo.
+## [1.0.0] - 2026-11-27
+
+The first stable release: 242 components, accessible and checked on every demo. From here the public API (component props, label and icon keys, controlled and uncontrolled behaviour, tokens) follows semantic versioning, so a breaking change only comes in a major version.
 
 ### Added
 
 - `AudioSpectrum`: a live frequency meter read from the real sound. It has a `decorative` prop to hide it from screen readers beside another player or mic control, shows a still level under no flashing, and draws solid peak caps under high contrast.
 - A Playwright smoke test of every gallery demo, run in CI (`npm run test:smoke`): light, dark and 390px wide, failing on page or console errors, runaway sizes, sideways overflow and invisible keyboard focus.
+- `npm run check:files`, run in CI: every demo's file list must match what its component imports, so the Code tab and the copy-in registry list exactly the files to copy.
+- Tokens `--k-inverse`, `--k-on-inverse`, `--k-track`, `--k-float-ring` and `--k-inverse-ring`, also derived for colorways.
 - Notes in the gallery's A11y view (features, ARIA pattern, keyboard map) for every entry.
 
 ### Changed
 
 - Every component now takes `accessibilityFeatures` and honours the features that apply to it. The sweep covered buttons, choice controls, forms, text inputs, pickers, menus, wayfinding, overlays, notices, status, guidance, data display, tables, charts, cards, media, app shells, workspace, communication, AI, dev tools, commerce, marketing and primitives.
+- Tooltip, Banner, Footer, Dock, Dialog, Drawer, Toast and SegmentedControl take their dark-mode colours from the new tokens instead of `dark:` overrides, so colorways restyle them too. Banner's inverse tone in dark is a shade lighter.
+- 141 demo file lists corrected to match their components' imports.
 - CONVENTIONS: every new component must support the accessibility features that apply to it and have an A11y view entry. The focus rule now covers the Tailwind v4 `outline-none` trap.
 
 ### Fixed
@@ -229,7 +235,8 @@ The first release on npm, published with provenance.
 
 - `Switch` and `HeatStrip` fixes, and zero lint warnings.
 
-[Unreleased]: https://github.com/Electro1207/Kiln/compare/v0.8.2...HEAD
+[Unreleased]: https://github.com/Electro1207/Kiln/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/Electro1207/Kiln/compare/v0.8.2...v1.0.0
 [0.8.2]: https://github.com/Electro1207/Kiln/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/Electro1207/Kiln/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/Electro1207/Kiln/compare/v0.7.1...v0.8.0
