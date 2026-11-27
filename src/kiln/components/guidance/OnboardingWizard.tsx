@@ -163,7 +163,7 @@ export function OnboardingWizard<V extends Record<string, unknown>>({
             exit="exit"
             className="w-full"
           >
-            <h3 ref={headingRef} tabIndex={-1} className="text-xl font-semibold tracking-[-0.02em] text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">{title}</h3>
+            <h3 ref={headingRef} tabIndex={-1} className="text-xl font-semibold tracking-[-0.02em] text-ink outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-4 focus-visible:outline-accent">{title}</h3>
             {description && <p className="mt-1.5 text-sm text-ink">{description}</p>}
             <div className="mt-5">
               {finished ? null : onSummary ? summary(values, go) : steps[at].render({ values, set: (p) => setValues((v) => ({ ...v, ...p })), errors })}

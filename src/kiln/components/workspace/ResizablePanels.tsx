@@ -135,7 +135,7 @@ export function ResizablePanels({
         onKeyDown={onKey}
         className={cn(
           // The separator is the 1px line itself, so it sits on whole pixels.
-          "group relative z-10 flex shrink-0 touch-none items-center justify-center outline-none focus-visible:outline-2 focus-visible:outline-accent transition-colors duration-200",
+          "group relative z-10 flex shrink-0 touch-none items-center justify-center outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-accent transition-colors duration-200",
           horizontal ? "w-px cursor-col-resize" : "h-px cursor-row-resize",
           dragging ? "bg-accent" : "bg-line hover:bg-line-strong focus-visible:bg-accent",
         )}

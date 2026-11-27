@@ -87,7 +87,7 @@ export const Tag = forwardRef<HTMLSpanElement, TagProps>(function Tag(
           whileTap={{ scale: 0.85 }}
           transition={springSnappy}
           aria-label={l.remove(typeof children === "string" ? children : l.tag)}
-          className="k-hit grid size-5 outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent place-items-center rounded-full opacity-70 transition-[opacity,background-color] hover:bg-ink/10 hover:opacity-100 [&>svg]:size-3 [&>svg]:stroke-[2.5]"
+          className="k-hit grid size-5 outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-1 focus-visible:outline-accent place-items-center rounded-full opacity-70 transition-[opacity,background-color] hover:bg-ink/10 hover:opacity-100 [&>svg]:size-3 [&>svg]:stroke-[2.5]"
         >
           {ic.remove}
         </motion.button>

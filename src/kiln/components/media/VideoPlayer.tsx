@@ -1680,7 +1680,7 @@ function VolumeControl({ volume, level, muted, onToggle, onChange, l }: { volume
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round((muted ? 0 : level) * 100)}
-        className="relative ml-0.5 mr-2 hidden h-8 w-[72px] cursor-pointer items-center touch-none outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:flex"
+        className="relative ml-0.5 mr-2 hidden h-8 w-[72px] cursor-pointer items-center touch-none outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-accent sm:flex"
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId);
           dragging.current = true;
