@@ -171,6 +171,7 @@ export { type TeamLink, type TeamMember, type TeamGridProps, TeamGrid } from "./
 export { type Testimonial, type TestimonialsProps, Testimonials } from "./components/marketing/Testimonials";
 
 // media
+export { type AudioSpectrumLabels, audioSpectrumLabels, type AudioSpectrumProps, AudioSpectrum } from "./components/media/AudioSpectrum";
 export { type CarouselLabels, carouselLabels, type CarouselProps, type CarouselIcons, carouselIcons, Carousel } from "./components/media/Carousel";
 export { type CompareSliderLabels, compareSliderLabels, type CompareSliderProps, type CompareSliderIcons, compareSliderIcons, CompareSlider } from "./components/media/CompareSlider";
 export { type MarqueeLabels, marqueeLabels, type MarqueeIcons, marqueeIcons, type MarqueeProps, Marquee } from "./components/media/Marquee";

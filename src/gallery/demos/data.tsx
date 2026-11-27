@@ -1,5 +1,5 @@
 import type { Category } from "../types";
-import { AvatarDemo, CodeDemo, ComparisonDemo, DataGridDemo, DescriptionDemo, HeatDemo, InvoiceDemo, KbdDemo, ListDemo, PlayerDemo, StatDemo, TableDemo, TagDemo, TickerDemo, TimelineDemo } from "./parts/data";
+import { AudioSpectrumDemo, AvatarDemo, CodeDemo, ComparisonDemo, DataGridDemo, DescriptionDemo, HeatDemo, InvoiceDemo, KbdDemo, ListDemo, PlayerDemo, StatDemo, TableDemo, TagDemo, TickerDemo, TimelineDemo } from "./parts/data";
 
 export const category: Category = {
   id: "data",
@@ -17,6 +17,7 @@ export const category: Category = {
     { id: "number-ticker", name: "Number ticker", summary: "Digits that roll to their new value, like a departure board.", files: ["src/kiln/components/data-display/NumberTicker.tsx", "src/kiln/cn.ts", "src/kiln/motion.ts", "src/kiln/a11y.tsx", "src/kiln/controllable.ts"], Demo: TickerDemo },
     { id: "heat-strip", name: "Activity strip", summary: "Half a year of daily counts at a glance; the readout follows the pointer without flicker.", files: ["src/kiln/components/data-display/HeatStrip.tsx", "src/kiln/cn.ts", "src/kiln/motion.ts"], Demo: HeatDemo },
     { id: "media-player", name: "Media player", summary: "An audio player that scrubs along the track\u2019s real waveform, with skip, playback speed and volume.", files: ["src/kiln/components/media/MediaPlayer.tsx", "src/kiln/components/choice-controls/Slider.tsx", "src/kiln/cn.ts", "src/kiln/motion.ts", "src/kiln/controllable.ts", "src/kiln/a11y.tsx"], Demo: PlayerDemo },
+    { id: "audio-spectrum", name: "Audio spectrum", summary: "A live frequency meter: bars read from the real sound of a file, a video or your microphone.", files: ["src/kiln/components/media/AudioSpectrum.tsx", "src/kiln/cn.ts", "src/kiln/motion.ts", "src/kiln/controllable.ts", "src/kiln/a11y.tsx"], Demo: AudioSpectrumDemo },
     { id: "invoice", name: "Invoice", summary: "An invoice or receipt as a document, with totals computed from its lines.", files: ["src/kiln/components/commerce/Invoice.tsx", "src/kiln/cn.ts", "src/kiln/motion.ts"], Demo: InvoiceDemo },
     { id: "code-block", name: "Code block", summary: "Highlighted code with line numbers and a copy button.", files: ["src/kiln/components/data-display/CodeBlock.tsx", "src/kiln/components/buttons/CopyButton.tsx", "src/kiln/cn.ts", "src/kiln/motion.ts"], Demo: CodeDemo },
     { id: "kbd", name: "Keyboard key", summary: "A key cap that presses down when the real key does.", files: ["src/kiln/components/data-display/Kbd.tsx", "src/kiln/cn.ts", "src/kiln/controllable.ts"], Demo: KbdDemo },

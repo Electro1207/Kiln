@@ -229,6 +229,7 @@ Look here first, then open the file for props. `a11y.tsx` (in `kiln/`, next to `
 - `Testimonials` — One quotation set large, then the rest in columns
 
 ### `media/`
+- `AudioSpectrum` — A live frequency meter: bars read from the real sound of a file (`src`), a media element (`media` ref) or the microphone (`stream`); `bars`, `variant` (bars or mirrored), `size`, `showPeaks`; `calm` shows one still level
 - `Carousel` — Drag or flick with momentum and it settles on a slide; arrows and keys work too
 - `CompareSlider` — Before and after with a handle you drag or move with the arrow keys
 - `Marquee` — An endless row without a seam, which eases to a stop under the pointer

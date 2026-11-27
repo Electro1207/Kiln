@@ -284,12 +284,13 @@ Group id: `cards` · Folder: `cards/` · 8 entries
 | Pricing | `pricing` | `PricingCard.tsx`, `NumberTicker.tsx`, `Button.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 
 ### Media
-Group id: `media` · Folder: `media/` · 6 entries
+Group id: `media` · Folder: `media/` · 7 entries
 
 | Entry | Id | Files |
 | --- | --- | --- |
 | Video player | `video-player` | `VideoPlayer.tsx` |
 | Media player | `media-player` | `MediaPlayer.tsx`, `Slider.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/controllable.ts` |
+| Audio spectrum | `audio-spectrum` | `AudioSpectrum.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts`, `src/kiln/controllable.ts`, `src/kiln/a11y.tsx` |
 | Carousel | `carousel` | `Carousel.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Masonry gallery | `masonry` | `Masonry.tsx`, `src/kiln/cn.ts`, `src/kiln/motion.ts` |
 | Compare slider | `compare-slider` | `CompareSlider.tsx` |

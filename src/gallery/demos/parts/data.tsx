@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Archive, Car, FileText, Plus, Power, Printer, Sparkles, Terminal, Trash2, Undo2, Zap, Snowflake, Ban } from "lucide-react";
+import { Archive, Car, FileAudio, Mic, MicOff, FileText, Plus, Power, Printer, Sparkles, Terminal, Trash2, Undo2, Zap, Snowflake, Ban } from "lucide-react";
 import { Stage, Variant, Btn } from "../../ui";
 import { Avatar, AvatarGroup } from "../../../kiln/components/data-display/Avatar";
 import { Table, type Column } from "../../../kiln/components/tables/Table";
@@ -17,6 +17,7 @@ import { DataGrid, type GridColumn } from "../../../kiln/components/tables/DataG
 import { DescriptionList } from "../../../kiln/components/data-display/DescriptionList";
 import { ComparisonTable } from "../../../kiln/components/tables/ComparisonTable";
 import { MediaPlayer } from "../../../kiln/components/media/MediaPlayer";
+import { AudioSpectrum } from "../../../kiln/components/media/AudioSpectrum";
 import { Invoice } from "../../../kiln/components/commerce/Invoice";
 import { spring } from "../../../kiln/motion";
 
@@ -509,6 +510,78 @@ export function PlayerDemo() {
         <a href="https://commons.wikimedia.org/wiki/File:Big_Buck_Bunny_4K.webm" target="_blank" rel="noreferrer" className="underline decoration-line-strong underline-offset-2 hover:text-ink">“Big Buck Bunny”</a>{" "}
         (1:00–1:40), music by Jan Morgenstern, © Blender Foundation,{" "}
         <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noreferrer" className="underline decoration-line-strong underline-offset-2 hover:text-ink">CC BY 3.0</a>. The waveform is the clip's measured loudness.
+      </p>
+    </Stage>
+  );
+}
+
+export function AudioSpectrumDemo() {
+  const V = `${import.meta.env.BASE_URL}demo/video/`;
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [micNote, setMicNote] = useState("");
+  const [mine, setMine] = useState<{ url: string; name: string } | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const mineRef = useRef<string | null>(null);
+
+  const stopMic = () => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    setStream(null);
+  };
+  const toggleMic = async () => {
+    if (streamRef.current) return stopMic();
+    setMicNote("");
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = s;
+      setStream(s);
+    } catch {
+      setMicNote("The microphone is blocked or missing. Allow it in your browser's site settings and try again.");
+    }
+  };
+  const pick = (file?: File) => {
+    if (!file) return;
+    if (mineRef.current) URL.revokeObjectURL(mineRef.current);
+    mineRef.current = URL.createObjectURL(file);
+    setMine({ url: mineRef.current, name: file.name });
+  };
+  useEffect(
+    () => () => {
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      if (mineRef.current) URL.revokeObjectURL(mineRef.current);
+    },
+    [],
+  );
+
+  return (
+    <Stage className="flex-col" align="start">
+      <Variant label="Plays its own file: the bars are the real spectrum" className="w-full max-w-[560px]">
+        <AudioSpectrum className="w-full" src={`${V}bbb-360.webm`} />
+      </Variant>
+      <Variant label="Mirrored, listening to a video you control" className="w-full max-w-[560px]">
+        <video ref={videoRef} src={`${V}bbb-360.webm`} poster={`${V}bbb-poster.jpg`} crossOrigin="anonymous" controls playsInline className="aspect-video w-full rounded-control bg-surface" />
+        <AudioSpectrum className="w-full" variant="mirrored" media={videoRef} bars={48} size="lg" />
+      </Variant>
+      <Variant label="Your microphone (asked only when you press the button)" className="w-full max-w-[560px]">
+        <div className="flex w-full items-center gap-3">
+          <Button size="sm" variant="outline" leading={stream ? <MicOff /> : <Mic />} onClick={toggleMic}>{stream ? "Turn the mic off" : "Turn the mic on"}</Button>
+        </div>
+        <AudioSpectrum className="w-full" stream={stream} bars={40} showPeaks={false} />
+        {micNote && <p role="alert" className="text-[0.8125rem] leading-5 text-negative">{micNote}</p>}
+      </Variant>
+      <Variant label="Play your own MP3" className="w-full max-w-[560px]">
+        <input ref={fileRef} type="file" accept="audio/mpeg,audio/*,.mp3" className="sr-only" tabIndex={-1} aria-hidden onChange={(e) => pick(e.target.files?.[0])} />
+        <Button size="sm" variant="outline" leading={<FileAudio />} onClick={() => fileRef.current?.click()}>Choose an audio file</Button>
+        <span className="min-w-0 truncate text-[0.8125rem] text-muted">{mine ? mine.name : "Nothing chosen yet"}</span>
+        {mine && <AudioSpectrum className="w-full" src={mine.url} bars={48} />}
+      </Variant>
+      <p className="max-w-[560px] text-xs leading-5 text-muted">
+        Soundtrack of{" "}
+        <a href="https://commons.wikimedia.org/wiki/File:Big_Buck_Bunny_4K.webm" target="_blank" rel="noreferrer" className="underline decoration-line-strong underline-offset-2 hover:text-ink">“Big Buck Bunny”</a>{" "}
+        (1:00–1:40), music by Jan Morgenstern, © Blender Foundation,{" "}
+        <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noreferrer" className="underline decoration-line-strong underline-offset-2 hover:text-ink">CC BY 3.0</a>. Nothing here is looped or faked: every bar is read from the sound as it plays.
       </p>
     </Stage>
   );
