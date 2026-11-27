@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { fade, springSnappy, springSoft } from "../../motion";
 import { useControllable } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** One place on the page: the id of its element, its name and what it covers. */
 export type Checkpoint = { id: string; label: string; summary?: ReactNode };
@@ -33,6 +34,8 @@ export type ScrollCheckpointsProps = {
   className?: string;
   /** Override any UI text. Merged over `scrollCheckpointsLabels`. */
   labels?: Partial<ScrollCheckpointsLabels>;
+  /** Accessibility features for this control only. `calm` and `reduceMotion` jump to a section instead of scrolling smoothly; `highContrast` darkens the inactive ticks. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -43,7 +46,8 @@ export type ScrollCheckpointsProps = {
  * itself, or you can drive it with `value`. Each preview belongs to its own
  * tick and fades, so nothing slides under the pointer.
  */
-export function ScrollCheckpoints({ items, container, value, onChange, side = "right", line = 0.45, position = "fixed", className, labels }: ScrollCheckpointsProps) {
+export function ScrollCheckpoints({ items, container, value, onChange, side = "right", line = 0.45, position = "fixed", className, labels, accessibilityFeatures }: ScrollCheckpointsProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...scrollCheckpointsLabels, ...labels };
   const [current, setCurrent] = useControllable<string>(value, items[0]?.id ?? "", onChange);
   const [hover, setHover] = useState<string | null>(null);
@@ -76,7 +80,7 @@ export function ScrollCheckpoints({ items, container, value, onChange, side = "r
   const go = (id: string) => {
     const el = document.getElementById(id);
     if (!el) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduce = a11y.calm || a11y.reduceMotion || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const behavior = reduce ? "auto" : "smooth";
     const box = container?.current;
     // Inside a box, scroll only the box; scrollIntoView would move the page too.
@@ -90,6 +94,7 @@ export function ScrollCheckpoints({ items, container, value, onChange, side = "r
   return (
     <nav
       aria-label={l.nav}
+      {...rootProps}
       onPointerLeave={() => setHover(null)}
       className={cn(
         position === "fixed" && cn("fixed top-1/2 z-40 -translate-y-1/2", right ? "right-2" : "left-2"),
@@ -122,7 +127,7 @@ export function ScrollCheckpoints({ items, container, value, onChange, side = "r
                   className={cn(
                     "block h-[3px] w-6 rounded-full transition-colors duration-200",
                     right ? "origin-right" : "origin-left",
-                    on ? "bg-ink" : "bg-line-strong group-hover:bg-muted",
+                    on ? "bg-ink" : a11y.highContrast ? "bg-muted group-hover:bg-ink" : "bg-line-strong group-hover:bg-muted",
                   )}
                 />
               </button>

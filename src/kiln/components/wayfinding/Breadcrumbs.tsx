@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { ChevronRight, MoreHorizontal } from "lucide-react";
 import { cn } from "../../cn";
 import { spring } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { MenuContent } from "../menus/DropdownMenu";
 
 export type Crumb = { label: string; href?: string; onClick?: () => void };
@@ -33,10 +34,13 @@ export type BreadcrumbsProps = {
   labels?: Partial<BreadcrumbsLabels>;
   /** Replace any built-in icon. Merged over `breadcrumbsIcons`. */
   icons?: Partial<BreadcrumbsIcons>;
+  /** Accessibility features for this trail only. The current page is marked `aria-current`; high contrast and text size are page-wide. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A trail of links. When the trail is wider than its box, the middle folds into a menu. */
-export function Breadcrumbs({ items, className, labels, icons }: BreadcrumbsProps) {
+export function Breadcrumbs({ items, className, labels, icons, accessibilityFeatures }: BreadcrumbsProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...breadcrumbsLabels, ...labels };
   const ic = { ...breadcrumbsIcons, ...icons };
   const boxRef = useRef<HTMLElement>(null);
@@ -85,7 +89,7 @@ export function Breadcrumbs({ items, className, labels, icons }: BreadcrumbsProp
   const sep = <span aria-hidden className="grid shrink-0 place-items-center text-faint [&>svg]:size-3.5">{ic.separator}</span>;
 
   return (
-    <nav ref={boxRef} aria-label={l.nav} className={cn("relative w-full min-w-0 text-sm", className)}>
+    <nav ref={boxRef} aria-label={l.nav} {...rootProps} className={cn("relative w-full min-w-0 text-sm", className)}>
       <ol ref={ghostRef} aria-hidden className="pointer-events-none invisible absolute flex w-max items-center gap-1.5">
         {items.map((c, i) => (
           <li key={i} className="flex items-center gap-1.5 whitespace-nowrap">{i > 0 && sep}{c.label}</li>
@@ -121,6 +125,7 @@ export function Breadcrumbs({ items, className, labels, icons }: BreadcrumbsProp
                     anchor={moreRef}
                     label={l.hiddenLevels}
                     minWidth={180}
+                    accessibilityFeatures={accessibilityFeatures}
                     onClose={() => setMenu(false)}
                     items={hidden.map((h) => ({
                       label: h.label,

@@ -2,6 +2,7 @@ import { useEffect, useId, useState, type MouseEvent, type ReactNode } from "rea
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut, spring, fade } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type NavLink = { label: string; href: string };
 
@@ -29,6 +30,8 @@ export type NavbarProps = {
   /** Override any UI text. Merged over `navbarLabels`. */
   labels?: Partial<NavbarLabels>;
   className?: string;
+  /** Accessibility features for this bar only. Hover and menu motion follow `reduceMotion` and `calm`; the rest (high contrast, large targets, text size) is page-wide. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Menu button whose two lines turn into a cross. */
@@ -60,7 +63,8 @@ export function MenuToggle({ open, onClick, controls, labels }: { open: boolean;
 }
 
 /** Wordmark, a few links and one action. Below 640px of its own width the links fold into a menu. */
-export function Navbar({ brand, links, action, utility, current, onNavigate, contained, labels, className }: NavbarProps) {
+export function Navbar({ brand, links, action, utility, current, onNavigate, contained, labels, className, accessibilityFeatures }: NavbarProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const id = useId();
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState<string | null>(null);
@@ -86,7 +90,7 @@ export function Navbar({ brand, links, action, utility, current, onNavigate, con
   };
 
   return (
-    <header className={cn("@container relative w-full bg-surface", className)}>
+    <header {...rootProps} className={cn("@container relative w-full bg-surface", className)}>
       <div className="flex h-16 items-center gap-6 px-4 @2xl:px-6">
         <div className="flex shrink-0 items-center">{brand}</div>
 

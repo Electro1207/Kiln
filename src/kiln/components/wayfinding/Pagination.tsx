@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { easeOut, press, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by Pagination. Pass a partial via `labels` to translate or reword. */
 export interface PaginationLabels {
@@ -50,6 +51,8 @@ export type PaginationProps = {
   labels?: Partial<PaginationLabels>;
   /** Replace any built-in icon. Merged over `paginationIcons`. */
   icons?: Partial<PaginationIcons>;
+  /** Accessibility features for this control only. The current page is `aria-current` and its fill fades in place; high contrast, large targets and text size are page-wide. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 export function pageRange(page: number, count: number, siblings = 1): Array<number | "gap-l" | "gap-r"> {
@@ -72,7 +75,8 @@ const gap = "grid h-9 w-6 place-items-center";
  * numbers); its number turns to the fill's ink part-way through the fade, never grey on grey.
  */
 /** Page numbers with previous/next. Collapses to "page x of y" on phones. */
-export function Pagination({ page: pageProp, defaultPage = 1, pageCount, onChange: onChangeProp, siblings = 1, className, labels, icons }: PaginationProps) {
+export function Pagination({ page: pageProp, defaultPage = 1, pageCount, onChange: onChangeProp, siblings = 1, className, labels, icons, accessibilityFeatures }: PaginationProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...paginationLabels, ...labels };
   const ic = { ...paginationIcons, ...icons };
   const [page, onChange] = useControllable(pageProp, defaultPage, onChangeProp);
@@ -83,7 +87,7 @@ export function Pagination({ page: pageProp, defaultPage = 1, pageCount, onChang
     "grid size-9 place-items-center rounded-control text-ink transition-colors duration-200 hover:bg-active disabled:pointer-events-none disabled:opacity-35";
 
   return (
-    <nav aria-label={l.nav} className={cn("flex items-center gap-1", className)}>
+    <nav aria-label={l.nav} {...rootProps} className={cn("flex items-center gap-1", className)}>
       <motion.button whileTap={press} type="button" aria-label={l.previous} disabled={page <= 1} onClick={() => go(page - 1)} className={arrow}>
         <span className="grid place-items-center [&>svg]:size-4" aria-hidden>{ic.previous}</span>
       </motion.button>

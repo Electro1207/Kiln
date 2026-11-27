@@ -2,6 +2,7 @@ import { useRef, type RefObject } from "react";
 import { motion, useMotionValueEvent, useScroll, useSpring, useTransform } from "motion/react";
 import { cn } from "../../cn";
 import { springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by ScrollProgress. Pass a partial via `labels` to translate or reword. */
 export interface ScrollProgressLabels {
@@ -24,6 +25,8 @@ export type ScrollProgressProps = {
   className?: string;
   /** Override any UI text. Merged over `scrollProgressLabels`. */
   labels?: Partial<ScrollProgressLabels>;
+  /** Accessibility features for this indicator only. `calm` and `reduceMotion` drop the smoothing, so the fill follows the scroll exactly. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -32,10 +35,12 @@ export type ScrollProgressProps = {
  * smoothed with the firm spring, so a flick of the wheel never makes it jump, and it never
  * re-renders while you scroll: the fill and the number are written straight from the scroll.
  */
-export function ScrollProgress({ container, variant = "bar", size = 56, stroke = 5, showValue = true, className, labels }: ScrollProgressProps) {
+export function ScrollProgress({ container, variant = "bar", size = 56, stroke = 5, showValue = true, className, labels, accessibilityFeatures }: ScrollProgressProps) {
+  const { a11y: feat, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...scrollProgressLabels, ...labels };
   const { scrollYProgress } = useScroll(container ? { container } : undefined);
-  const p = useSpring(scrollYProgress, springFirm);
+  const smooth = useSpring(scrollYProgress, springFirm);
+  const p = feat.calm || feat.reduceMotion ? scrollYProgress : smooth;
   const ref = useRef<HTMLDivElement>(null);
   const num = useRef<HTMLSpanElement>(null);
   // Written only when the whole number changes, so scrolling costs no layout on most frames.
@@ -54,12 +59,12 @@ export function ScrollProgress({ container, variant = "bar", size = 56, stroke =
   const a11y = { ref, role: "progressbar", "aria-label": l.progress, "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": 0 } as const;
 
   if (variant === "bar") {
-    return <motion.div {...a11y} style={{ scaleX: p }} className={cn("h-[3px] origin-left rounded-r-full bg-accent", className)} />;
+    return <motion.div {...a11y} {...rootProps} style={{ ...rootProps.style, scaleX: p }} className={cn("h-[3px] origin-left rounded-r-full bg-accent", className)} />;
   }
 
   const r = (size - stroke) / 2;
   return (
-    <div {...a11y} className={cn("relative inline-grid shrink-0 place-items-center", className)} style={{ width: size, height: size }}>
+    <div {...a11y} {...rootProps} className={cn("relative inline-grid shrink-0 place-items-center", className)} style={{ ...rootProps.style, width: size, height: size }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="absolute inset-0 -rotate-90" aria-hidden>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className="stroke-active" />
         <motion.circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} strokeLinecap="round" pathLength={1} strokeDasharray="1 1" className="stroke-accent" style={{ strokeDashoffset: offset }} />

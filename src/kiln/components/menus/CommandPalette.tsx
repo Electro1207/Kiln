@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { CornerDownLeft, Search } from "lucide-react";
 import { cn } from "../../cn";
 import { fade, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type CommandItem = {
   id: string;
@@ -46,6 +47,8 @@ type CommandPaletteProps = {
   labels?: Partial<CommandPaletteLabels>;
   /** Replace any built-in icon. Merged over `commandPaletteIcons`. */
   icons?: Partial<CommandPaletteIcons>;
+  /** Accessibility features for this palette only. The open and row-highlight fades follow `reduceMotion`; high contrast and text size are page-wide. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Icons used by CommandPalette. Pass a partial via `icons` to swap any of them. */
@@ -94,7 +97,8 @@ function Highlight({ text, q }: { text: string; q: string }) {
 }
 
 /** A searchable command menu in a dialog. Always controlled: you decide when it is `open`; set `shortcut` to open it from the keyboard. */
-export function CommandPalette({ open, onOpenChange, items, placeholder, emptyText, shortcut, labels, icons }: CommandPaletteProps) {
+export function CommandPalette({ open, onOpenChange, items, placeholder, emptyText, shortcut, labels, icons, accessibilityFeatures }: CommandPaletteProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const openRef = useRef(open);
   const changeRef = useRef(onOpenChange);
   useLayoutEffect(() => { openRef.current = open; changeRef.current = onOpenChange; });
@@ -190,13 +194,15 @@ export function CommandPalette({ open, onOpenChange, items, placeholder, emptyTe
             role="dialog"
             aria-modal="true"
             aria-label={l.dialog}
+            {...rootProps}
             className="relative flex max-h-[min(560px,70vh)] w-full max-w-[600px] flex-col overflow-hidden bg-surface shadow-float"
-            style={{ borderRadius: 16 }}
+            style={{ ...rootProps.style, borderRadius: 16 }}
             initial={{ opacity: 0, scale: 0.96, y: -8 }}
             animate={{ opacity: 1, scale: 1, y: 0, transition: springSoft }}
             exit={{ opacity: 0, scale: 0.98, y: -4, transition: { duration: 0.15 } }}
           >
-            <div className="flex items-center gap-3 px-4">
+            {/* The input has no outline of its own; the wrapper shows focus with an underline. */}
+            <div className="flex items-center gap-3 border-b-2 border-transparent px-4 focus-within:border-accent">
               <span className="grid shrink-0 text-muted [&>svg]:size-[18px]" aria-hidden>{ic.search}</span>
               <input
                 ref={input}
