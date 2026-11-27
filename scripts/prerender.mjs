@@ -48,7 +48,7 @@ const groups = sections.flatMap((s) => s.groups);
 const total = groups.reduce((n, g) => n + g.entries.length, 0);
 
 /* Copy shared with src/gallery/seo.ts. */
-const SITE_DESCRIPTION = "200+ animated React components for Tailwind CSS v4 and Motion: light and dark, 60fps, keyboard-ready. Use the npm package or copy any one in with the shadcn CLI.";
+const SITE_DESCRIPTION = "242 free, accessible, animated React components for Tailwind CSS v4 and Motion: light and dark, keyboard-ready. Use the npm package or copy any one in with the shadcn CLI.";
 const entryMeta = (e) => ({ title: `${e.title}: Animated React Component | Kiln`, description: `${e.description} A free React component for Tailwind CSS v4 and Motion, in light and dark.` });
 const groupMeta = (g) => ({ title: `${g.name}: Animated React Components | Kiln`, description: `${g.summary} ${g.entries.length} free React components for Tailwind CSS v4 and Motion.` });
 
@@ -127,7 +127,7 @@ add({
   ld: [APP, { "@type": "WebSite", "@id": `${SITE}/#site`, name: "Kiln", url: `${SITE}/`, about: { "@id": `${SITE}/#kiln` } }],
   body: `<h1>Kiln: Animated React Components</h1>
 <p>${esc(SITE_DESCRIPTION)} Free and open source under the MIT licence; the source is on <a href="${REPO}">GitHub</a>.</p>
-<p>${total} components for React 19, Tailwind CSS v4 and Motion, in light and dark, each with a live demo, its source and its install command. Every component takes its text from props, works from the keyboard, and animates only transform and opacity.</p>
+<p>${total} components for React 19, Tailwind CSS v4 and Motion, in light and dark, each with a live demo, its source and its install command. Every component takes its text from props, works from the keyboard, takes an <code>accessibilityFeatures</code> prop for reduced motion, high contrast, larger targets and more, and animates only transform and opacity. There is no Pro tier and no paid component.</p>
 <h2>Install</h2>
 <pre><code>npm i ${PKG} motion lucide-react</code></pre>
 <p>Or copy single components in with the shadcn CLI: <code>npx shadcn@latest add ${SITE}/r/&lt;component&gt;.json</code>. The registry index is at <a href="/r/registry.json">/r/registry.json</a>.</p>
@@ -193,7 +193,7 @@ add({
   title: "About Kiln | Animated React Components",
   description: "Why Kiln exists, how it is built, and how to use it: npm package or copy-in components for React 19, Tailwind CSS v4 and Motion.",
   ld: [{ "@type": "AboutPage", url: `${SITE}/about`, about: { "@id": `${SITE}/#kiln` } }, APP],
-  body: `<h1>About Kiln</h1>${paras(readme.split("\n## ")[0].replace(/^# .*\n/, ""))}<h2>Why Kiln</h2>${paras(section(readme, "Why Kiln"))}<h2>About</h2>${paras(section(readme, "About"))}<h2>Requests, bugs and questions</h2>${paras(section(readme, "Requests, bugs and questions"))}`,
+  body: `<h1>About Kiln</h1>${paras(readme.split("\n## ")[0].replace(/^# .*\n/, ""))}<h2>Why Kiln</h2>${paras(section(readme, "Why Kiln"))}<h2>Accessibility</h2>${paras(section(readme, "Accessibility"))}<h2>About</h2>${paras(section(readme, "About"))}<h2>Requests, bugs and questions</h2>${paras(section(readme, "Requests, bugs and questions"))}`,
 });
 
 const changelog = read("CHANGELOG.md");
@@ -249,7 +249,7 @@ const llms = `# Kiln
 
 > ${SITE_DESCRIPTION}
 
-Kiln is a free, open-source (MIT) library of ${total} animated React components. It targets React 19, Tailwind CSS v4 and Motion (the animation library formerly called Framer Motion), with lucide-react icons. Every component works in light and dark mode, takes its text from props, works from the keyboard, and animates only transform and opacity so it holds 60fps. Colours come from design tokens, and colorways derive a whole theme from a ground, an ink and an accent colour.
+Kiln is a free, open-source (MIT) library of ${total} animated React components. It targets React 19, Tailwind CSS v4 and Motion (the animation library formerly called Framer Motion), with lucide-react icons. Every component works in light and dark mode, takes its text from props, works from the keyboard, takes an accessibilityFeatures prop (reduced motion, high contrast, large targets and more), is smoke-tested in CI, with no Pro tier, and animates only transform and opacity so it holds 60fps. Colours come from design tokens, and colorways derive a whole theme from a ground, an ink and an accent colour.
 
 Two ways to use it, which ship the same code from the same release:
 

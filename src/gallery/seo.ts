@@ -7,7 +7,7 @@ import { href, type Route } from "./useRoute";
    writes the same titles and descriptions into each page's static HTML, so keep the two in step. */
 
 export const SITE_DESCRIPTION =
-  "200+ animated React components for Tailwind CSS v4 and Motion: light and dark, 60fps, keyboard-ready. Use the npm package or copy any one in with the shadcn CLI.";
+  "242 free, accessible, animated React components for Tailwind CSS v4 and Motion: light and dark, keyboard-ready. Use the npm package or copy any one in with the shadcn CLI.";
 
 export function pageMeta(r: Route): { title: string; description: string } {
   switch (r.page) {

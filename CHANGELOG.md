@@ -4,6 +4,24 @@ Every release of Kiln, newest first. The npm package and the copy-in registry sh
 
 ## [Unreleased]
 
+Accessibility for every component, checked on every demo.
+
+### Added
+
+- `AudioSpectrum`: a live frequency meter read from the real sound. It has a `decorative` prop to hide it from screen readers beside another player or mic control, shows a still level under no flashing, and draws solid peak caps under high contrast.
+- A Playwright smoke test of every gallery demo, run in CI (`npm run test:smoke`): light, dark and 390px wide, failing on page or console errors, runaway sizes, sideways overflow and invisible keyboard focus.
+- Notes in the gallery's A11y view (features, ARIA pattern, keyboard map) for every entry.
+
+### Changed
+
+- Every component now takes `accessibilityFeatures` and honours the features that apply to it. The sweep covered buttons, choice controls, forms, text inputs, pickers, menus, wayfinding, overlays, notices, status, guidance, data display, tables, charts, cards, media, app shells, workspace, communication, AI, dev tools, commerce, marketing and primitives.
+- CONVENTIONS: every new component must support the accessibility features that apply to it and have an A11y view entry. The focus rule now covers the Tailwind v4 `outline-none` trap.
+
+### Fixed
+
+- `Carousel` no longer grows without end inside a content-sized parent.
+- Focus outlines that drew nothing now show: `Tabs` panels, `TransferList`'s listbox, the `VideoPlayer` seek slider and others.
+
 ## [0.8.2] - 2026-11-26
 
 A crisper BorderBeam.
