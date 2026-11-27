@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { AtSign, Bell, BellOff, Inbox } from "lucide-react";
 import { cn } from "../../cn";
+import { useA11y, type AccessibilityFeaturesProp } from "../../a11y";
 import { easeOut, fade, springFirm, springSoft } from "../../motion";
 import { Avatar } from "../data-display/Avatar";
 import { NotificationBell } from "./NotificationBell";
@@ -82,6 +83,8 @@ export type NotificationCenterProps = {
   labels?: Partial<NotificationCenterLabels>;
   /** Replace any built-in icon. Merged over `notificationCenterIcons`. */
   icons?: Partial<NotificationCenterIcons>;
+  /** Accessibility features to add for this inbox only (`reduceMotion` fades the empty message in place and opens the popover without a pop; unread rows always say Unread in words as well as the dot). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Icons used by NotificationCenter. Pass a partial via `icons` to swap any of them. */
@@ -111,7 +114,8 @@ type TabId = "all" | "unread" | "mentions";
  * A bell that opens an inbox: All, Unread and Mentions. Opening a notice marks
  * it read, so its dot and weight fade; under Unread it then folds away.
  */
-export function NotificationCenter({ items, onItemsChange, onOpen, side = "bottom", align = "end", labels, icons }: NotificationCenterProps) {
+export function NotificationCenter({ items, onItemsChange, onOpen, side = "bottom", align = "end", labels, icons, accessibilityFeatures }: NotificationCenterProps) {
+  const a11y = useA11y(accessibilityFeatures);
   const l = { ...notificationCenterLabels, ...labels };
   const ic = useMemo(() => ({ ...notificationCenterIcons, ...icons }), [icons]);
   const unread = items.filter((n) => n.unread).length;
@@ -121,14 +125,15 @@ export function NotificationCenter({ items, onItemsChange, onOpen, side = "botto
       label={l.notifications}
       side={side}
       align={align}
+      accessibilityFeatures={accessibilityFeatures}
       trigger={<NotificationBell count={unread} icons={{ bell: ic.bell }} labels={{ notifications: l.notifications, unread: l.bellUnread }} />}
     >
-      <Inboxes items={items} onItemsChange={onItemsChange} onOpen={onOpen} l={l} ic={ic} />
+      <Inboxes items={items} onItemsChange={onItemsChange} onOpen={onOpen} l={l} ic={ic} still={a11y.reduceMotion} />
     </Popover>
   );
 }
 
-function Inboxes({ items, onItemsChange, onOpen, l, ic }: Pick<NotificationCenterProps, "items" | "onItemsChange" | "onOpen"> & { l: NotificationCenterLabels; ic: NotificationCenterIcons }) {
+function Inboxes({ items, onItemsChange, onOpen, l, ic, still }: Pick<NotificationCenterProps, "items" | "onItemsChange" | "onOpen"> & { l: NotificationCenterLabels; ic: NotificationCenterIcons; still: boolean }) {
   const [tab, setTab] = useState<TabId>("all");
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const unread = items.filter((n) => n.unread).length;
@@ -211,6 +216,7 @@ function Inboxes({ items, onItemsChange, onOpen, l, ic }: Pick<NotificationCente
             {shown.map((n) => (
               <motion.li
                 key={n.id}
+                // A one-off height fold of one row when it leaves the Unread list (allowed).
                 exit={{ height: 0, opacity: 0, transition: { height: { ...springFirm, delay: 0.08 }, opacity: { duration: 0.14, ease: easeOut } } }}
                 className="overflow-hidden"
               >
@@ -250,7 +256,7 @@ function Inboxes({ items, onItemsChange, onOpen, l, ic }: Pick<NotificationCente
           {shown.length === 0 && (
             <motion.div
               key={`empty-${tab}`}
-              initial={{ opacity: 0, y: 6 }}
+              initial={{ opacity: 0, y: still ? 0 : 6 }}
               animate={{ opacity: 1, y: 0, transition: { ...springSoft, delay: 0.18 } }}
               exit={{ opacity: 0, transition: { duration: 0.1 } }}
               className="flex flex-col items-center px-8 pb-10 pt-12 text-center"

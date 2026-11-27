@@ -99,6 +99,7 @@ export function TypeToConfirmDialog({
       title={title}
       description={description}
       className={className}
+      accessibilityFeatures={accessibilityFeatures}
       footer={
         <>
           <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={busy}>{cancelLabel ?? l.cancel}</Button>

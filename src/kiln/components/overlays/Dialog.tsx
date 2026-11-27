@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useDragControls, type PanInfo } from "motion/r
 import { X } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, fade, springFirm, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { Portal, useIsPhone, useModalLayer } from "../shared/useOverlay";
 
 /** Text used by Dialog. Pass a partial via `labels` to translate or reword. */
@@ -39,6 +40,8 @@ export type DialogProps = {
   /** Replace any built-in icon. Merged over `dialogIcons`. */
   icons?: Partial<DialogIcons>;
   className?: string;
+  /** Accessibility features to add for this dialog only (`reduceMotion` swaps the slide or scale for a fade; `highContrast` and `strongFocus` come from the page-wide styles). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const widths = { sm: "sm:max-w-sm", md: "sm:max-w-md", lg: "sm:max-w-2xl" };
@@ -68,7 +71,10 @@ function DialogLayer({
   labels,
   icons,
   className,
+  accessibilityFeatures,
 }: DialogProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion;
   const l = { ...dialogLabels, ...labels };
   const ic = useMemo(() => ({ ...dialogIcons, ...icons }), [icons]);
   const ref = useRef<HTMLDivElement>(null);
@@ -101,10 +107,13 @@ function DialogLayer({
         aria-labelledby={titleId}
         aria-describedby={description ? descId : undefined}
         tabIndex={-1}
-        initial={phone ? { y: "100%" } : { opacity: 0, scale: 0.96, y: 8 }}
-        animate={phone ? { y: 0 } : { opacity: 1, scale: 1, y: 0 }}
+        {...rootProps}
+        initial={still ? { opacity: 0 } : phone ? { y: "100%" } : { opacity: 0, scale: 0.96, y: 8 }}
+        animate={still ? { opacity: 1 } : phone ? { y: 0 } : { opacity: 1, scale: 1, y: 0 }}
         exit={
-          phone
+          still
+            ? { opacity: 0, transition: { duration: 0.16, ease: easeOut } }
+            : phone
             ? { y: "100%", transition: { duration: 0.28, ease: easeOut } }
             : { opacity: 0, scale: 0.98, y: 4, transition: { duration: 0.16, ease: easeOut } }
         }
@@ -115,6 +124,8 @@ function DialogLayer({
         dragConstraints={{ top: 0, bottom: 0 }}
         dragElastic={{ top: 0.05, bottom: 0.7 }}
         onDragEnd={onDragEnd}
+        style={rootProps.style}
+        /* outline-none: this is only the programmatic focus target (tabIndex -1), not a control. */
         className={cn(
           "relative flex max-h-[88dvh] w-full flex-col bg-surface text-ink shadow-float outline-none dark:ring-1 dark:ring-line",
           "rounded-t-sheet pb-[env(safe-area-inset-bottom)] sm:rounded-sheet sm:pb-0",

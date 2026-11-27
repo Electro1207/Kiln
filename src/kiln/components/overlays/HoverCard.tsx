@@ -1,7 +1,8 @@
 import { cloneElement, useCallback, useEffect, useRef, useState, type ReactElement, type ReactNode, type Ref } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, type Variants } from "motion/react";
 import { cn } from "../../cn";
-import { popVariants } from "../../motion";
+import { fade, popVariants } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { originFor, Portal, useAnchored, type Align, type Side } from "../shared/useOverlay";
 
 type TriggerProps = {
@@ -20,7 +21,11 @@ export type HoverCardProps = {
   openDelay?: number;
   closeDelay?: number;
   className?: string;
+  /** Accessibility features to add for this card only (`extendedTime` keeps it open three times longer after the pointer leaves; `reduceMotion` fades instead of popping). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
+
+const fadeVariants: Variants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: fade }, exit: { opacity: 0, transition: { duration: 0.12 } } };
 
 /** One pending timeout, cleared on unmount. */
 function useTimeout() {
@@ -35,13 +40,14 @@ function useTimeout() {
 }
 
 /** A rich preview that opens when a link is hovered or focused, and stays open while the pointer is on it. */
-export function HoverCard({ children, content, side = "bottom", align = "start", openDelay = 380, closeDelay = 180, className }: HoverCardProps) {
+export function HoverCard({ children, content, side = "bottom", align = "start", openDelay = 380, closeDelay = 180, className, accessibilityFeatures }: HoverCardProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const [open, setOpen] = useState(false);
   const timer = useTimeout();
   const { setAnchor, floatingRef, placement, floatingStyle } = useAnchored(open, side, align, 10);
 
   const schedule = (next: boolean) => {
-    timer.set(() => setOpen(next), next ? openDelay : closeDelay);
+    timer.set(() => setOpen(next), next ? openDelay : a11y.extendedTime ? closeDelay * 3 : closeDelay);
   };
   useEffect(() => {
     if (!open) return;
@@ -68,13 +74,14 @@ export function HoverCard({ children, content, side = "bottom", align = "start",
             <motion.div
               key="hovercard"
               ref={floatingRef}
-              variants={popVariants}
+              {...rootProps}
+              variants={a11y.reduceMotion ? fadeVariants : popVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
               onPointerEnter={() => schedule(true)}
               onPointerLeave={() => schedule(false)}
-              style={{ ...floatingStyle, transformOrigin: originFor(placement) }}
+              style={{ ...rootProps.style, ...floatingStyle, transformOrigin: originFor(placement) }}
               className={cn("z-50 w-72 max-w-[calc(100vw-16px)] rounded-card border border-line bg-surface p-4 text-ink shadow-float", className)}
             >
               {content}

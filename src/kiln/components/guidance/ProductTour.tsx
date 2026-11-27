@@ -313,6 +313,7 @@ function TourLayer({ steps, onOpenChange, onFinish, labels, icons, accessibility
         onKeyDown={onKey}
         {...rootProps}
         style={{ ...rootProps.style, width: docked ? `calc(100vw - ${EDGE * 2}px)` : `min(${CARD_W}px, calc(100vw - ${EDGE * 2}px))` }}
+        /* outline-none: the card is only a programmatic focus target (tabIndex -1); its buttons show focus. */
         className="fixed left-0 top-0 outline-none will-change-transform"
       >
         <motion.div

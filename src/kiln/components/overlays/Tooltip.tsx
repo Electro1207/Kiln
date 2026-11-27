@@ -139,7 +139,7 @@ export function Tooltip({ content, children, side = "top", delay = 450, classNam
               {...rootProps}
               onPointerEnter={() => timers.clearAll()}
               onPointerLeave={() => hide()}
-              initial={instant ? { opacity: 1 } : { opacity: 0, scale: 0.94, ...offsetFrom }}
+              initial={instant ? { opacity: 1 } : a11y.reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.94, ...offsetFrom }}
               animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
               custom={instant}
               variants={{
@@ -150,6 +150,7 @@ export function Tooltip({ content, children, side = "top", delay = 450, classNam
               style={{ ...rootProps.style, ...floatingStyle, transformOrigin: originFor(placement) }}
               className={cn(
                 "z-[60] max-w-64 rounded-[7px] bg-ink px-2.5 py-1.5 text-[0.7812rem] font-medium leading-[18px] text-surface shadow-float",
+                /* dark: overrides kept: needs an inverse-surface token pair (reported). */
                 "dark:bg-elevated dark:text-ink dark:ring-1 dark:ring-inset dark:ring-line-strong/60",
                 className,
               )}

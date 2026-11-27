@@ -4,6 +4,7 @@ import { useControllable } from "../../controllable";
 import { easeOut, fade, springFirm, springSoft } from "../../motion";
 import { Button } from "../buttons/Button";
 import { Switch } from "../choice-controls/Switch";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { Portal } from "../shared/useOverlay";
 
 export type ConsentCategory = {
@@ -64,6 +65,8 @@ export type CookieConsentProps = {
   policy?: ReactNode;
   /** Override any UI text. Merged over `cookieConsentLabels`. */
   labels?: Partial<CookieConsentLabels>;
+  /** Accessibility features to add for this card only (`reduceMotion` fades it in place without sliding or folding the category list; Accept and Reject always have equal weight). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -71,8 +74,9 @@ export type CookieConsentProps = {
  * "Choose" opens the categories in place, the card growing upwards.
  */
 export function CookieConsent({
-  open: openProp, defaultOpen = true, onOpenChange, categories, value, defaultValue, onChange, onDecide, title, children, policy, labels,
+  open: openProp, defaultOpen = true, onOpenChange, categories, value, defaultValue, onChange, onDecide, title, children, policy, labels, accessibilityFeatures,
 }: CookieConsentProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...cookieConsentLabels, ...labels };
   const [manage, setManage] = useState(false);
   const [open, setOpen] = useControllable(openProp, defaultOpen, onOpenChange);
@@ -95,9 +99,10 @@ export function CookieConsent({
             key="consent"
             role="dialog"
             aria-label={l.dialog}
-            initial={{ opacity: 0, y: 32 }}
+            {...rootProps}
+            initial={{ opacity: 0, y: a11y.reduceMotion ? 0 : 32 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 24, transition: { duration: 0.24, ease: easeOut } }}
+            exit={{ opacity: 0, y: a11y.reduceMotion ? 0 : 24, transition: { duration: 0.24, ease: easeOut } }}
             transition={springSoft}
             className="fixed inset-x-3 bottom-3 z-[65] rounded-[14px] border border-line bg-surface p-4 text-ink shadow-float sm:inset-x-auto sm:bottom-5 sm:left-5 sm:w-[380px] sm:p-5"
           >
@@ -108,7 +113,8 @@ export function CookieConsent({
               {manage && (
                 <motion.div
                   key="manage"
-                  initial={{ height: 0, opacity: 0 }}
+                  // A one-off height fold of one list inside this card (allowed); skipped for reduced motion.
+                  initial={a11y.reduceMotion ? false : { height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1, transition: { height: springFirm, opacity: { ...fade, delay: 0.08 } } }}
                   exit={{ height: 0, opacity: 0, transition: { height: { ...springFirm, delay: 0.06 }, opacity: { duration: 0.12 } } }}
                   className="-mx-1 overflow-hidden px-1"

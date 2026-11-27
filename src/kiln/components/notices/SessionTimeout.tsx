@@ -136,6 +136,7 @@ export function SessionTimeout({
       title={l.title}
       description={l.description}
       className={className}
+      accessibilityFeatures={accessibilityFeatures}
       footer={
         <>
           <Button variant="secondary" onClick={onSignOut}>{l.signOut}</Button>

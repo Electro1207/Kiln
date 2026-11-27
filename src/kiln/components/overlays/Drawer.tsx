@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useDragControls, type PanInfo } from "motion/r
 import { X } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, fade, springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { Portal, useModalLayer } from "../shared/useOverlay";
 
 /** Text used by Drawer. Pass a partial via `labels` to translate or reword. */
@@ -40,6 +41,8 @@ export type DrawerProps = {
   labels?: Partial<DrawerLabels>;
   /** Replace any built-in icon. Merged over `drawerIcons`. */
   icons?: Partial<DrawerIcons>;
+  /** Accessibility features to add for this drawer only (`reduceMotion` swaps the slide or scale for a fade; `highContrast` and `strongFocus` come from the page-wide styles). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const offscreen: Record<DrawerSide, { x?: string; y?: string }> = {
@@ -60,7 +63,8 @@ export function Drawer(props: DrawerProps) {
   );
 }
 
-function DrawerLayer({ onOpenChange, side = "right", title, label, children, footer, width = 360, className, bodyClassName, labels, icons }: DrawerProps) {
+function DrawerLayer({ onOpenChange, side = "right", title, label, children, footer, width = 360, className, bodyClassName, labels, icons, accessibilityFeatures }: DrawerProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...drawerLabels, ...labels };
   const ic = useMemo(() => ({ ...drawerIcons, ...icons }), [icons]);
   const ref = useRef<HTMLDivElement>(null);
@@ -100,9 +104,10 @@ function DrawerLayer({ onOpenChange, side = "right", title, label, children, foo
         aria-labelledby={title ? titleId : undefined}
         aria-label={title ? undefined : label}
         tabIndex={-1}
-        initial={offscreen[side]}
-        animate={{ x: 0, y: 0 }}
-        exit={{ ...offscreen[side], transition: { duration: 0.3, ease: easeOut } }}
+        {...rootProps}
+        initial={a11y.reduceMotion ? { opacity: 0 } : offscreen[side]}
+        animate={a11y.reduceMotion ? { opacity: 1, x: 0, y: 0 } : { x: 0, y: 0 }}
+        exit={a11y.reduceMotion ? { opacity: 0, transition: { duration: 0.2, ease: easeOut } } : { ...offscreen[side], transition: { duration: 0.3, ease: easeOut } }}
         transition={springFirm}
         drag={axis}
         dragListener={side !== "bottom"}
@@ -111,7 +116,8 @@ function DrawerLayer({ onOpenChange, side = "right", title, label, children, foo
         dragElastic={elastic}
         dragMomentum={false}
         onDragEnd={onDragEnd}
-        style={side === "bottom" ? undefined : { width: `min(${width}px, 88vw)` }}
+        style={side === "bottom" ? rootProps.style : { ...rootProps.style, width: `min(${width}px, 88vw)` }}
+        /* outline-none: this is only the programmatic focus target (tabIndex -1), not a control. */
         className={cn(
           "absolute flex flex-col bg-surface text-ink shadow-float outline-none dark:ring-1 dark:ring-line",
           side === "left" && "inset-y-0 left-0 rounded-r-sheet",

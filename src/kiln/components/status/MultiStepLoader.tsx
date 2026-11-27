@@ -79,7 +79,7 @@ export function MultiStepLoader({ steps, current, className, labels, icons, acce
                 className="size-5 rounded-full border-2 border-line-strong bg-surface"
               />
               <motion.span initial={false} animate={{ opacity: state === "active" ? 1 : 0 }} transition={fade} className="grid size-5 place-items-center rounded-full bg-surface">
-                <span className={cn("grid size-5 place-items-center text-accent [&>svg]:size-5", state === "active" && "animate-spin")} aria-hidden>{ic.spinner}</span>
+                <span className={cn("grid size-5 place-items-center text-accent [&>svg]:size-5", state === "active" && !still && "animate-spin")} aria-hidden>{ic.spinner}</span>
               </motion.span>
               <motion.span
                 initial={false}

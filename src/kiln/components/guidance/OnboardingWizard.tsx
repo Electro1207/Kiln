@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type Reac
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut, springFirm, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { Button } from "../buttons/Button";
 
 /** Text used by OnboardingWizard. Pass a partial via `labels` to translate or reword. */
@@ -63,6 +64,8 @@ export type OnboardingWizardProps<V> = {
   /** Override any UI text. Merged over `onboardingWizardLabels`. */
   labels?: Partial<OnboardingWizardLabels>;
   className?: string;
+  /** Accessibility features to add for this wizard only (`reduceMotion` and `calm` swap the sideways slide and the height glide for a fade; the progress is always also written as Step 2 of 4). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -71,8 +74,10 @@ export type OnboardingWizardProps<V> = {
  * back to each step. Steps slide in from the side you are heading to.
  */
 export function OnboardingWizard<V extends Record<string, unknown>>({
-  steps, initial, summary, onFinish, finishLabel = "Finish", labels, className,
+  steps, initial, summary, onFinish, finishLabel = "Finish", labels, className, accessibilityFeatures,
 }: OnboardingWizardProps<V>) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion || a11y.calm;
   const l = { ...onboardingWizardLabels, ...labels };
   const [values, setValues] = useState<V>(initial);
   const [at, setAt] = useState(0);
@@ -132,32 +137,33 @@ export function OnboardingWizard<V extends Record<string, unknown>>({
   const description = finished ? undefined : onSummary ? l.summaryDescription : steps[at].description;
 
   return (
-    <form noValidate onSubmit={next} className={cn("@container w-full rounded-sheet bg-surface p-5 @xl:p-8", className)}>
+    <form noValidate onSubmit={next} {...rootProps} className={cn("@container w-full rounded-sheet bg-surface p-5 @xl:p-8", className)}>
       <div className="flex items-center justify-between gap-4 text-[0.8125rem] text-muted">
         <span className="tabular">{finished ? l.done : l.stepOf(at + 1, total)}</span>
         <span className="truncate">{finished ? "" : onSummary ? l.summary : steps[at + 1]?.title ? l.next(steps[at + 1].title) : l.nextSummary}</span>
       </div>
       <div className="mt-2 h-1 overflow-hidden rounded-full bg-active" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={finished ? total : at + 1} aria-label={l.progress}>
-        <motion.div className="h-full origin-left rounded-full bg-btn-primary" initial={false} animate={{ scaleX: finished ? 1 : (at + 1) / total }} transition={springFirm} />
+        <motion.div className="h-full origin-left rounded-full bg-btn-primary" initial={false} animate={{ scaleX: finished ? 1 : (at + 1) / total }} transition={still ? { duration: 0 } : springFirm} />
       </div>
 
-      <motion.div initial={false} animate={{ height: h }} transition={springSoft} className="relative mt-6 overflow-hidden">
+      {/* A one-off height fold of the single step panel inside this card (allowed); instant for reduced motion. */}
+      <motion.div initial={false} animate={{ height: h }} transition={still ? { duration: 0 } : springSoft} className="relative mt-6 overflow-hidden">
         <AnimatePresence initial={false} mode="popLayout" custom={dir}>
           <motion.div
             key={finished ? "done" : at}
             ref={panelRef}
             custom={dir}
             variants={{
-              enter: (d: number) => ({ opacity: 0, x: d * 24 }),
+              enter: (d: number) => ({ opacity: 0, x: still ? 0 : d * 24 }),
               center: { opacity: 1, x: 0, transition: { x: springSoft, opacity: { duration: 0.22, delay: 0.08, ease: easeOut } } },
-              exit: (d: number) => ({ opacity: 0, x: d * -24, transition: { duration: 0.12 } }),
+              exit: (d: number) => ({ opacity: 0, x: still ? 0 : d * -24, transition: { duration: 0.12 } }),
             }}
             initial="enter"
             animate="center"
             exit="exit"
             className="w-full"
           >
-            <h3 ref={headingRef} tabIndex={-1} className="text-xl font-semibold tracking-[-0.02em] text-ink outline-none">{title}</h3>
+            <h3 ref={headingRef} tabIndex={-1} className="text-xl font-semibold tracking-[-0.02em] text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">{title}</h3>
             {description && <p className="mt-1.5 text-sm text-ink">{description}</p>}
             <div className="mt-5">
               {finished ? null : onSummary ? summary(values, go) : steps[at].render({ values, set: (p) => setValues((v) => ({ ...v, ...p })), errors })}
