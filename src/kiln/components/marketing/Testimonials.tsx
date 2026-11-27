@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { cn } from "../../cn";
 import { Avatar } from "../data-display/Avatar";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type Testimonial = { quote: string; name: string; role: string };
 
@@ -10,6 +11,8 @@ export type TestimonialsProps = {
   /** The first one is set large; the rest fill columns below it. */
   items: Testimonial[];
   className?: string;
+  /** Accessibility features to add for this section only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 function Person({ t, size = "md" }: { t: Testimonial; size?: "md" | "lg" }) {
@@ -47,10 +50,11 @@ const LAYOUTS = [
 const weight = (t: Testimonial) => 4 + Math.ceil(t.quote.length / 38);
 
 /** One quotation set large, then the rest in columns. */
-export function Testimonials({ title, description, items, className }: TestimonialsProps) {
+export function Testimonials({ title, description, items, className, accessibilityFeatures }: TestimonialsProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const [lead, ...rest] = items;
   return (
-    <section className={cn("@container w-full", className)}>
+    <section {...rootProps} className={cn("@container w-full", className)}>
       <h2 className="text-2xl font-semibold tracking-[-0.02em] text-ink text-balance @2xl:text-[1.75rem]">{title}</h2>
       {description && <p className="mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-ink">{description}</p>}
       {lead && (

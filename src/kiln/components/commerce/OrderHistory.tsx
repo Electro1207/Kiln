@@ -6,6 +6,7 @@ import { easeOut, fade, springSnappy } from "../../motion";
 import { Badge, type BadgeTone } from "../status/Badge";
 import { Button } from "../buttons/Button";
 import { formatMoney, type ProductImage } from "./commerce";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type OrderStatus = "processing" | "shipped" | "delivered" | "cancelled";
 
@@ -53,6 +54,9 @@ export interface OrderHistoryLabels {
   addedToCart: string;
   /** Screen-reader announcement after reordering, given the order id. */
   reorderAnnounce: (id: string) => string;
+  /** Read after a tracking step that has happened, and one that has not. */
+  stepDone: string;
+  stepPending: string;
 }
 export const orderHistoryLabels: OrderHistoryLabels = {
   status: { processing: "Processing", shipped: "On its way", delivered: "Delivered", cancelled: "Cancelled" },
@@ -66,6 +70,8 @@ export const orderHistoryLabels: OrderHistoryLabels = {
   buyAgain: "Buy again",
   addedToCart: "Added to cart",
   reorderAnnounce: (id) => `Items from order ${id} added to cart`,
+  stepDone: "Done: ",
+  stepPending: "Not yet: ",
 };
 
 /** Text swaps hand over rather than overlap. */
@@ -87,7 +93,7 @@ export interface OrderHistoryIcons {
 }
 export const orderHistoryIcons: OrderHistoryIcons = { track: <Truck />, expand: <ChevronDown />, reorder: <RotateCcw />, added: <Check /> };
 
-export function OrderHistory({ orders, onReorder, currency = "USD", locale, labels, icons }: {
+export function OrderHistory({ orders, onReorder, currency = "USD", locale, labels, icons, accessibilityFeatures }: {
   orders: Order[];
   onReorder: (order: Order) => Promise<void> | void;
   currency?: string;
@@ -97,17 +103,22 @@ export function OrderHistory({ orders, onReorder, currency = "USD", locale, labe
   labels?: Partial<OrderHistoryLabels>;
   /** Replace any built-in icon. Merged over `orderHistoryIcons`. */
   icons?: Partial<OrderHistoryIcons>;
+  /** Accessibility features to add for this list only. Calm and reduced motion open tracking without the height fold; colour-safe adds a tick to finished steps. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...orderHistoryLabels, ...labels };
   const ic = useMemo(() => ({ ...orderHistoryIcons, ...icons }), [icons]);
   return (
-    <ul className="flex w-full flex-col gap-4">
-      {orders.map((o) => <OrderCard key={o.id} order={o} onReorder={onReorder} currency={currency} locale={locale} l={l} ic={ic} />)}
+    <ul {...rootProps} className="flex w-full flex-col gap-4">
+      {orders.map((o) => <OrderCard key={o.id} order={o} onReorder={onReorder} currency={currency} locale={locale} l={l} ic={ic} accessibilityFeatures={accessibilityFeatures} />)}
     </ul>
   );
 }
 
-function OrderCard({ order: o, onReorder, currency, locale, l, ic }: { order: Order; onReorder: (o: Order) => Promise<void> | void; currency: string; locale?: string; l: OrderHistoryLabels; ic: OrderHistoryIcons }) {
+function OrderCard({ order: o, onReorder, currency, locale, l, ic, accessibilityFeatures }: { accessibilityFeatures?: AccessibilityFeaturesProp; order: Order; onReorder: (o: Order) => Promise<void> | void; currency: string; locale?: string; l: OrderHistoryLabels; ic: OrderHistoryIcons }) {
+  const { a11y } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion || a11y.calm;
   const [open, setOpen] = useState(false);
   const [re, setRe] = useState<"idle" | "busy" | "done">("idle");
   const t = useRef<number | undefined>(undefined);
@@ -121,7 +132,7 @@ function OrderCard({ order: o, onReorder, currency, locale, l, ic }: { order: Or
     await onReorder(o);
     setRe("done");
     window.clearTimeout(t.current);
-    t.current = window.setTimeout(() => setRe("idle"), 1800);
+    t.current = window.setTimeout(() => setRe("idle"), a11y.extendedTime ? 5400 : 1800);
   };
 
   return (
@@ -168,7 +179,8 @@ function OrderCard({ order: o, onReorder, currency, locale, l, ic }: { order: Or
 
       <AnimatePresence initial={false}>
         {open && o.tracking && (
-          <motion.div key="track" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+          // One-off height fold of a single panel, inside a contained card (allowed exception); opacity only when still.
+          <motion.div key="track" initial={still ? { opacity: 0 } : { height: 0, opacity: 0 }} animate={still ? { opacity: 1 } : { height: "auto", opacity: 1 }} exit={still ? { opacity: 0 } : { height: 0, opacity: 0 }}
             transition={{ height: { duration: 0.32, ease: easeOut }, opacity: fade }} className="overflow-hidden">
             <div className="mx-4 mb-4 rounded-card bg-raised p-4 sm:mx-5">
               {o.carrier && <p className="mb-3 text-[0.8125rem] text-muted">{o.carrier}</p>}
@@ -181,11 +193,12 @@ function OrderCard({ order: o, onReorder, currency, locale, l, ic }: { order: Or
                       <span className="flex flex-col items-center">
                         <span className={cn("mt-1 grid size-3.5 shrink-0 place-items-center rounded-full", step.done ? "bg-btn-primary" : "bg-active")}>
                           {current && <span className="size-1.5 rounded-full bg-btn-primary-ink" />}
+                          {a11y.colourSafe && step.done && !current && <Check aria-hidden className="size-2.5 text-btn-primary-ink [stroke-width:3.5]" />}
                         </span>
                         {!last && <span className={cn("my-1 w-0.5 flex-1 rounded-full", o.tracking![i + 1].done ? "bg-btn-primary" : "bg-active")} />}
                       </span>
                       <span className={cn("pb-4", last && "pb-0")}>
-                        <span className={cn("block text-sm", step.done ? "font-medium text-ink" : "text-muted")}>{step.label}</span>
+                        <span className={cn("block text-sm", step.done ? "font-medium text-ink" : "text-muted")}><span className="sr-only">{step.done ? l.stepDone : l.stepPending}</span>{step.label}</span>
                         {(step.detail || step.date) && <span className="block text-[0.8125rem] text-muted">{[step.detail, step.date && date(step.date)].filter(Boolean).join(" · ")}</span>}
                       </span>
                     </li>

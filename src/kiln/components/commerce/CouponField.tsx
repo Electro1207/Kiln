@@ -78,7 +78,8 @@ export const CouponField = forwardRef<HTMLDivElement, CouponFieldProps>(function
 ) {
   const l = { ...couponFieldLabels, ...labels };
   const ic = useMemo(() => ({ ...couponFieldIcons, ...icons }), [icons]);
-  const { rootProps } = useA11yProps(accessibilityFeatures);
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion || a11y.calm || a11y.noFlashing;
   const [applied, setApplied] = useControllable<string | null>(valueProp, defaultValue, onChange);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -99,9 +100,9 @@ export const CouponField = forwardRef<HTMLDivElement, CouponFieldProps>(function
   // A new error nudges the row once, like every Kiln field.
   const shown = useRef<string | null>(null);
   useEffect(() => {
-    if (error && error !== shown.current && scope.current) animate(scope.current, { x: [0, -6, 5, -3, 2, 0] }, { duration: 0.42, ease: "easeOut" });
+    if (error && error !== shown.current && scope.current && !still) animate(scope.current, { x: [0, -6, 5, -3, 2, 0] }, { duration: 0.42, ease: "easeOut" });
     shown.current = error;
-  }, [error, animate, scope]);
+  }, [error, animate, scope, still]);
 
   const submit = async () => {
     if (busy || disabled) return;

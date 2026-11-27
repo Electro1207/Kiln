@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { fade } from "../../motion";
 import { Avatar } from "../data-display/Avatar";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type BlogPost = {
   id: string;
@@ -31,6 +32,8 @@ export type BlogListProps = {
   /** Override any UI text. Merged over `blogListLabels`. */
   labels?: Partial<BlogListLabels>;
   className?: string;
+  /** Accessibility features to add for this list only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 function Cover({ src, alt }: { src: string; alt: string }) {
@@ -54,10 +57,11 @@ function Cover({ src, alt }: { src: string; alt: string }) {
 }
 
 /** A grid of articles: cover, category, title, a line of summary and the author. */
-export function BlogList({ title, description, posts, labels, className }: BlogListProps) {
+export function BlogList({ title, description, posts, labels, className, accessibilityFeatures }: BlogListProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...blogListLabels, ...labels };
   return (
-    <section className={cn("@container w-full", className)}>
+    <section {...rootProps} className={cn("@container w-full", className)}>
       <h2 className="text-2xl font-semibold tracking-[-0.02em] text-ink text-balance @2xl:text-[1.75rem]">{title}</h2>
       {description && <p className="mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-ink">{description}</p>}
       <div className="mt-8 grid gap-x-6 gap-y-10 @2xl:grid-cols-2 @4xl:grid-cols-3">

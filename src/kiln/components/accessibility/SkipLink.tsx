@@ -1,5 +1,6 @@
 import { forwardRef, type AnchorHTMLAttributes, type MouseEvent } from "react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by SkipLink. Pass a partial via `labels` to translate or reword. */
 export interface SkipLinkLabels {
@@ -13,6 +14,8 @@ export type SkipLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
   href?: string;
   /** Override any UI text. Merged over `skipLinkLabels`. */
   labels?: Partial<SkipLinkLabels>;
+  /** Accessibility features to add for this link only (text size, large targets). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -20,9 +23,10 @@ export type SkipLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
  * Hidden until focused, then it fades in at the top left. Put it first in the page.
  */
 export const SkipLink = forwardRef<HTMLAnchorElement, SkipLinkProps>(function SkipLink(
-  { href = "#main", labels, className, children, onClick, ...rest },
+  { href = "#main", labels, className, children, onClick, accessibilityFeatures, style, ...rest },
   ref,
 ) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...skipLinkLabels, ...labels };
   const go = (e: MouseEvent<HTMLAnchorElement>) => {
     onClick?.(e);
@@ -38,6 +42,8 @@ export const SkipLink = forwardRef<HTMLAnchorElement, SkipLinkProps>(function Sk
   return (
     <a
       {...rest}
+      {...rootProps}
+      style={{ ...rootProps.style, ...style }}
       ref={ref}
       href={href}
       onClick={go}

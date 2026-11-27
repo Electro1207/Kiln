@@ -7,6 +7,7 @@ import { Button } from "../buttons/Button";
 import { Select } from "../pickers/Select";
 import { TextField } from "../text-input/TextField";
 import { Textarea } from "../text-input/Textarea";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by ContactSection. Pass a partial via `labels` to translate or reword. */
 export interface ContactSectionLabels {
@@ -83,12 +84,15 @@ export type ContactSectionProps = {
   /** Replace any built-in icon. Merged over `contactSectionIcons`. */
   icons?: Partial<ContactSectionIcons>;
   className?: string;
+  /** Accessibility features to add for this section only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /** Offices on one side, a short form on the other. Errors show once you try to send. */
-export function ContactSection({ title, description, offices, topics, onSend = () => wait(1000), labels, icons, className }: ContactSectionProps) {
+export function ContactSection({ title, description, offices, topics, onSend = () => wait(1000), labels, icons, className, accessibilityFeatures }: ContactSectionProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...contactSectionLabels, ...labels };
   const ic = { ...contactSectionIcons, ...icons };
   const [v, setV] = useState<ContactValues>({ name: "", email: "", topic: null, message: "" });
@@ -121,7 +125,7 @@ export function ContactSection({ title, description, offices, topics, onSend = (
   };
 
   return (
-    <section className={cn("@container w-full", className)}>
+    <section {...rootProps} className={cn("@container w-full", className)}>
       <div className="grid gap-10 @4xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] @4xl:gap-12">
         <div>
           <h2 className="text-2xl font-semibold tracking-[-0.02em] text-ink text-balance @2xl:text-[1.75rem]">{title}</h2>

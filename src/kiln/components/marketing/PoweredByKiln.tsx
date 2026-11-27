@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by PoweredByKiln. Pass a partial via `labels` to translate or reword. */
 export interface PoweredByKilnLabels {
@@ -22,6 +23,8 @@ export type PoweredByKilnProps = {
   className?: string;
   /** Override any UI text. Merged over `poweredByKilnLabels`. */
   labels?: Partial<PoweredByKilnLabels>;
+  /** Accessibility features to add for this credit only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** The Kiln mark: a rounded K on the accent, the same as the site's favicon. */
@@ -38,10 +41,12 @@ export function KilnMark({ className }: { className?: string }) {
  * A small credit that says a site was built with Kiln, for a footer or an about page. It takes the
  * colour of the text around it, so it sits on any background; the mark tips up on hover.
  */
-export function PoweredByKiln({ href = "https://usekiln.pages.dev", version, size = "sm", mark, className, labels }: PoweredByKilnProps) {
+export function PoweredByKiln({ href = "https://usekiln.pages.dev", version, size = "sm", mark, className, labels, accessibilityFeatures }: PoweredByKilnProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...poweredByKilnLabels, ...labels };
   return (
     <a
+      {...rootProps}
       href={href}
       target="_blank"
       rel="noreferrer"

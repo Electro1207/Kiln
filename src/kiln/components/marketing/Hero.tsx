@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { motion, type Variants } from "motion/react";
 import { cn } from "../../cn";
 import { spring } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type HeroProps = {
   title: ReactNode;
@@ -13,19 +14,24 @@ export type HeroProps = {
   /** Use 2 when the hero is not the page's first screen. */
   headingLevel?: 1 | 2;
   className?: string;
+  /** Accessibility features to add for this hero only. Reduced motion and calm show it at rest, with no entrance. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const parent: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } } };
 const child: Variants = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: spring } };
 
 /** A first screen: title, one sentence, the action, and a large picture. */
-export function Hero({ title, lead, actions, image, aside, headingLevel = 1, className }: HeroProps) {
+export function Hero({ title, lead, actions, image, aside, headingLevel = 1, className, accessibilityFeatures }: HeroProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion || a11y.calm;
   const Heading = headingLevel === 2 ? motion.h2 : motion.h1;
   return (
     <motion.section
+      {...rootProps}
       className={cn("grid w-full items-center gap-8 md:grid-cols-[1.05fr_1fr] md:gap-12", className)}
       variants={parent}
-      initial="hidden"
+      initial={still ? false : "hidden"}
       whileInView="visible"
       viewport={{ once: true }}
     >
@@ -54,7 +60,7 @@ export function Hero({ title, lead, actions, image, aside, headingLevel = 1, cla
           width={image.width}
           height={image.height}
           className="size-full object-cover"
-          initial={{ scale: 1.12 }}
+          initial={still ? false : { scale: 1.12 }}
           whileInView={{ scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }}

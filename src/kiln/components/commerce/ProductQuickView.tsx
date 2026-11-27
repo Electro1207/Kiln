@@ -10,6 +10,7 @@ import { SizePicker, type SizeOption } from "./SizePicker";
 import { NumberField } from "../text-input/NumberField";
 import { Button } from "../buttons/Button";
 import { formatMoney, type ProductImage } from "./commerce";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type QuickViewProduct = {
   id: string;
@@ -69,7 +70,7 @@ export const productQuickViewIcons: ProductQuickViewIcons = { cart: <ShoppingBag
  * A product in a dialog: gallery, colour, size, quantity and add to cart. The
  * button confirms in place, then returns to normal.
  */
-export function ProductQuickView({ product, open, onOpenChange, onAdd, labels, icons }: {
+export function ProductQuickView({ product, open, onOpenChange, onAdd, labels, icons, accessibilityFeatures }: {
   product: QuickViewProduct;
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -79,7 +80,10 @@ export function ProductQuickView({ product, open, onOpenChange, onAdd, labels, i
   labels?: Partial<ProductQuickViewLabels>;
   /** Replace any built-in icon. Merged over `productQuickViewIcons`. */
   icons?: Partial<ProductQuickViewIcons>;
+  /** Accessibility features to add for this quick view only. Extended time keeps the "Added" confirmation three times as long. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...productQuickViewLabels, ...labels };
   const ic = useMemo(() => ({ ...productQuickViewIcons, ...icons }), [icons]);
   const [colour, setColour] = useState(product.colours[0].value);
@@ -104,13 +108,13 @@ export function ProductQuickView({ product, open, onOpenChange, onAdd, labels, i
     await onAdd({ productId: product.id, colour, size, quantity: qty });
     setState("added");
     window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setState("idle"), 1800);
+    timer.current = window.setTimeout(() => setState("idle"), a11y.extendedTime ? 5400 : 1800);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} title={product.name} size="lg" className="sm:max-w-4xl">
-      <div className="grid gap-6 pb-1 md:grid-cols-2 md:gap-8">
-        <ProductGallery key={c.value} images={c.images} />
+      <div {...rootProps} className="grid gap-6 pb-1 md:grid-cols-2 md:gap-8">
+        <ProductGallery key={c.value} images={c.images} accessibilityFeatures={accessibilityFeatures} />
         <div className="flex min-w-0 flex-col gap-5">
           <div>
             <p className="flex items-baseline gap-2.5">

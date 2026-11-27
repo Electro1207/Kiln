@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useSta
 import { animate, motion, useMotionValue } from "motion/react";
 import { cn } from "../../cn";
 import { fade, springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 type ScrollAreaProps = {
   children: ReactNode;
@@ -10,15 +11,18 @@ type ScrollAreaProps = {
   viewportClassName?: string;
   /** "auto" shows the thumb while scrolling or hovering, "always" keeps it. */
   visibility?: "auto" | "always";
+  /** Accessibility features to add for this area only. Reduced motion and calm jump instead of gliding when the track is pressed; high contrast keeps a darker thumb always shown. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A scroll container with an overlay thumb in the macOS manner: it fades in while
     you scroll or hover, can be dragged, and never takes width from the content.
     The thumb moves through motion values, so scrolling never re-renders React. */
 export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(function ScrollArea(
-  { children, className, viewportClassName, visibility = "auto" },
+  { children, className, viewportClassName, visibility = "auto", accessibilityFeatures },
   ref,
 ) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const viewport = useRef<HTMLDivElement>(null);
   useImperativeHandle(ref, () => viewport.current!);
   const y = useMotionValue(0);
@@ -81,16 +85,21 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(function S
     if (!el) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const dir = e.clientY - rect.top < y.get() ? -1 : 1;
+    if (a11y.reduceMotion || a11y.calm) {
+      el.scrollTop += dir * el.clientHeight * 0.85;
+      return;
+    }
     animate(el.scrollTop, el.scrollTop + dir * el.clientHeight * 0.85, {
       ...springFirm,
       onUpdate: (v) => { el.scrollTop = v; },
     });
   };
 
-  const shown = visibility === "always" || active || hover || drag.current !== null;
+  const shown = visibility === "always" || a11y.highContrast || active || hover || drag.current !== null;
 
   return (
     <div
+      {...rootProps}
       className={cn("relative min-h-0 overflow-hidden", className)}
       onPointerEnter={() => setHover(true)}
       onPointerLeave={() => setHover(false)}
@@ -121,7 +130,7 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(function S
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
             style={{ y, height }}
-            className="absolute right-[3px] top-0 w-1.5 cursor-grab touch-none rounded-full bg-line-strong transition-[width,background-color] duration-150 hover:w-2 hover:bg-faint active:cursor-grabbing"
+            className={cn("absolute right-[3px] top-0 w-1.5 cursor-grab touch-none rounded-full transition-[width,background-color] duration-150 hover:w-2 hover:bg-faint active:cursor-grabbing", a11y.highContrast ? "bg-muted" : "bg-line-strong")}
           />
         </motion.div>
       )}

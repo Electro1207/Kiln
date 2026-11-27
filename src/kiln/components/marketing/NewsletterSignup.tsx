@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, fade } from "../../motion";
 import { Button } from "../buttons/Button";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by NewsletterSignup. Pass a partial via `labels` to translate or reword. */
 export interface NewsletterSignupLabels {
@@ -56,6 +57,8 @@ export type NewsletterSignupProps = {
   /** Replace any built-in icon. Merged over `newsletterSignupIcons`. */
   icons?: Partial<NewsletterSignupIcons>;
   className?: string;
+  /** Accessibility features to add for this sign-up only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const valid = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
@@ -63,8 +66,9 @@ const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /** Email sign-up with inline validation and a success state that replaces the form in place. */
 export function NewsletterSignup({
-  title, description, onSubscribe = () => wait(900), fineprint, success, variant = "inline", labels, icons, className,
+  title, description, onSubscribe = () => wait(900), fineprint, success, variant = "inline", labels, icons, className, accessibilityFeatures,
 }: NewsletterSignupProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...newsletterSignupLabels, ...labels };
   const ic = { ...newsletterSignupIcons, ...icons };
   const id = useId();
@@ -134,8 +138,8 @@ export function NewsletterSignup({
                   setServerError(null);
                 }}
                 className={cn(
-                  "h-11 min-w-0 @md:flex-1 rounded-control border bg-surface px-3.5 text-[0.9375rem] text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-muted focus:ring-[3px]",
-                  error ? "border-negative focus:ring-negative/20" : "border-line-strong focus:border-accent focus:ring-accent/20",
+                  "h-11 min-w-0 @md:flex-1 rounded-control border bg-surface px-3.5 text-[0.9375rem] text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-muted focus-visible:ring-[3px]",
+                  error ? "border-negative focus-visible:ring-negative/20" : "border-line-strong focus-visible:border-accent focus-visible:ring-accent/20",
                 )}
               />
               <Button type="submit" size="lg" loading={busy} className="h-11 shrink-0">
@@ -162,7 +166,7 @@ export function NewsletterSignup({
   );
 
   return (
-    <section className={cn("@container w-full", variant === "card" && "rounded-sheet bg-surface p-6 @2xl:p-8", className)}>
+    <section {...rootProps} className={cn("@container w-full", variant === "card" && "rounded-sheet bg-surface p-6 @2xl:p-8", className)}>
       <div className={cn("grid gap-6", variant === "inline" && "@3xl:grid-cols-2 @3xl:items-center @3xl:gap-10")}>
         <div>
           <h2 className="text-2xl font-semibold tracking-[-0.02em] text-ink text-balance @2xl:text-[1.75rem]">{title}</h2>

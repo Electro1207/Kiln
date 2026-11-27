@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type AspectImageProps = {
   src: string;
@@ -15,16 +16,20 @@ export type AspectImageProps = {
   rounded?: boolean;
   caption?: string;
   className?: string;
+  /** Accessibility features to add for this picture only. Calm and reduced motion show the sharp picture without the fade and settle. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
  * Reserves its space before the picture loads (no layout shift), shows a
  * blurred thumbnail, then fades the sharp picture in over it.
  */
-export function AspectImage({ src, alt, ratio = 16 / 9, placeholder, width = 1200, height, rounded = true, caption, className }: AspectImageProps) {
+export function AspectImage({ src, alt, ratio = 16 / 9, placeholder, width = 1200, height, rounded = true, caption, className, accessibilityFeatures }: AspectImageProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion || a11y.calm;
   const [loaded, setLoaded] = useState(false);
   const img = (
-    <div className={cn("relative w-full overflow-hidden bg-raised", rounded && "rounded-card", className)} style={{ aspectRatio: ratio }}>
+    <div {...(caption ? {} : rootProps)} className={cn("relative w-full overflow-hidden bg-raised", rounded && "rounded-card", className)} style={{ aspectRatio: ratio }}>
       {placeholder && (
         <img decoding="async"
           src={placeholder}
@@ -48,14 +53,14 @@ export function AspectImage({ src, alt, ratio = 16 / 9, placeholder, width = 120
         }}
         className="absolute inset-0 size-full object-cover"
         initial={false}
-        animate={{ opacity: loaded ? 1 : 0, scale: loaded ? 1 : 1.03 }}
-        transition={{ duration: 0.7, ease: easeOut }}
+        animate={{ opacity: loaded ? 1 : 0, scale: loaded || still ? 1 : 1.03 }}
+        transition={still ? { duration: 0 } : { duration: 0.7, ease: easeOut }}
       />
     </div>
   );
   if (!caption) return img;
   return (
-    <figure className="flex w-full flex-col gap-2">
+    <figure {...rootProps} className="flex w-full flex-col gap-2">
       {img}
       <figcaption className="text-xs text-muted">{caption}</figcaption>
     </figure>

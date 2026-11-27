@@ -6,6 +6,7 @@ import { useControllable } from "../../controllable";
 import { easeOut, fade, springFirm } from "../../motion";
 import { Button } from "../buttons/Button";
 import { SegmentedControl } from "../buttons/SegmentedControl";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type Review = {
   id: string;
@@ -35,16 +36,17 @@ export interface StarsIcons {
 export const starsIcons: StarsIcons = { star: <svg viewBox="0 0 24 24"><path d={STAR} /></svg> };
 
 /** Read-only stars that can show a fraction (4.3 fills 4 and a third). */
-export function Stars({ value, size = 16, label, labels, icons }: { value: number; size?: number; label?: string; labels?: Partial<StarsLabels>; /** Replace any built-in icon. Merged over `starsIcons`. */ icons?: Partial<StarsIcons> }) {
+export function Stars({ value, size = 16, label, labels, icons, accessibilityFeatures }: { value: number; size?: number; label?: string; labels?: Partial<StarsLabels>; /** Replace any built-in icon. Merged over `starsIcons`. */ icons?: Partial<StarsIcons>; /** Accessibility features to add for these stars only. High contrast draws the empty stars darker. Adds to the person's own settings, never removes them. */ accessibilityFeatures?: AccessibilityFeaturesProp }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...starsLabels, ...labels };
   const ic = { ...starsIcons, ...icons };
   return (
-    <span className="inline-flex" role="img" aria-label={label ?? l.rating(value.toFixed(1))}>
+    <span {...rootProps} className="inline-flex" role="img" aria-label={label ?? l.rating(value.toFixed(1))}>
       {[0, 1, 2, 3, 4].map((i) => {
         const fill = Math.max(0, Math.min(1, value - i));
         return (
           <span key={i} className="relative inline-block" style={{ width: size, height: size }} aria-hidden>
-            <span className="absolute inset-0 text-active [&>svg]:size-full [&>svg]:fill-current">{ic.star}</span>
+            <span className={cn("absolute inset-0 [&>svg]:size-full [&>svg]:fill-current", a11y.highContrast ? "text-line-strong" : "text-active")}>{ic.star}</span>
             <span className="absolute inset-y-0 left-0 overflow-hidden text-warning" style={{ width: `${fill * 100}%` }}>
               <span className="block [&>svg]:size-full [&>svg]:fill-current" style={{ width: size, height: size }}>{ic.star}</span>
             </span>
@@ -112,7 +114,7 @@ export interface ReviewsSummaryIcons {
 }
 export const reviewsSummaryIcons: ReviewsSummaryIcons = { write: <PenLine />, helpful: <ThumbsUp />, star: starsIcons.star };
 
-export function ReviewsSummary({ reviews, sort: sortProp, defaultSort = "helpful", onSortChange, onWrite, className, locale, labels, icons }: {
+export function ReviewsSummary({ reviews, sort: sortProp, defaultSort = "helpful", onSortChange, onWrite, className, locale, labels, icons, accessibilityFeatures }: {
   reviews: Review[];
   /** Controlled order. Leave out to let the list keep its own. */
   sort?: "helpful" | "newest";
@@ -128,7 +130,11 @@ export function ReviewsSummary({ reviews, sort: sortProp, defaultSort = "helpful
   labels?: Partial<ReviewsSummaryLabels>;
   /** Replace any built-in icon. Merged over `reviewsSummaryIcons`. */
   icons?: Partial<ReviewsSummaryIcons>;
+  /** Accessibility features to add for this summary only. Calm and reduced motion show the rating bars full-grown at once. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion || a11y.calm;
   const l = { ...reviewsSummaryLabels, ...labels };
   const ic = useMemo(() => ({ ...reviewsSummaryIcons, ...icons }), [icons]);
   const [sort, setSort] = useControllable<"helpful" | "newest">(sortProp, defaultSort, onSortChange);
@@ -141,7 +147,7 @@ export function ReviewsSummary({ reviews, sort: sortProp, defaultSort = "helpful
   const fmt = (d: string) => new Date(d + "T12:00:00").toLocaleDateString(locale ?? "en-US", { month: "short", day: "numeric", year: "numeric" });
 
   return (
-    <div className={cn("grid w-full gap-8 lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-12", className)}>
+    <div {...rootProps} className={cn("grid w-full gap-8 lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-12", className)}>
       <div className="flex flex-col gap-5">
         <div>
           <p className="flex items-baseline gap-2">
@@ -149,11 +155,11 @@ export function ReviewsSummary({ reviews, sort: sortProp, defaultSort = "helpful
             <span className="text-sm text-muted">{l.outOf}</span>
           </p>
           <div className="mt-2 flex items-center gap-2">
-            <Stars value={average} size={18} icons={ic} />
+            <Stars value={average} size={18} icons={ic} accessibilityFeatures={accessibilityFeatures} />
             <span className="text-[0.8125rem] text-muted">{l.reviews(total.toLocaleString())}</span>
           </div>
         </div>
-        <motion.ul className="flex flex-col gap-2" initial="hidden" whileInView="shown" viewport={{ once: true, amount: 0.6 }} aria-label={l.ratingsByStars}>
+        <motion.ul className="flex flex-col gap-2" initial={still ? "shown" : "hidden"} whileInView="shown" viewport={{ once: true, amount: 0.6 }} aria-label={l.ratingsByStars}>
           {[5, 4, 3, 2, 1].map((n, i) => {
             const share = total ? counts[i] / total : 0;
             return (
@@ -187,7 +193,7 @@ export function ReviewsSummary({ reviews, sort: sortProp, defaultSort = "helpful
             return (
               <li key={r.id} className="rounded-card bg-surface p-4 sm:p-5">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <Stars value={r.rating} size={14} icons={ic} />
+                  <Stars value={r.rating} size={14} icons={ic} accessibilityFeatures={accessibilityFeatures} />
                   <span className="text-sm font-medium text-ink">{r.title}</span>
                 </div>
                 <p className="mt-2 text-sm text-ink">{r.body}</p>
