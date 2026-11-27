@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { motion, type Variants } from "motion/react";
 import { cn } from "../../cn";
 import { spring } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type FeatureSplitProps = {
   title: ReactNode;
@@ -11,17 +12,22 @@ export type FeatureSplitProps = {
   /** Put the picture on the left. */
   reverse?: boolean;
   className?: string;
+  /** Accessibility features to add for this section only. Reduced motion and calm show it at rest, with no entrance. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const parent: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.07 } } };
 const child: Variants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: spring } };
 
 /** A section of text beside its picture. The picture eases sideways into place. */
-export function FeatureSplit({ title, body, points, image, reverse, className }: FeatureSplitProps) {
+export function FeatureSplit({ title, body, points, image, reverse, className, accessibilityFeatures }: FeatureSplitProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion || a11y.calm;
   return (
     <motion.section
+      {...rootProps}
       className={cn("grid w-full items-center gap-8 md:grid-cols-2 md:gap-14", className)}
-      initial="hidden"
+      initial={still ? false : "hidden"}
       whileInView="visible"
       viewport={{ once: true, margin: "0px 0px -15% 0px" }}
       variants={parent}

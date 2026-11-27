@@ -4,6 +4,8 @@ import { Minus, Plus, ShoppingBag, Truck, X } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { easeOut, springFirm, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { announce } from "../accessibility/announce";
 
 /** Text swaps hand over rather than overlap. */
 const textSwap = (show: boolean) => (show ? { duration: 0.18, delay: 0.08, ease: easeOut } : { duration: 0.09, ease: easeOut });
@@ -49,6 +51,8 @@ export interface CartDrawerLabels {
   fewer: string;
   /** aria-label of the quantity plus button. */
   more: string;
+  /** Spoken to screen readers after a line is removed. */
+  removed: (name: string) => string;
 }
 export const cartDrawerLabels: CartDrawerLabels = {
   subtotal: "Subtotal",
@@ -69,6 +73,7 @@ export const cartDrawerLabels: CartDrawerLabels = {
   quantityOf: (name) => `Quantity of ${name}`,
   fewer: "One fewer",
   more: "One more",
+  removed: (name) => `${name} removed from your cart`,
 };
 
 /**
@@ -90,7 +95,7 @@ export interface CartDrawerIcons {
 export const cartDrawerIcons: CartDrawerIcons = { shipping: <Truck />, empty: <ShoppingBag />, remove: <X />, fewer: <Minus />, more: <Plus /> };
 
 export function CartDrawer({
-  open, onOpenChange, lines: linesProp, defaultLines, onChange, pricing, currency = "USD", onCheckout, onContinue, title = "Your cart", labels, icons,
+  open, onOpenChange, lines: linesProp, defaultLines, onChange, pricing, currency = "USD", onCheckout, onContinue, title = "Your cart", labels, icons, accessibilityFeatures,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -110,7 +115,11 @@ export function CartDrawer({
   labels?: Partial<CartDrawerLabels>;
   /** Replace any built-in icon. Merged over `cartDrawerIcons`. */
   icons?: Partial<CartDrawerIcons>;
+  /** Accessibility features to add for this cart only. Calm and reduced motion drop the fold and slide on removed rows and the empty state. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion || a11y.calm;
   const l = { ...cartDrawerLabels, ...labels };
   const ic = useMemo(() => ({ ...cartDrawerIcons, ...icons }), [icons]);
   const [lines, setLines] = useControllable<CartLine[]>(linesProp, defaultLines ?? [], onChange);
@@ -118,7 +127,11 @@ export function CartDrawer({
   const money = (n: number) => formatMoney(n, currency);
   const count = lines.reduce((s, l) => s + l.quantity, 0);
   const setQty = (id: string, q: number) => setLines(lines.map((l) => (l.id === id ? { ...l, quantity: q } : l)));
-  const remove = (id: string) => setLines(lines.filter((l) => l.id !== id));
+  const remove = (id: string) => {
+    const gone = lines.find((l) => l.id === id);
+    setLines(lines.filter((l) => l.id !== id));
+    if (gone) announce(l.removed(gone.name));
+  };
   const progress = pricing.freeShippingAt ? Math.min(1, t.subtotal / pricing.freeShippingAt) : 1;
 
   return (
@@ -142,7 +155,7 @@ export function CartDrawer({
         </div>
       ) : undefined}
     >
-      <div className="flex min-h-full flex-col">
+      <div {...rootProps} className="flex min-h-full flex-col">
         {pricing.freeShippingAt != null && lines.length > 0 && (
           <div className="mb-2 rounded-card bg-raised p-3.5">
             <p className="flex items-center gap-2 text-[0.8125rem] text-ink">
@@ -164,7 +177,7 @@ export function CartDrawer({
 
         <AnimatePresence initial={false} mode="wait">
           {lines.length === 0 ? (
-            <motion.div key="empty" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={springSoft}
+            <motion.div key="empty" initial={{ opacity: 0, y: still ? 0 : 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={springSoft}
               className="flex flex-1 flex-col items-center justify-center gap-3 px-8 pb-10 text-center">
               <span className="grid size-14 place-items-center rounded-full bg-raised text-muted [&>svg]:size-6">{ic.empty}</span>
               <p className="text-base font-medium text-ink">{l.emptyTitle}</p>
@@ -177,7 +190,8 @@ export function CartDrawer({
                 {lines.map((ln) => (
                   <motion.li
                     key={ln.id}
-                    exit={{ opacity: 0, height: 0, transition: { opacity: { duration: 0.12 }, height: { duration: 0.28, ease: easeOut, delay: 0.08 } } }}
+                    // One-off height fold of a removed row (allowed exception to the transform-only rule); skipped when still.
+                    exit={still ? { opacity: 0, transition: { duration: 0.12 } } : { opacity: 0, height: 0, transition: { opacity: { duration: 0.12 }, height: { duration: 0.28, ease: easeOut, delay: 0.08 } } }}
                     className="overflow-hidden"
                   >
                     <div className="flex gap-3.5 py-3.5">
@@ -193,7 +207,7 @@ export function CartDrawer({
                         <div className="mt-auto flex items-center justify-between gap-3 pt-2">
                           <Stepper value={ln.quantity} max={ln.max ?? 9} name={ln.name} labels={l} icons={ic} onChange={(q) => setQty(ln.id, q)} />
                           <button type="button" onClick={() => remove(ln.id)} aria-label={l.removeItem(ln.name)}
-                            className="inline-flex h-8 items-center gap-1 rounded-control px-2 text-[0.8125rem] text-muted transition-colors hover:bg-raised hover:text-ink">
+                            className="inline-flex h-8 items-center gap-1 rounded-control px-2 text-[0.8125rem] text-muted transition-colors hover:bg-raised hover:text-ink focus-visible:outline-2 focus-visible:outline-accent">
                             <span className="inline-flex [&>svg]:size-3.5" aria-hidden>{ic.remove}</span> {l.remove}
                           </button>
                         </div>

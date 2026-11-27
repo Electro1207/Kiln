@@ -8,6 +8,7 @@ import { Checkbox } from "../choice-controls/Checkbox";
 import { Slider } from "../choice-controls/Slider";
 import { Drawer } from "../overlays/Drawer";
 import { Button } from "../buttons/Button";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by CategoryFilters. Pass a partial via `labels` to translate or reword. */
 export interface CategoryFiltersLabels {
@@ -104,7 +105,7 @@ export const categoryFiltersIcons: CategoryFiltersIcons = {
  * Faceted filters: a sidebar on wide screens, a drawer on phones, and the
  * active filters as chips above the results.
  */
-export function CategoryFilters({ facets, value: valueProp, defaultValue, onChange: onChangeProp, resultCount, children, className, labels, icons }: {
+export function CategoryFilters({ facets, value: valueProp, defaultValue, onChange: onChangeProp, resultCount, children, className, labels, icons, accessibilityFeatures }: {
   facets: Facet[];
   /** Active filters; leave out to let the component keep them. */
   value?: FilterValue;
@@ -119,7 +120,10 @@ export function CategoryFilters({ facets, value: valueProp, defaultValue, onChan
   labels?: Partial<CategoryFiltersLabels>;
   /** Replace any built-in icon. Merged over `categoryFiltersIcons`. */
   icons?: Partial<CategoryFiltersIcons>;
+  /** Accessibility features to add for these filters only. High contrast makes the swatch outlines solid. The selected state is also shown by a tick, never by colour alone. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...categoryFiltersLabels, ...labels };
   const ic = useMemo(() => ({ ...categoryFiltersIcons, ...icons }), [icons]);
   const [value, onChange] = useControllable<FilterValue>(valueProp, defaultValue ?? emptyFilters(facets), onChangeProp);
@@ -128,9 +132,9 @@ export function CategoryFilters({ facets, value: valueProp, defaultValue, onChan
   const clearAll = () => onChange(emptyFilters(facets));
 
   return (
-    <div className={cn("grid w-full gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10", className)}>
+    <div {...rootProps} className={cn("grid w-full gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10", className)}>
       <aside className="hidden lg:block" aria-label={l.filters}>
-        <FilterPanel facets={facets} value={value} onChange={onChange} labels={l} icons={ic} />
+        <FilterPanel facets={facets} value={value} onChange={onChange} labels={l} icons={ic} accessibilityFeatures={accessibilityFeatures} />
       </aside>
 
       <div className="flex min-w-0 flex-col gap-4">
@@ -163,7 +167,7 @@ export function CategoryFilters({ facets, value: valueProp, defaultValue, onChan
                     {c.label} <span className="inline-flex opacity-70 [&>svg]:size-3.5" aria-hidden>{ic.remove}</span>
                   </motion.button>
                 ))}
-                <motion.button key="__clear" layout="position" transition={springFirm} type="button" onClick={clearAll} className="h-8 px-2 text-[0.8125rem] font-medium text-accent hover:underline">
+                <motion.button key="__clear" layout="position" transition={springFirm} type="button" onClick={clearAll} className="h-8 rounded-control px-2 text-[0.8125rem] font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-accent">
                   {l.clearAll}
                 </motion.button>
               </AnimatePresence>
@@ -181,14 +185,15 @@ export function CategoryFilters({ facets, value: valueProp, defaultValue, onChan
             <Button className="flex-1" onClick={() => setDrawer(false)}>{l.showResults(resultCount)}</Button>
           </div>
         }>
-        <FilterPanel facets={facets} value={value} onChange={onChange} labels={l} icons={ic} />
+        <FilterPanel facets={facets} value={value} onChange={onChange} labels={l} icons={ic} accessibilityFeatures={accessibilityFeatures} />
       </Drawer>
     </div>
   );
 }
 
 /** The facet groups themselves; used in the sidebar and in the phone drawer. */
-export function FilterPanel({ facets, value, onChange, labels, icons }: { facets: Facet[]; value: FilterValue; onChange: (v: FilterValue) => void; labels?: Partial<CategoryFiltersLabels>; /** Replace any built-in icon. Merged over `categoryFiltersIcons`. */ icons?: Partial<CategoryFiltersIcons> }) {
+export function FilterPanel({ facets, value, onChange, labels, icons, accessibilityFeatures }: { facets: Facet[]; value: FilterValue; onChange: (v: FilterValue) => void; labels?: Partial<CategoryFiltersLabels>; /** Replace any built-in icon. Merged over `categoryFiltersIcons`. */ icons?: Partial<CategoryFiltersIcons>; /** Accessibility features to add for this panel only. Adds to the person's own settings, never removes them. */ accessibilityFeatures?: AccessibilityFeaturesProp }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...categoryFiltersLabels, ...labels };
   const ic = { ...categoryFiltersIcons, ...icons };
   const toggle = (id: string, val: string, on: boolean) => {
@@ -196,7 +201,7 @@ export function FilterPanel({ facets, value, onChange, labels, icons }: { facets
     onChange({ ...value, [id]: on ? [...cur, val] : cur.filter((x) => x !== val) });
   };
   return (
-    <div className="flex flex-col gap-7">
+    <div {...rootProps} className="flex flex-col gap-7">
       {facets.map((f) => (
         <fieldset key={f.id} className="flex flex-col gap-3">
           <legend className="mb-3 text-sm font-semibold text-ink">{f.label}</legend>
@@ -222,7 +227,8 @@ export function FilterPanel({ facets, value, onChange, labels, icons }: { facets
                     className="relative grid size-9 place-items-center rounded-full outline-offset-4"
                   >
                     <motion.span aria-hidden initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className="pointer-events-none absolute inset-0 rounded-full border-2 border-ink" />
-                    <span className="grid size-7 place-items-center rounded-full ring-1 ring-ink/10 ring-inset" style={{ background: o.swatch }}>
+                    <span className={cn("grid size-7 place-items-center rounded-full ring-1 ring-inset", a11y.highContrast ? "ring-ink/60" : "ring-ink/10")} style={{ background: o.swatch }}>
+                      {/* The tick colour answers the swatch's own brightness (data), not the theme, so it is the one place fixed black and white are right. */}
                       <span aria-hidden className={cn("grid [&>svg]:size-3.5", o.light ? "text-black/80" : "text-white")}>
                         <SwatchOn.Provider value={on}>{ic.check}</SwatchOn.Provider>
                       </span>

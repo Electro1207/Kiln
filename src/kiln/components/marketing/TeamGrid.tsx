@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { cn } from "../../cn";
 import { hueFor, initials } from "../data-display/Avatar";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type TeamLink = { label: string; href: string; icon: ReactNode };
 export type TeamMember = { name: string; role: string; bio?: string; links?: TeamLink[] };
@@ -10,6 +11,8 @@ export type TeamGridProps = {
   description?: ReactNode;
   people: TeamMember[];
   className?: string;
+  /** Accessibility features to add for this grid only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -17,9 +20,10 @@ export type TeamGridProps = {
  * grid needs no photographs. Links rise into view on hover or focus, and are
  * always shown on touch screens.
  */
-export function TeamGrid({ title, description, people, className }: TeamGridProps) {
+export function TeamGrid({ title, description, people, className, accessibilityFeatures }: TeamGridProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   return (
-    <section className={cn("@container w-full", className)}>
+    <section {...rootProps} className={cn("@container w-full", className)}>
       <h2 className="text-2xl font-semibold tracking-[-0.02em] text-ink text-balance @2xl:text-[1.75rem]">{title}</h2>
       {description && <p className="mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-ink">{description}</p>}
       <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 @2xl:grid-cols-3 @4xl:grid-cols-4">

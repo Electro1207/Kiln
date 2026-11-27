@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { Accordion, type AccordionItem } from "../wayfinding/Accordion";
 
 export type FAQSectionProps = {
@@ -9,12 +10,15 @@ export type FAQSectionProps = {
   footer?: ReactNode;
   items: AccordionItem[];
   className?: string;
+  /** Accessibility features to add for this section only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Questions on the right, the heading and a way to ask more on the left. */
-export function FAQSection({ title, description, footer, items, className }: FAQSectionProps) {
+export function FAQSection({ title, description, footer, items, className, accessibilityFeatures }: FAQSectionProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   return (
-    <section className={cn("@container w-full", className)}>
+    <section {...rootProps} className={cn("@container w-full", className)}>
       <div className="grid gap-8 @3xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] @3xl:gap-12">
         <div className="@3xl:sticky @3xl:top-6 @3xl:self-start">
           <h2 className="text-2xl font-semibold tracking-[-0.02em] text-ink text-balance @2xl:text-[1.75rem]">{title}</h2>

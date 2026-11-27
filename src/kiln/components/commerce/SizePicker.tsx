@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { fade } from "../../motion";
 import { useControllable } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type SizeOption = { value: string; label?: string; soldOut?: boolean };
 
@@ -20,7 +21,7 @@ export const sizePickerLabels: SizePickerLabels = { size: "Size", soldOut: (s) =
  * sizes are struck through and cannot be picked.
  * Controlled with `value` + `onChange`, or uncontrolled with `defaultValue`.
  */
-export function SizePicker({ label, sizes, value: valueProp, defaultValue = null, onChange: onChangeProp, guide, className, labels }: {
+export function SizePicker({ label, sizes, value: valueProp, defaultValue = null, onChange: onChangeProp, guide, className, labels, accessibilityFeatures }: {
   label?: string;
   sizes: SizeOption[];
   /** Chosen size, or null for none; leave out to let the component keep it. */
@@ -33,7 +34,10 @@ export function SizePicker({ label, sizes, value: valueProp, defaultValue = null
   className?: string;
   /** Override any UI text. Merged over `sizePickerLabels`. */
   labels?: Partial<SizePickerLabels>;
+  /** Accessibility features to add for this picker only. High contrast keeps sold-out sizes readable. A sold-out size is also struck through and named as sold out, never shown by colour alone. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...sizePickerLabels, ...labels };
   const id = useId();
   const [value, setValue] = useControllable<string | null>(valueProp, defaultValue, (v) => v != null && onChangeProp?.(v));
@@ -51,7 +55,7 @@ export function SizePicker({ label, sizes, value: valueProp, defaultValue = null
   };
 
   return (
-    <div className={cn("flex flex-col gap-3", className)}>
+    <div {...rootProps} className={cn("flex flex-col gap-3", className)}>
       <div className="flex items-baseline justify-between gap-3">
         <span id={`${id}-l`} className="text-sm font-medium text-ink">{label ?? l.size}</span>
         {guide}
@@ -74,7 +78,7 @@ export function SizePicker({ label, sizes, value: valueProp, defaultValue = null
               onKeyDown={(e) => onKey(e, i)}
               className={cn(
                 "group relative grid h-11 place-items-center rounded-control border text-sm font-medium",
-                s.soldOut ? "cursor-not-allowed border-line text-faint" : "border-line-strong bg-surface text-ink hover:border-faint",
+                s.soldOut ? cn("cursor-not-allowed border-line", a11y.highContrast ? "text-muted" : "text-faint") : "border-line-strong bg-surface text-ink hover:border-faint",
               )}
             >
               <motion.span aria-hidden initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className="pointer-events-none absolute -inset-px rounded-control bg-btn-primary" />

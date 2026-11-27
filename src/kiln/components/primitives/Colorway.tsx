@@ -2,6 +2,7 @@ import { useMemo, type CSSProperties, type ReactNode } from "react";
 import { cn } from "../../cn";
 import { useTheme } from "../../theme";
 import { colorwayColors, colorwayTokens, radiusTokens, type ColorwayTheme, type ColorwayColors } from "../../colorway";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ColorwayProps = {
   children?: ReactNode;
@@ -18,6 +19,8 @@ export type ColorwayProps = {
   id?: string;
   "aria-label"?: string;
   "aria-labelledby"?: string;
+  /** Accessibility features to add for everything inside this part of the page. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -25,7 +28,8 @@ export type ColorwayProps = {
  * colorway), and every Kiln component inside takes them, buttons and focus rings included, worked out
  * so text stays readable. The box itself takes the ground and the ink. Nothing outside changes.
  */
-export function Colorway({ children, colors, colorway, mode, as: Tag = "div", className, style, ...rest }: ColorwayProps) {
+export function Colorway({ children, colors, colorway, mode, as: Tag = "div", className, style, accessibilityFeatures, ...rest }: ColorwayProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const { resolved } = useTheme();
   const m = mode ?? resolved;
   const vars = useMemo(() => {
@@ -34,7 +38,7 @@ export function Colorway({ children, colors, colorway, mode, as: Tag = "div", cl
     return { ...colorwayTokens(c, m), ...(colorway?.radius != null ? radiusTokens(colorway.radius) : {}) };
   }, [colors, colorway, m]);
   return (
-    <Tag {...rest} className={cn("bg-ground text-ink", m === "dark" && "dark", className)} style={{ ...vars, colorScheme: m, ...style } as CSSProperties}>
+    <Tag {...rest} {...rootProps} className={cn("bg-ground text-ink", m === "dark" && "dark", className)} style={{ ...vars, colorScheme: m, ...rootProps.style, ...style } as CSSProperties}>
       {children}
     </Tag>
   );

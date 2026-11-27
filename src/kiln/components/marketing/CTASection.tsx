@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type CTASectionProps = {
   title: ReactNode;
@@ -12,13 +13,16 @@ export type CTASectionProps = {
   /** A picture beside the text in the split variant. */
   aside?: ReactNode;
   className?: string;
+  /** Accessibility features to add for this section only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** The closing call to action of a page. */
-export function CTASection({ title, body, primary, secondary, variant = "field", aside, className }: CTASectionProps) {
+export function CTASection({ title, body, primary, secondary, variant = "field", aside, className, accessibilityFeatures }: CTASectionProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   if (variant === "field") {
     return (
-      <section className={cn("@container w-full overflow-hidden rounded-sheet bg-btn-primary px-6 py-14 text-center text-btn-primary-ink @2xl:px-12 @2xl:py-20", className)}>
+      <section {...rootProps} className={cn("@container w-full overflow-hidden rounded-sheet bg-btn-primary px-6 py-14 text-center text-btn-primary-ink @2xl:px-12 @2xl:py-20", className)}>
         <h2 className="mx-auto max-w-2xl text-3xl font-semibold leading-[1.1] tracking-[-0.025em] text-balance @2xl:text-[2.75rem]">{title}</h2>
         {body && <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed opacity-90">{body}</p>}
         <div className="mt-8 flex flex-col items-center justify-center gap-3 @md:flex-row">
@@ -38,7 +42,7 @@ export function CTASection({ title, body, primary, secondary, variant = "field",
     );
   }
   return (
-    <section className={cn("@container w-full overflow-hidden rounded-sheet bg-surface", className)}>
+    <section {...rootProps} className={cn("@container w-full overflow-hidden rounded-sheet bg-surface", className)}>
       <div className={cn("grid items-center gap-8 p-6 @2xl:p-10", !!aside && "@3xl:grid-cols-2 @3xl:gap-10")}>
         <div className="flex flex-col gap-6">
           <div>

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
 import { fade, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by Invoice. Pass a partial via `labels` to translate or reword. */
 export interface InvoiceLabels {
@@ -68,12 +69,16 @@ export type InvoiceProps = {
   /** Override any UI text. Merged over `invoiceLabels`. */
   labels?: Partial<InvoiceLabels>;
   className?: string;
+  /** Accessibility features to add for this invoice only. Calm and reduced motion put the PAID stamp down without the stamping motion; the status is also in the total row and an announcement. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** An invoice or receipt as a document. Totals are computed from the lines. */
 export function Invoice({
-  number, issued, due, from, to, items, taxRate = 0, taxLabel = "Tax", currency = "USD", locale = "en-US", paid, notes, actions, className, labels,
+  number, issued, due, from, to, items, taxRate = 0, taxLabel = "Tax", currency = "USD", locale = "en-US", paid, notes, actions, className, labels, accessibilityFeatures,
 }: InvoiceProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion || a11y.calm;
   const lb = { ...invoiceLabels, ...labels };
   const money = new Intl.NumberFormat(locale, { style: "currency", currency });
   const date = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
@@ -82,7 +87,7 @@ export function Invoice({
   const total = subtotal + tax;
 
   return (
-    <article className={cn("relative w-full overflow-hidden rounded-card border border-line bg-surface text-ink", className)} aria-label={lb.invoice(number)}>
+    <article {...rootProps} className={cn("relative w-full overflow-hidden rounded-card border border-line bg-surface text-ink", className)} aria-label={lb.invoice(number)}>
       {actions && <div className="flex flex-wrap items-center justify-end gap-2 border-b border-line px-5 py-3 sm:px-8">{actions}</div>}
       <div className="flex flex-col gap-8 p-5 sm:p-8">
         <header className="flex flex-wrap items-start justify-between gap-6">
@@ -164,7 +169,7 @@ export function Invoice({
             key="stamp"
             aria-hidden
             className="pointer-events-none absolute right-6 top-24 sm:right-12 sm:top-28"
-            initial={{ opacity: 0, scale: 1.25, rotate: -14 }}
+            initial={still ? false : { opacity: 0, scale: 1.25, rotate: -10 }}
             animate={{ opacity: 1, scale: 1, rotate: -10 }}
             exit={{ opacity: 0, scale: 0.95, transition: fade }}
             transition={springSoft}

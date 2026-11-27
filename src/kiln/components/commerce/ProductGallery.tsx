@@ -4,6 +4,7 @@ import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { fade, springSoft } from "../../motion";
 import type { ProductImage } from "./commerce";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by ProductGallery. Pass a partial via `labels` to translate or reword. */
 export interface ProductGalleryLabels {
@@ -26,7 +27,7 @@ export const productGalleryLabels: ProductGalleryLabels = {
  * keyboard, the arrow keys. Pictures cross-fade; nothing slides across another.
  */
 export function ProductGallery({
-  images, value, defaultValue = 0, onChange, zoom = 2.2, className, ratio = 1, labels,
+  images, value, defaultValue = 0, onChange, zoom: zoomProp = 2.2, className, ratio = 1, labels, accessibilityFeatures,
 }: {
   images: ProductImage[];
   /** Controlled index; leave out to let the gallery keep its own. */
@@ -42,8 +43,12 @@ export function ProductGallery({
   ratio?: number;
   /** Override any UI text. Merged over `productGalleryLabels`. */
   labels?: Partial<ProductGalleryLabels>;
+  /** Accessibility features to add for this gallery only. Reduced motion and calm turn the pointer zoom off; high contrast keeps the other thumbnails and dots at full strength. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...productGalleryLabels, ...labels };
+  const zoom = a11y.reduceMotion || a11y.calm ? 1 : zoomProp;
   const id = useId();
   const [index, setIndex] = useControllable(value, defaultValue, onChange);
   const go = (i: number) => setIndex((i + images.length) % images.length);
@@ -96,7 +101,7 @@ export function ProductGallery({
   const current = images[index];
 
   return (
-    <div className={cn("flex min-w-0 flex-col gap-3", className)}>
+    <div {...rootProps} className={cn("flex min-w-0 flex-col gap-3", className)}>
       <div
         ref={stage}
         role="group"
@@ -140,7 +145,7 @@ export function ProductGallery({
         {images.length > 1 && (
           <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center gap-1.5 sm:hidden" aria-hidden>
             {images.map((im, i) => (
-              <motion.span key={im.src} className="size-1.5 rounded-full bg-ink" initial={false} animate={{ opacity: i === index ? 0.9 : 0.25 }} transition={fade} />
+              <motion.span key={im.src} className="size-1.5 rounded-full bg-ink" initial={false} animate={{ opacity: i === index ? 0.9 : a11y.highContrast ? 0.55 : 0.25 }} transition={fade} />
             ))}
           </div>
         )}
@@ -171,7 +176,7 @@ export function ProductGallery({
                 className="group relative aspect-square min-w-14 max-w-20 flex-1 rounded-[10px] outline-offset-2"
               >
                 <span className="absolute inset-0 overflow-hidden rounded-[10px] bg-raised">
-                  <img decoding="async" loading="lazy" src={im.thumb ?? im.src} alt="" draggable={false} className={cn("size-full object-cover transition-opacity duration-200", on ? "opacity-100" : "opacity-70 group-hover:opacity-100")} />
+                  <img decoding="async" loading="lazy" src={im.thumb ?? im.src} alt="" draggable={false} className={cn("size-full object-cover transition-opacity duration-200", on || a11y.highContrast ? "opacity-100" : "opacity-70 group-hover:opacity-100")} />
                 </span>
                 <motion.span aria-hidden initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className="pointer-events-none absolute -inset-1 rounded-[13px] border-2 border-ink" />
               </button>

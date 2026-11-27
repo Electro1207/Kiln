@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by NotFound. Pass a partial via `labels` to translate or reword. */
 export interface NotFoundLabels {
@@ -27,14 +28,17 @@ export type NotFoundProps = {
   /** Replace any built-in icon. Merged over `notFoundIcons`. */
   icons?: Partial<NotFoundIcons>;
   className?: string;
+  /** Accessibility features to add for this block only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A 404 block: the code set large, a plain sentence, a way back, and likely destinations. */
-export function NotFound({ code = "404", title, body, actions, suggestions, labels, icons, className }: NotFoundProps) {
+export function NotFound({ code = "404", title, body, actions, suggestions, labels, icons, className, accessibilityFeatures }: NotFoundProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...notFoundLabels, ...labels };
   const ic = { ...notFoundIcons, ...icons };
   return (
-    <section className={cn("@container w-full", className)}>
+    <section {...rootProps} className={cn("@container w-full", className)}>
       <div className="grid gap-10 @4xl:grid-cols-2 @4xl:items-center">
         <div>
           <p aria-hidden className="text-[5.5rem] font-semibold leading-none tracking-[-0.05em] text-ink @2xl:text-[8rem]">{code}</p>

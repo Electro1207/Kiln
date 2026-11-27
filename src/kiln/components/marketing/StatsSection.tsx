@@ -2,6 +2,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { animate, useInView, useReducedMotion } from "motion/react";
 import { cn } from "../../cn";
 import { SectionHeading } from "../app-shells/PageHeading";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type StatItem = { label: string; value: number; format?: Intl.NumberFormatOptions; prefix?: string; suffix?: string; note?: string };
 
@@ -12,13 +13,15 @@ export type StatsSectionProps = {
   /** BCP 47 locale for number formatting. Default "en-GB". */
   locale?: string;
   className?: string;
+  /** Accessibility features to add for this section only. Calm, reduced motion and no flashing show each final figure at once instead of counting up. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Counts up once when it first comes into view. Writes text directly, so React doesn't re-render per frame. */
-function CountUp({ item, locale }: { item: StatItem; locale?: string }) {
+function CountUp({ item, locale, still }: { item: StatItem; locale?: string; still: boolean }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.6 });
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotion() || still;
   const fmt = new Intl.NumberFormat(locale ?? "en-GB", item.format);
   const text = (v: number) => `${item.prefix ?? ""}${fmt.format(v)}${item.suffix ?? ""}`;
 
@@ -51,16 +54,18 @@ function CountUp({ item, locale }: { item: StatItem; locale?: string }) {
 }
 
 /** A heading and a row of large figures. */
-export function StatsSection({ title, description, stats, locale, className }: StatsSectionProps) {
+export function StatsSection({ title, description, stats, locale, className, accessibilityFeatures }: StatsSectionProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion || a11y.noFlashing;
   return (
-    <section className={cn("@container w-full", className)}>
+    <section {...rootProps} className={cn("@container w-full", className)}>
       <SectionHeading title={title} description={description} />
       <dl className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 @md:grid-cols-2 @4xl:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="flex flex-col gap-2 rounded-card bg-surface p-6">
             <dt className="order-2 text-sm text-ink">{s.label}</dt>
             <dd className="order-1 text-4xl font-semibold tracking-[-0.03em] text-ink @2xl:text-5xl">
-              <CountUp item={s} locale={locale} />
+              <CountUp item={s} locale={locale} still={still} />
             </dd>
             {s.note && <dd className="order-3 text-[0.8125rem] text-muted">{s.note}</dd>}
           </div>

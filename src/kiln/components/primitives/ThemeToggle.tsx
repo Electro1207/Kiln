@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { press, spring, springSnappy, fade } from "../../motion";
 import { useTheme, type ThemeMode } from "../../theme";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by ThemeToggle. Pass a partial via `labels` to translate or reword. */
 export interface ThemeToggleLabels {
@@ -15,11 +16,16 @@ export const themeToggleLabels: ThemeToggleLabels = { toLight: "Switch to light 
 
 /** Icon button: the sun's core swells into a moon as the rays tuck away.
     The new theme opens as a circle from the button (View Transitions). */
-export function ThemeToggle({ className, labels }: {
+export function ThemeToggle({ className, labels, accessibilityFeatures }: {
   className?: string;
+  /** Accessibility features to add for this button only. Reduced motion and calm swap sun and moon at once, without the morph. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
   /** Override any UI text. Merged over `themeToggleLabels`. */
   labels?: Partial<ThemeToggleLabels>;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion || a11y.calm;
+  const move = still ? { duration: 0 } : spring;
   const l = { ...themeToggleLabels, ...labels };
   const { resolved, toggle } = useTheme();
   const ref = useRef<HTMLButtonElement>(null);
@@ -27,6 +33,7 @@ export function ThemeToggle({ className, labels }: {
   const dark = resolved === "dark";
   return (
     <motion.button
+      {...rootProps}
       ref={ref}
       type="button"
       onClick={() => toggle(ref.current)}
@@ -45,7 +52,7 @@ export function ThemeToggle({ className, labels }: {
             fill="black"
             initial={false}
             animate={dark ? { cx: 17, cy: 7 } : { cx: 30, cy: -6 }}
-            transition={spring}
+            transition={move}
           />
         </mask>
         <motion.circle
@@ -55,7 +62,7 @@ export function ThemeToggle({ className, labels }: {
           mask={`url(#${maskId})`}
           initial={false}
           animate={{ r: dark ? 9 : 4.5 }}
-          transition={spring}
+          transition={move}
         />
         <motion.g
           stroke="currentColor"
@@ -63,7 +70,7 @@ export function ThemeToggle({ className, labels }: {
           strokeLinecap="round"
           initial={false}
           animate={dark ? { opacity: 0, rotate: -45, scale: 0.6 } : { opacity: 1, rotate: 0, scale: 1 }}
-          transition={springSnappy}
+          transition={still ? { duration: 0 } : springSnappy}
           style={{ originX: "12px", originY: "12px" }}
         >
           {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
@@ -91,15 +98,18 @@ export interface ThemeSwitcherLabels {
 export const themeSwitcherLabels: ThemeSwitcherLabels = { group: "Colour mode", light: "Light", dark: "Dark", system: "System" };
 
 /** Three-way switch: light, dark, or follow the system. */
-export function ThemeSwitcher({ className, labels }: {
+export function ThemeSwitcher({ className, labels, accessibilityFeatures }: {
   className?: string;
+  /** Accessibility features to add for this switch only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
   /** Override any UI text. Merged over `themeSwitcherLabels`. */
   labels?: Partial<ThemeSwitcherLabels>;
 }) {
   const { mode, setMode } = useTheme();
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...themeSwitcherLabels, ...labels };
   return (
-    <div role="radiogroup" aria-label={l.group} className={cn("inline-flex rounded-full bg-raised p-1", className)}>
+    <div {...rootProps} role="radiogroup" aria-label={l.group} className={cn("inline-flex rounded-full bg-raised p-1", className)}>
       {MODES.map((m) => {
         const on = mode === m;
         return (

@@ -4,6 +4,7 @@ import { cn } from "../../cn";
 import { fade, press, springSoft } from "../../motion";
 import { useTheme } from "../../theme";
 import { colorwayColors, colorwaySwatch, type ColorwayTheme } from "../../colorway";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by ColorwayPicker. Pass a partial via `labels` to translate or reword. */
 export interface ColorwayPickerLabels {
@@ -26,6 +27,8 @@ export type ColorwayPickerProps = {
   className?: string;
   /** Override any UI text. Merged over `colorwayPickerLabels`. */
   labels?: Partial<ColorwayPickerLabels>;
+  /** Accessibility features to add for this picker only. High contrast makes the unchosen swatch borders solid; the chosen one is a ring, never colour alone. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -34,7 +37,8 @@ export type ColorwayPickerProps = {
  * radio group. Works with the colorways given to ThemeProvider, or with your own list and handler.
  * The ring around the chosen swatch takes the text colour, so it reads on any background.
  */
-export function ColorwayPicker({ colorways: colorwaysProp, value, onChange, showLabel = true, size = 28, className, labels }: ColorwayPickerProps) {
+export function ColorwayPicker({ colorways: colorwaysProp, value, onChange, showLabel = true, size = 28, className, labels, accessibilityFeatures }: ColorwayPickerProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...colorwayPickerLabels, ...labels };
   const theme = useTheme();
   const colorways = colorwaysProp ?? theme.colorways;
@@ -58,7 +62,7 @@ export function ColorwayPicker({ colorways: colorwaysProp, value, onChange, show
   if (!colorways.length) return null;
   const chosen = colorways[index];
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div {...rootProps} className={cn("flex flex-col gap-2", className)}>
       {showLabel && (
         <p id={`${id}-label`} className="flex items-baseline gap-2 text-sm">
           <span className="font-medium">{l.label}</span>
@@ -94,7 +98,7 @@ export function ColorwayPicker({ colorways: colorwaysProp, value, onChange, show
               />
               <span
                 aria-hidden
-                className="rounded-full border border-line-strong"
+                className={cn("rounded-full border", a11y.highContrast ? "border-ink" : "border-line-strong")}
                 style={{ width: size, height: size, background: colorwaySwatch(g, theme.resolved), boxShadow: `inset 0 0 0 ${Math.round(size * 0.22)}px ${c.ground}` }}
               />
             </motion.button>

@@ -8,6 +8,7 @@ import { RadioGroup } from "../choice-controls/RadioGroup";
 import { Select, type SelectOption } from "../pickers/Select";
 import { Button } from "../buttons/Button";
 import { cartTotals, formatMoney, type CartLine } from "./commerce";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type DeliveryOption = {
   id: string;
@@ -155,7 +156,7 @@ export interface CheckoutFormIcons {
 export const checkoutFormIcons: CheckoutFormIcons = { secure: <Lock />, card: <CreditCard />, promo: <TagIcon />, expand: <ChevronDown /> };
 
 export function CheckoutForm({
-  lines, delivery, countries, taxRate, currency = "USD", checkPromo, onPlaceOrder, paymentSlot, labels, icons,
+  lines, delivery, countries, taxRate, currency = "USD", checkPromo, onPlaceOrder, paymentSlot, labels, icons, accessibilityFeatures,
 }: {
   lines: CartLine[];
   delivery: DeliveryOption[];
@@ -171,7 +172,11 @@ export function CheckoutForm({
   labels?: Partial<CheckoutFormLabels>;
   /** Replace any built-in icon. Merged over `checkoutFormIcons`. */
   icons?: Partial<CheckoutFormIcons>;
+  /** Accessibility features to add for this form only. Calm and reduced motion open the phone summary without the height fold. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion || a11y.calm;
   const l = { ...checkoutFormLabels, ...labels };
   const ic = useMemo(() => ({ ...checkoutFormIcons, ...icons }), [icons]);
   const [f, setF] = useState({ email: "", name: "", address: "", city: "", postcode: "", country: countries[0]?.value ?? "" });
@@ -203,8 +208,8 @@ export function CheckoutForm({
   const summary = <Summary lines={lines} t={t} money={money} promo={promo} setPromo={setPromo} checkPromo={checkPromo} shippingLabel={opt.label} l={l} ic={ic} />;
 
   return (
-    <form onSubmit={submit} noValidate className="grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-10">
-      <MobileSummary total={money(t.total)} l={l} ic={ic}>{summary}</MobileSummary>
+    <form {...rootProps} onSubmit={submit} noValidate className="grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-10">
+      <MobileSummary total={money(t.total)} l={l} ic={ic} still={still}>{summary}</MobileSummary>
 
       <div className="flex min-w-0 flex-col gap-8">
         <Section title={l.contact}>
@@ -379,11 +384,11 @@ function Line({ label, value }: { label: string; value: string }) {
   );
 }
 
-function MobileSummary({ total, children, l, ic }: { total: string; children: ReactNode; l: CheckoutFormLabels; ic: CheckoutFormIcons }) {
+function MobileSummary({ total, children, l, ic, still }: { total: string; children: ReactNode; l: CheckoutFormLabels; ic: CheckoutFormIcons; still: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="rounded-sheet bg-surface lg:hidden">
-      <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-sm">
+      <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between gap-3 rounded-sheet px-4 py-3.5 text-sm focus-visible:outline-2 focus-visible:outline-accent">
         <span className="flex items-center gap-2 font-medium text-accent">
           {open ? l.hideSummary : l.showSummary}
           <motion.span initial={false} animate={{ rotate: open ? 180 : 0 }} transition={springSnappy} className="grid [&>svg]:size-4">{ic.expand}</motion.span>
@@ -392,7 +397,8 @@ function MobileSummary({ total, children, l, ic }: { total: string; children: Re
       </button>
       <AnimatePresence initial={false}>
         {open && (
-          <motion.div key="s" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ height: { duration: 0.32, ease: easeOut }, opacity: { duration: 0.2 } }} className={cn("overflow-hidden")}>
+          // One-off height fold of a single panel on phones (allowed exception); opacity only when still.
+          <motion.div key="s" initial={still ? { opacity: 0 } : { height: 0, opacity: 0 }} animate={still ? { opacity: 1 } : { height: "auto", opacity: 1 }} exit={still ? { opacity: 0 } : { height: 0, opacity: 0 }} transition={{ height: { duration: 0.32, ease: easeOut }, opacity: { duration: 0.2 } }} className={cn("overflow-hidden")}>
             <div className="px-4 pb-4">{children}</div>
           </motion.div>
         )}

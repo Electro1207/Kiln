@@ -2,6 +2,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { fade } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Kinds of change, in the order a release lists them. `new` and `improved` are Keep a Changelog's Added and Changed. */
 export const changeKinds = ["new", "improved", "deprecated", "removed", "fixed", "security"] as const;
@@ -69,6 +70,8 @@ export type ChangelogProps = {
   className?: string;
   /** Classes for each release's card, e.g. `bg-raised!` when the list sits on a surface (`!` to beat the default fill). */
   cardClassName?: string;
+  /** Accessibility features to add for this changelog only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const kindClass: Record<ChangeKind, string> = {
@@ -156,7 +159,8 @@ export function parseChangelog(markdown: string): Release[] {
  * release gets an anchor. Strings may carry `code`, **bold** and links, so a CHANGELOG.md read with
  * `parseChangelog` renders as written.
  */
-export function Changelog({ title, description, releases, filter = false, initialCount, markLatest = false, idPrefix, formatDate, labels, className, cardClassName }: ChangelogProps) {
+export function Changelog({ title, description, releases, filter = false, initialCount, markLatest = false, idPrefix, formatDate, labels, className, cardClassName, accessibilityFeatures }: ChangelogProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...changelogLabels, ...labels, kind: { ...changelogLabels.kind, ...labels?.kind } };
   const [only, setOnly] = useState<ChangeKind | "all">("all");
   const [count, setCount] = useState(initialCount ?? releases.length);
@@ -174,7 +178,7 @@ export function Changelog({ title, description, releases, filter = false, initia
   const older = releases.length - listed.length;
 
   return (
-    <section className={cn("@container w-full", className)}>
+    <section {...rootProps} className={cn("@container w-full", className)}>
       {title && <h2 className="text-2xl font-semibold tracking-[-0.02em] text-ink text-balance @2xl:text-[1.75rem]">{title}</h2>}
       {description && <p className="mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-ink">{description}</p>}
 

@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** One line in a column: a link (`href`), or plain text when there is none. */
 export type FooterLink = {
@@ -27,6 +28,8 @@ export type FooterProps = {
    */
   reveal?: boolean;
   className?: string;
+  /** Accessibility features to add for this footer only. Reduced motion and calm show the name at rest, with no entrance. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 function Line({ link }: { link: FooterLink }) {
@@ -35,7 +38,7 @@ function Line({ link }: { link: FooterLink }) {
     <a
       href={link.href}
       {...(link.external ? { target: "_blank", rel: "noreferrer" } : {})}
-      className="group inline-flex w-fit text-sm opacity-75 transition-opacity hover:opacity-100"
+      className="group inline-flex w-fit rounded-sm text-sm opacity-75 transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
     >
       <span className="relative">
         {link.label}
@@ -46,7 +49,7 @@ function Line({ link }: { link: FooterLink }) {
 }
 
 /** The name, measured once per width and sized to fill it exactly. */
-function Wordmark({ name }: { name: string }) {
+function Wordmark({ name, still }: { name: string; still: boolean }) {
   const box = useRef<HTMLDivElement>(null);
   const text = useRef<HTMLParagraphElement>(null);
   useLayoutEffect(() => {
@@ -69,7 +72,7 @@ function Wordmark({ name }: { name: string }) {
         ref={text}
         aria-hidden
         className="w-fit select-none whitespace-nowrap font-semibold leading-[0.78] tracking-[-0.05em]"
-        initial={{ y: "35%", opacity: 0 }}
+        initial={still ? false : { y: "35%", opacity: 0 }}
         whileInView={{ y: "12%", opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 1.1, ease: easeOut }}
@@ -81,9 +84,11 @@ function Wordmark({ name }: { name: string }) {
 }
 
 /** A designed close: link columns, then the name returns at full width. Can sit under the page as a curtain. */
-export function Footer({ name, columns, details, legal, credit, reveal = false, className }: FooterProps) {
+export function Footer({ name, columns, details, legal, credit, reveal = false, className, accessibilityFeatures }: FooterProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   return (
     <footer
+      {...rootProps}
       className={cn(
         "w-full overflow-hidden bg-ink px-5 pt-10 text-surface dark:bg-elevated dark:text-ink sm:px-8 sm:pt-12",
         reveal ? "sticky bottom-0 z-0 grid min-h-svh grid-rows-[auto_1fr_auto] pb-6" : "rounded-sheet",
@@ -110,7 +115,7 @@ export function Footer({ name, columns, details, legal, credit, reveal = false, 
             {credit}
           </div>
         )}
-        <Wordmark name={name} />
+        <Wordmark name={name} still={a11y.reduceMotion || a11y.calm} />
       </div>
     </footer>
   );
