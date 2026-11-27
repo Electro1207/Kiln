@@ -145,7 +145,7 @@ export function Tabs({ items, value, defaultValue, onChange, variant = "underlin
               initial="enter"
               animate="center"
               exit="exit"
-              className="w-full pt-5 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="w-full pt-5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               {active.content}
             </motion.div>
