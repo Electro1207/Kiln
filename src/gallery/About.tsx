@@ -32,6 +32,15 @@ export function About() {
         </div>
       </section>
 
+      <section aria-labelledby="a11y" className="grid gap-6 md:grid-cols-[200px_1fr]">
+        <h2 id="a11y" className="text-base font-semibold">Accessibility</h2>
+        <div className="max-w-2xl space-y-4 text-[15px] leading-relaxed text-ink">
+          <p>
+            Every component takes an <code>accessibilityFeatures</code> prop and honours reduced motion, high contrast, large targets, text scale and the other features, which people set in the accessibility menu. Switch on the A11y view in the header to see each component's features, ARIA pattern and keyboard map. Every demo is smoke-tested in CI in light, dark and at 390px.
+          </p>
+        </div>
+      </section>
+
       <section aria-labelledby="who" className="grid gap-6 md:grid-cols-[200px_1fr]">
         <h2 id="who" className="text-base font-semibold">Who makes it</h2>
         <div className="max-w-2xl space-y-4 text-[15px] leading-relaxed text-ink">

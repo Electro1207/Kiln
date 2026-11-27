@@ -1,6 +1,6 @@
 # Kiln
 
-Kiln is a free, MIT-licensed set of 200+ animated React components that work in light and dark mode. It's built on React 19, Tailwind CSS v4, Motion (formerly Framer Motion) and lucide-react, and every component is tested to hold 60fps and to work from the keyboard.
+Kiln is a free, MIT-licensed set of 242 animated React components that work in light and dark mode. It's built on React 19, Tailwind CSS v4, Motion (formerly Framer Motion) and lucide-react. Every component works from the keyboard, takes an `accessibilityFeatures` prop, and is smoke-tested in CI. There is no Pro tier and no paid component.
 
 **[Gallery](https://usekiln.pages.dev)** · [What's new](https://usekiln.pages.dev/whats-new) · [npm](https://www.npmjs.com/package/@electro1207/kiln) · [shadcn registry](https://usekiln.pages.dev/r/registry.json) · [Guide for AI agents](https://github.com/Electro1207/Kiln/blob/main/src/kiln/CLAUDE.md)
 
@@ -17,7 +17,15 @@ There are two ways to use it. Install the npm package `@electro1207/kiln`, or co
 
 I started Kiln while using AI to build full-stack apps faster. The code came together quickly, but the interface didn't: good UI and UX was always the slow part. There are other component libraries, but many of them keep their best pieces behind a paywall.
 
-Kiln is free, all of it. It's a passion project, made so anyone can ship a product that looks and feels good without paying for the parts that make it so.
+Kiln is free, all of it: 242 components, no Pro tier, no paid parts. It's a passion project, made so anyone can ship a product that looks and feels good without paying for the parts that make it so. Accessibility is part of that: every component supports it, so you don't have to bolt it on afterwards.
+
+## Accessibility
+
+Every component takes an `accessibilityFeatures` prop and honours Kiln's accessibility features: reduced motion, no flashing, calm, high contrast, colour-safe, extended time, large targets and text scale, grouped into profiles such as low vision, vestibular, ADHD and dyslexia. People set them in the `AccessibilityMenu`. Developers set them per component, or for a whole subtree with `AccessibilityScope`.
+
+Every gallery entry has an Accessibility view: switch on the "A11y view" toggle in the gallery header (or open any page with `?a11y=1`) to see that component's supported features, ARIA pattern, keyboard map and notes.
+
+Every demo is smoke-tested in CI with Playwright (`npm run test:smoke`), in light, dark and at 390px wide. The test fails on console errors, runaway sizes and sideways overflow, and checks that keyboard focus is visible.
 
 ## About
 
@@ -34,7 +42,7 @@ Everything goes through GitHub, which is free. You only need a GitHub account.
 
 ## Contents
 
-[Why Kiln](#why-kiln) · [Requests](#requests-bugs-and-questions) · [Install from npm](#install-from-npm) · [Copy components in](#copy-components-in) · [Usage](#usage) · [Theming](#theming) · [Sizing and className](#sizing-and-classname) · [Controlled and uncontrolled](#controlled-and-uncontrolled) · [For AI agents](#for-ai-agents) · [Develop this repo](#develop-this-repo) · [Contributing](#contributing) · [Licence](#licence) · [Security](#security)
+[Why Kiln](#why-kiln) · [Accessibility](#accessibility) · [Requests](#requests-bugs-and-questions) · [Install from npm](#install-from-npm) · [Copy components in](#copy-components-in) · [Usage](#usage) · [Theming](#theming) · [Sizing and className](#sizing-and-classname) · [Controlled and uncontrolled](#controlled-and-uncontrolled) · [For AI agents](#for-ai-agents) · [Develop this repo](#develop-this-repo) · [Contributing](#contributing) · [Licence](#licence) · [Security](#security)
 
 ## Install from npm
 
