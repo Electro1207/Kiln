@@ -3,6 +3,7 @@ import { cn } from "../../cn";
 import { Field, inputBox } from "../shared/Field";
 import { countBefore, placeCaret, positionAfter } from "./caret";
 import { useControllable, type Size } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 const isDigit = (c: string) => c >= "0" && c <= "9";
 
@@ -13,7 +14,7 @@ const isDigit = (c: string) => c >= "0" && c <= "9";
  * or uncontrolled with `defaultValue`.
  */
 export function CurrencyInput({
-  value: valueProp, defaultValue = null, onChange: onChangeProp, currency = "USD", locale = "en-US", label, hint, error, max, size = "md", className, placeholder,
+  value: valueProp, defaultValue = null, onChange: onChangeProp, currency = "USD", locale = "en-US", label, hint, error, max, size = "md", className, placeholder, accessibilityFeatures,
 }: {
   /** Amount in minor units; leave out to let the component keep it. */
   value?: number | null;
@@ -31,7 +32,10 @@ export function CurrencyInput({
   size?: Size;
   className?: string;
   placeholder?: string;
+  /** Accessibility features to add for this field only (adds to the person's settings, never removes them). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const id = useId();
   const [value, onChange] = useControllable<number | null>(valueProp, defaultValue, onChangeProp);
   const input = useRef<HTMLInputElement>(null);
@@ -78,6 +82,7 @@ export function CurrencyInput({
   };
 
   return (
+    <div className="contents" {...rootProps}>
     <Field id={id} label={label} hint={hint} error={error} className={className}>
       <div className={inputBox(!!error, size)}>
         <input
@@ -91,10 +96,11 @@ export function CurrencyInput({
           aria-describedby={error || hint ? `${id}-msg` : undefined}
           onChange={(e) => onInput(e.target.value, e.target.selectionStart ?? e.target.value.length)}
           onBlur={() => setDraft(null)}
-          className={cn("h-full min-w-0 flex-1 bg-transparent text-ink outline-none tabular placeholder:text-faint")}
+          className={cn("h-full min-w-0 flex-1 bg-transparent text-ink outline-none tabular placeholder:text-faint")} /* the box shows focus with focus-within */
         />
         <span className="shrink-0 text-[0.8125rem] text-faint">{currency}</span>
       </div>
     </Field>
+    </div>
   );
 }

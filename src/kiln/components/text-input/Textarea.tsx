@@ -4,6 +4,7 @@ import { cn } from "../../cn";
 import { springFirm } from "../../motion";
 import { Field } from "../shared/Field";
 import type { Size } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 const textareaSizes: Record<Size, string> = {
   sm: "px-2.5 py-2 text-[0.8125rem] leading-5",
@@ -24,7 +25,11 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
   size?: Size;
   /** Root (label, box and message). `className` styles the `<textarea>` itself. */
   containerClassName?: string;
-}>(function Textarea({ label, hint, error, minRows = 3, maxRows = 10, size = "md", showCount, maxLength, id: idProp, className, containerClassName, value, defaultValue, onChange, onValueChange, ...rest }, ref) {
+  /** Accessibility features to add for this field only (`calm` and `reduceMotion` make the box change height at once instead of easing; adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
+}>(function Textarea({ label, hint, error, minRows = 3, maxRows = 10, size = "md", showCount, maxLength, id: idProp, className, containerClassName, value, defaultValue, onChange, onValueChange, accessibilityFeatures, ...rest }, ref) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const autoId = useId();
   const id = idProp ?? autoId;
   const el = useRef<HTMLTextAreaElement>(null);
@@ -46,12 +51,14 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
     const target = Math.min(Math.max(t.scrollHeight, line * minRows + pad), line * maxRows + pad);
     t.style.height = prev;
     setCapped(t.scrollHeight > line * maxRows + pad);
-    if (first.current) { height.set(target); first.current = false; }
+    // Growing with the text is a functional height change (one box, one frame at a time), so it is kept; it is instant when still.
+    if (first.current || still) { height.set(target); first.current = false; }
     else animate(height, target, springFirm);
-  }, [text, minRows, maxRows, height]);
+  }, [text, minRows, maxRows, height, still]);
 
   const over = maxLength != null && text.length >= maxLength;
   return (
+    <div className="contents" {...rootProps}>
     <Field
       id={id}
       className={containerClassName}
@@ -82,5 +89,6 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
         {...(rest as object)}
       />
     </Field>
+    </div>
   );
 });

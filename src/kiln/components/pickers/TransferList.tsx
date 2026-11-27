@@ -161,19 +161,20 @@ export const TransferList = forwardRef<HTMLDivElement, TransferListProps>(functi
       style={{ ...rootProps.style, ...style }}
       className={cn("grid w-full items-stretch gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]", className)}
     >
-      <Panel {...left} />
+      <Panel {...left} accessibilityFeatures={accessibilityFeatures} />
       <div role="group" className="flex items-center justify-center gap-2 sm:flex-col" aria-label={`${t.available} / ${t.chosen}`}>
         <IconButton variant="outline" size="sm" icon={<span className="grid max-sm:rotate-90">{ic.moveRight}</span>} aria-label={l.moveSelectedRight} disabled={!picked("available").length} onClick={() => move("available", picked("available"))} />
         <IconButton variant="outline" size="sm" icon={<span className="grid max-sm:rotate-90">{ic.moveAllRight}</span>} aria-label={l.moveAllRight} disabled={!visible("available").some((i) => !i.disabled)} onClick={() => moveAll("available")} />
         <IconButton variant="outline" size="sm" icon={<span className="grid max-sm:rotate-90">{ic.moveLeft}</span>} aria-label={l.moveSelectedLeft} disabled={!picked("chosen").length} onClick={() => move("chosen", picked("chosen"))} />
         <IconButton variant="outline" size="sm" icon={<span className="grid max-sm:rotate-90">{ic.moveAllLeft}</span>} aria-label={l.moveAllLeft} disabled={!visible("chosen").some((i) => !i.disabled)} onClick={() => moveAll("chosen")} />
       </div>
-      <Panel {...right} />
+      <Panel {...right} accessibilityFeatures={accessibilityFeatures} />
     </div>
   );
 });
 
 type PanelProps = {
+  accessibilityFeatures?: AccessibilityFeaturesProp;
   side: Side;
   title: string;
   rows: TransferItem[];
@@ -194,7 +195,7 @@ type PanelProps = {
   send: (ids: string[]) => void;
 };
 
-function Panel({ title, rows, total, selected, active, filter, filterable, height, labels: l, icon, domId, setFilter, setSelected, setActive, getAnchor, setAnchor, send }: PanelProps) {
+function Panel({ title, rows, total, selected, active, filter, filterable, height, labels: l, icon, domId, setFilter, setSelected, setActive, getAnchor, setAnchor, send, accessibilityFeatures }: PanelProps) {
   const list = useRef<HTMLDivElement>(null);
   const enabled = rows.filter((r) => !r.disabled);
   const indexOf = (id: string | null) => rows.findIndex((r) => r.id === id);
@@ -273,7 +274,7 @@ function Panel({ title, rows, total, selected, active, filter, filterable, heigh
       </div>
       {filterable && (
         <div className="px-3 pb-2">
-          <TextField size="sm" aria-label={l.filter(title)} placeholder={l.filter(title)} leading={icon} clearable value={filter} onValueChange={setFilter} onClear={() => setFilter("")} autoComplete="off" />
+          <TextField accessibilityFeatures={accessibilityFeatures} size="sm" aria-label={l.filter(title)} placeholder={l.filter(title)} leading={icon} clearable value={filter} onValueChange={setFilter} onClear={() => setFilter("")} autoComplete="off" />
         </div>
       )}
       <div

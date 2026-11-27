@@ -5,6 +5,7 @@ import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { easeOut, springSoft } from "../../motion";
 import { useOnScreen, usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Icons used by PlaceholderInput. Pass a partial via `icons` to replace them. */
 export interface PlaceholderInputIcons {
@@ -38,6 +39,8 @@ export type PlaceholderInputProps = {
   labels?: Partial<PlaceholderInputLabels>;
   /** Replace any built-in icon. Merged over `placeholderInputIcons`. */
   icons?: Partial<PlaceholderInputIcons>;
+  /** Accessibility features to add for this field only (`calm` and `reduceMotion` hold the first suggestion and skip the dissolve; adds to the person's settings). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 type Dust = { id: number; chars: Array<{ c: string; dx: number; dy: number; r: number }> };
@@ -47,7 +50,8 @@ type Dust = { id: number; chars: Array<{ c: string; dx: number; dy: number; r: n
  * empty. Sending the text makes it drift up and dissolve, letter by letter,
  * as the field clears.
  */
-export function PlaceholderInput({ placeholders, value: valueProp, defaultValue = "", onChange, onSubmit, label, interval = 3000, className, labels, icons }: PlaceholderInputProps) {
+export function PlaceholderInput({ placeholders, value: valueProp, defaultValue = "", onChange, onSubmit, label, interval = 3000, className, labels, icons, accessibilityFeatures }: PlaceholderInputProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...placeholderInputLabels, ...labels };
   const ic = { ...placeholderInputIcons, ...icons };
   const [value, setValue] = useControllable(valueProp, defaultValue, onChange);
@@ -55,7 +59,7 @@ export function PlaceholderInput({ placeholders, value: valueProp, defaultValue 
   const [dust, setDust] = useState<Dust | null>(null);
   const form = useRef<HTMLFormElement>(null);
   const onScreen = useOnScreen(form);
-  const reduce = usePrefersReducedMotion();
+  const reduce = usePrefersReducedMotion() || a11y.reduceMotion || a11y.calm;
   const id = useId();
   const empty = value === "" && !dust;
 
@@ -80,7 +84,7 @@ export function PlaceholderInput({ placeholders, value: valueProp, defaultValue 
   };
 
   return (
-    <form ref={form} onSubmit={submit} className={cn("relative w-full", className)}>
+    <form ref={form} onSubmit={submit} {...rootProps} className={cn("relative w-full", className)}>
       <label htmlFor={id} className="sr-only">{label}</label>
       <input
         id={id}

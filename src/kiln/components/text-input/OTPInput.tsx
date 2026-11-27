@@ -36,18 +36,18 @@ export function OTPInput({
   error?: boolean;
   disabled?: boolean;
   className?: string;
-  /** Accessibility features to add for this field only (adds to the person's settings). */
+  /** Accessibility features to add for this field only (`calm` and `reduceMotion` skip the error nudge and the digit drop, and stop the caret blinking; adds to the person's settings). */
   accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
-  const { rootProps } = useA11yProps(accessibilityFeatures);
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...otpInputLabels, ...labels };
   const label = labelProp ?? l.label;
   const [value, onChange] = useControllable(valueProp, defaultValue, onChangeProp);
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
   const [focused, setFocused] = useState(false);
-  const reduce = useReducedMotion();
-  // Low-end devices keep the drop but skip the blur, which repaints every frame.
+  const reduce = useReducedMotion() || a11y.reduceMotion || a11y.calm;
+  // Low-end devices keep the drop but skip the blur, which repaints every frame. The blur is an exception kept on purpose: one small digit at a time, a few frames.
   const lite = useMotionTier() === "lite";
   const [scope, animate] = useAnimate<HTMLDivElement>();
 

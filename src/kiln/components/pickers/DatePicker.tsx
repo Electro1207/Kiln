@@ -6,6 +6,7 @@ import { springFirm, springSoft } from "../../motion";
 import { AnchoredLayer, SwapText } from "../shared/Anchored";
 import { useControllable, type Size } from "../../controllable";
 import { inputSizes } from "../shared/Field";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 export const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
@@ -81,6 +82,8 @@ type CalendarBase = {
   labels?: Partial<CalendarLabels>;
   /** Replace any built-in icon. Merged over `calendarIcons`. */
   icons?: Partial<CalendarIcons>;
+  /** Accessibility features to add for this calendar only (`calm` and `reduceMotion` make months change without sliding; `colourSafe` and `highContrast` outline the days inside a range; adds to the person's settings, never removes them). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 export type CalendarProps =
   | (CalendarBase & {
@@ -102,6 +105,9 @@ export type CalendarProps =
 
 /** A month grid for picking one date (`mode="single"`, the default) or a range (`mode="range"`). Arrow keys, Page Up/Down, Home and End move focus. */
 export function Calendar(props: CalendarProps) {
+  const { a11y, rootProps } = useA11yProps(props.accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
+  const marked = a11y.colourSafe || a11y.highContrast;
   const l = { ...calendarLabels, ...props.labels };
   const ic = useMemo(() => ({ ...calendarIcons, ...props.icons }), [props.icons]);
   const weekdays = props.labels?.weekdays ?? (props.locale ? intlWeekdays(props.locale) : calendarLabels.weekdays);
@@ -185,7 +191,7 @@ export function Calendar(props: CalendarProps) {
     range?.start && rangeEnd ? (range.start <= rangeEnd ? [range.start, rangeEnd] : [rangeEnd, range.start]) : [null, null];
 
   return (
-    <div className={cn("w-[17.5rem] select-none p-2", props.className)}>
+    <div {...rootProps} className={cn("w-[17.5rem] select-none p-2", props.className)}>
       <div className="mb-2 flex items-center justify-between gap-2">
         <button
           type="button"
@@ -201,9 +207,9 @@ export function Calendar(props: CalendarProps) {
               key={monthKey(month)}
               custom={dir}
               variants={{
-                enter: (d: number) => ({ y: d >= 0 ? 8 : -8, opacity: 0 }),
-                center: { y: 0, opacity: 1, transition: { y: springSoft, opacity: { duration: 0.18, delay: 0.08 } } },
-                exit: (d: number) => ({ y: d >= 0 ? -8 : 8, opacity: 0, transition: { duration: 0.1 } }),
+                enter: (d: number) => ({ y: still ? 0 : d >= 0 ? 8 : -8, opacity: 0 }),
+                center: { y: 0, opacity: 1, transition: still ? { duration: 0 } : { y: springSoft, opacity: { duration: 0.18, delay: 0.08 } } },
+                exit: (d: number) => ({ y: still ? 0 : d >= 0 ? -8 : 8, opacity: 0, transition: { duration: still ? 0 : 0.1 } }),
               }}
               initial="enter"
               animate="center"
@@ -249,7 +255,7 @@ export function Calendar(props: CalendarProps) {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={springFirm}
+            transition={still ? { duration: 0 } : springFirm}
             onKeyDown={onKey}
             className="absolute inset-0 grid grid-cols-7 grid-rows-6"
           >
@@ -271,6 +277,7 @@ export function Calendar(props: CalendarProps) {
                       aria-hidden
                       className={cn(
                         "absolute inset-y-[3px] bg-accent-soft transition-opacity",
+                        marked && "border-y border-accent",
                         inside && "inset-x-0",
                         isStart && "left-1/2 right-0",
                         isEnd && "left-0 right-1/2",
@@ -304,7 +311,7 @@ export function Calendar(props: CalendarProps) {
                         <motion.span
                           key="sel"
                           aria-hidden
-                          initial={{ opacity: 0, scale: 0.9 }}
+                          initial={{ opacity: 0, scale: still ? 1 : 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0 }}
                           transition={{ opacity: { duration: 0.12, ease: "linear" }, scale: springSoft }}
@@ -418,10 +425,13 @@ export type DatePickerProps = {
   /** Replace any built-in icon. Merged over `datePickerIcons`. */
   icons?: Partial<DatePickerIcons>;
   className?: string;
+  /** Accessibility features to add for this picker only (`calm` and `reduceMotion` make months change without sliding; `colourSafe` and `highContrast` outline the days inside a range; adds to the person's settings, never removes them). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A button that opens a calendar. Controlled with `value` + `onChange`, or uncontrolled with `defaultValue`. */
-export function DatePicker({ value: valueProp, defaultValue = null, onChange: onChangeProp, label, placeholder, min, max, size = "md", locale, labels, icons, className }: DatePickerProps) {
+export function DatePicker({ value: valueProp, defaultValue = null, onChange: onChangeProp, label, placeholder, min, max, size = "md", locale, labels, icons, className, accessibilityFeatures }: DatePickerProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...datePickerLabels, ...labels };
   const ic = useMemo(() => ({ ...datePickerIcons, ...icons }), [icons]);
   const id = useId();
@@ -430,7 +440,7 @@ export function DatePicker({ value: valueProp, defaultValue = null, onChange: on
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   return (
-    <div className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
+    <div {...rootProps} className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
       <Trigger
         id={id}
         size={size}
@@ -445,6 +455,7 @@ export function DatePicker({ value: valueProp, defaultValue = null, onChange: on
       <AnchoredLayer open={open} onClose={() => setOpen(false)} anchor={triggerRef} role="dialog" aria-label={l.dialog}>
         <Calendar
           locale={locale}
+          accessibilityFeatures={accessibilityFeatures}
           labels={labels}
           icons={ic}
           value={value}
@@ -536,6 +547,8 @@ export type DateRangePickerProps = {
   /** Replace any built-in icon. Merged over `dateRangePickerIcons`. */
   icons?: Partial<DateRangePickerIcons>;
   className?: string;
+  /** Accessibility features to add for this picker only (`calm` and `reduceMotion` make months change without sliding; `colourSafe` and `highContrast` outline the days inside a range; adds to the person's settings, never removes them). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const emptyRange: DateRange = { start: null, end: null };
@@ -554,7 +567,9 @@ export function DateRangePicker({
   labels,
   icons,
   className,
+  accessibilityFeatures,
 }: DateRangePickerProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...dateRangePickerLabels, ...labels };
   const ic = useMemo(() => ({ ...dateRangePickerIcons, ...icons }), [icons]);
   const presets = presetsProp ?? makePresets(l);
@@ -573,7 +588,7 @@ export function DateRangePicker({
   const nights = value.start && value.end ? Math.round((+value.end - +value.start) / 864e5) : 0;
 
   return (
-    <div className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
+    <div {...rootProps} className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
       <Trigger id={id} size={size} icon={ic.calendar} label={label} text={text} placeholder={placeholder ?? l.placeholder} open={open} onClick={() => setOpen((o) => !o)} triggerRef={triggerRef} />
       <AnchoredLayer open={open} onClose={() => setOpen(false)} anchor={triggerRef} role="dialog" aria-label={l.dialog}>
         <div className="flex flex-col sm:flex-row">
@@ -593,7 +608,7 @@ export function DateRangePicker({
             ))}
           </div>
           <div>
-            <Calendar key={calKey} locale={locale} labels={labels} icons={ic} mode="range" value={value} onChange={onChange} min={min} autoFocus={calKey === 0} />
+            <Calendar key={calKey} accessibilityFeatures={accessibilityFeatures} locale={locale} labels={labels} icons={ic} mode="range" value={value} onChange={onChange} min={min} autoFocus={calKey === 0} />
             <div className="flex items-center justify-between gap-3 px-3 pb-2 pt-1 text-xs text-muted">
               <span className="tabular">{nights > 0 ? l.nights(nights) : value.start ? l.chooseEnd : l.chooseStart}</span>
               <button

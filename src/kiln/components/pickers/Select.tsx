@@ -5,6 +5,7 @@ import { cn } from "../../cn";
 import { springSnappy } from "../../motion";
 import { useControllable, type Size } from "../../controllable";
 import { AnchoredLayer, RowHighlight, SwapText, optionClass } from "../shared/Anchored";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type SelectOption = { value: string; label: string; hint?: string; icon?: ReactNode; disabled?: boolean };
 
@@ -54,13 +55,17 @@ export type SelectProps = {
   labels?: Partial<SelectLabels>;
   /** Replace any built-in icon. Merged over `selectIcons`. */
   icons?: Partial<SelectIcons>;
+  /** Accessibility features to add for this select only (`calm` and `reduceMotion` stop the chevron turning and the tick growing; adds to the person's settings, never removes them). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A single choice from a list, with keyboard navigation and typeahead. */
 export function Select({
   options, value: valueProp, defaultValue = null, onChange: onChangeProp, open: openProp, defaultOpen = false, onOpenChange,
-  placeholder, label, "aria-label": ariaLabel, size = "md", disabled, className, triggerClassName, labels, icons,
+  placeholder, label, "aria-label": ariaLabel, size = "md", disabled, className, triggerClassName, labels, icons, accessibilityFeatures,
 }: SelectProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...selectLabels, ...labels };
   const ic = useMemo(() => ({ ...selectIcons, ...icons }), [icons]);
   const [value, setValue] = useControllable<string | null>(valueProp, defaultValue, onChangeProp as (v: string | null) => void);
@@ -133,7 +138,7 @@ export function Select({
   };
 
   return (
-    <div className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
+    <div {...rootProps} className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
       {label && (
         <span id={`${id}-label`} className="text-[0.8125rem] font-medium text-ink">
           {label}
@@ -165,7 +170,7 @@ export function Select({
             {selected?.label ?? placeholder ?? l.placeholder}
           </SwapText>
         </span>
-        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={springSnappy} className="inline-flex text-muted [&>svg]:size-4">
+        <motion.span animate={{ rotate: open && !still ? 180 : 0 }} transition={springSnappy} className="inline-flex text-muted [&>svg]:size-4">
           {ic.chevron}
         </motion.span>
       </button>
@@ -206,7 +211,7 @@ export function Select({
               <AnimatePresence initial={false}>
                 {o.value === value && (
                   <motion.span
-                    initial={{ scale: 0.8, opacity: 0 }}
+                    initial={{ scale: still ? 1 : 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={springSnappy}

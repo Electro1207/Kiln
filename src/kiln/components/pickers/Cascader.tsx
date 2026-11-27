@@ -87,7 +87,7 @@ export const Cascader = forwardRef<HTMLButtonElement, CascaderProps>(function Ca
 ) {
   const l = { ...cascaderLabels, ...labels };
   const ic = useMemo(() => ({ ...cascaderIcons, ...icons }), [icons]);
-  const { rootProps } = useA11yProps(accessibilityFeatures);
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const id = useId();
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -222,7 +222,7 @@ export const Cascader = forwardRef<HTMLButtonElement, CascaderProps>(function Ca
             {complete ? text : placeholder ?? l.placeholder}
           </SwapText>
         </span>
-        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={springSnappy} className="inline-flex text-muted [&>svg]:size-4">{ic.chevron}</motion.span>
+        <motion.span animate={{ rotate: open && !(a11y.calm || a11y.reduceMotion) ? 180 : 0 }} transition={springSnappy} className="inline-flex text-muted [&>svg]:size-4">{ic.chevron}</motion.span>
       </button>
 
       <AnchoredLayer

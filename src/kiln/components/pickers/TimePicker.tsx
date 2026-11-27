@@ -4,6 +4,7 @@ import { cn } from "../../cn";
 import { AnchoredLayer, SwapText } from "../shared/Anchored";
 import { useControllable, type Size } from "../../controllable";
 import { inputSizes } from "../shared/Field";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type Time = { hours: number; minutes: number };
 
@@ -22,7 +23,8 @@ export interface TimeWheelsLabels {
 export const timeWheelsLabels: TimeWheelsLabels = { hours: "Hours", minutes: "Minutes" };
 
 /** One scroll-snapping wheel. Native scrolling does the motion; rows fade with distance from the centre. */
-function Wheel({ items, value, onChange, label }: { items: number[]; value: number; onChange: (v: number) => void; label: string }) {
+function Wheel({ items, value, onChange, label, still }: { items: number[]; value: number; onChange: (v: number) => void; label: string; still: boolean }) {
+  const smooth = still ? "auto" : "smooth";
   const ref = useRef<HTMLDivElement>(null);
   const settle = useRef<number | undefined>(undefined);
   const index = Math.max(0, items.indexOf(value));
@@ -59,7 +61,7 @@ function Wheel({ items, value, onChange, label }: { items: number[]; value: numb
 
   const step = (n: number) => {
     const i = Math.min(items.length - 1, Math.max(0, index + n));
-    ref.current?.scrollTo({ top: i * ITEM, behavior: "smooth" });
+    ref.current?.scrollTo({ top: i * ITEM, behavior: smooth });
   };
 
   const onKey = (e: KeyboardEvent) => {
@@ -90,7 +92,7 @@ function Wheel({ items, value, onChange, label }: { items: number[]; value: numb
           type="button"
           tabIndex={-1}
           data-i={i}
-          onClick={() => ref.current?.scrollTo({ top: i * ITEM, behavior: "smooth" })}
+          onClick={() => ref.current?.scrollTo({ top: i * ITEM, behavior: smooth })}
           className={cn(
             "flex w-full snap-center items-center justify-center text-[1.0625rem] tabular will-change-transform",
             n === value ? "font-medium text-ink" : "text-muted",
@@ -105,23 +107,28 @@ function Wheel({ items, value, onChange, label }: { items: number[]; value: numb
 }
 
 /** Hours and minutes as two wheels on a centre band. */
-export function TimeWheels({ value, onChange, minuteStep = 5, labels }: {
+export function TimeWheels({ value, onChange, minuteStep = 5, labels, accessibilityFeatures }: {
   value: Time;
   onChange: (t: Time) => void;
   minuteStep?: number;
   /** Override any UI text. Merged over `timeWheelsLabels`. */
   labels?: Partial<TimeWheelsLabels>;
+  /** Accessibility features to add for these wheels only (`calm` and `reduceMotion` jump to a time instead of gliding; adds to the person's settings, never removes them). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...timeWheelsLabels, ...labels };
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const minutes = Array.from({ length: Math.ceil(60 / minuteStep) }, (_, i) => i * minuteStep);
   return (
-    <div className="relative flex items-center justify-center gap-1 px-3 py-2">
+    <div {...rootProps} className="relative flex items-center justify-center gap-1 px-3 py-2">
       <span aria-hidden className="pointer-events-none absolute inset-x-3 top-1/2 -translate-y-1/2 rounded-control bg-raised" style={{ height: ITEM }} />
-      <Wheel label={l.hours} items={hours} value={value.hours} onChange={(h) => onChange({ ...value, hours: h })} />
+      <Wheel still={still} label={l.hours} items={hours} value={value.hours} onChange={(h) => onChange({ ...value, hours: h })} />
       <span aria-hidden className="relative z-[1] pb-0.5 text-[1.0625rem] font-medium text-muted">:</span>
       <Wheel
         label={l.minutes}
+        still={still}
         items={minutes}
         value={minutes.includes(value.minutes) ? value.minutes : 0}
         onChange={(m) => onChange({ ...value, minutes: m })}
@@ -163,10 +170,13 @@ export type TimePickerProps = {
   /** Replace any built-in icon. Merged over `timePickerIcons`. */
   icons?: Partial<TimePickerIcons>;
   className?: string;
+  /** Accessibility features to add for this picker only (`calm` and `reduceMotion` make the wheels jump instead of glide; adds to the person's settings, never removes them). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A button that opens hour and minute wheels. Controlled with `value` + `onChange`, or uncontrolled with `defaultValue`. */
-export function TimePicker({ value: valueProp, defaultValue = null, onChange: onChangeProp, label, placeholder, minuteStep = 5, size = "md", labels, icons, className }: TimePickerProps) {
+export function TimePicker({ value: valueProp, defaultValue = null, onChange: onChangeProp, label, placeholder, minuteStep = 5, size = "md", labels, icons, className, accessibilityFeatures }: TimePickerProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...timePickerLabels, ...labels };
   const ic = { ...timePickerIcons, ...icons };
   const id = useId();
@@ -176,7 +186,7 @@ export function TimePicker({ value: valueProp, defaultValue = null, onChange: on
   const [open, setOpen] = useState(false);
   const shown = value ?? { hours: 9, minutes: 0 };
   return (
-    <div className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
+    <div {...rootProps} className={cn("k-fill flex min-w-0 flex-col gap-1.5", className)}>
       {label && (
         <span id={`${id}-label`} className="text-[0.8125rem] font-medium text-ink">
           {label}
@@ -204,7 +214,7 @@ export function TimePicker({ value: valueProp, defaultValue = null, onChange: on
         </span>
       </button>
       <AnchoredLayer open={open} onClose={() => setOpen(false)} anchor={triggerRef} role="dialog" aria-label={l.dialog}>
-        <TimeWheels value={shown} onChange={onChange} minuteStep={minuteStep} labels={l} />
+        <TimeWheels value={shown} onChange={onChange} minuteStep={minuteStep} labels={l} accessibilityFeatures={accessibilityFeatures} />
       </AnchoredLayer>
     </div>
   );

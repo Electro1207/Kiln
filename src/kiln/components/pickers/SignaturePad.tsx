@@ -11,6 +11,10 @@ type Pt = { x: number; y: number; w: number };
 type Stroke = Pt[];
 
 /** Icons used by SignaturePad. Pass a partial via `icons` to replace them. */
+/* Allowed exception to "tokens only": the PNG export is always dark ink so it reads on paper in either theme,
+   and a canvas cannot read a CSS variable for the exported copy. On screen the ink comes from --k-ink. */
+const EXPORT_INK = "#141413";
+
 export interface SignaturePadIcons {
   /** Undo button. */
   undo: ReactNode;
@@ -136,7 +140,7 @@ export const SignaturePad = forwardRef<SignaturePadHandle, {
   typedRef.current = { mode, typed };
   const has = mode === "type" ? typed.trim().length > 0 : count > 0;
 
-  const ink = () => getComputedStyle(document.documentElement).getPropertyValue("--k-ink").trim() || "#141413";
+  const ink = () => getComputedStyle(document.documentElement).getPropertyValue("--k-ink").trim() || EXPORT_INK;
 
   const segment = (g: CanvasRenderingContext2D, a: Pt, b: Pt, c: Pt) => {
     const m1 = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
@@ -285,7 +289,7 @@ export const SignaturePad = forwardRef<SignaturePadHandle, {
       const g = out.getContext("2d");
       if (!g) return null;
       g.scale(scale, scale);
-      g.fillStyle = "#141413";
+      g.fillStyle = EXPORT_INK;
       drawTyped(g, text, w, pad + size * 1.1, pad, size);
       return out.toDataURL("image/png");
     }
@@ -301,7 +305,7 @@ export const SignaturePad = forwardRef<SignaturePadHandle, {
     if (!g) return null;
     g.setTransform(scale, 0, 0, scale, -minX * scale, -minY * scale);
     // Exports are always dark ink, whatever the theme, so they read on paper.
-    g.strokeStyle = "#141413"; g.fillStyle = "#141413"; g.lineCap = "round"; g.lineJoin = "round";
+    g.strokeStyle = EXPORT_INK; g.fillStyle = EXPORT_INK; g.lineCap = "round"; g.lineJoin = "round";
     for (const s of strokes.current) {
       if (s.length === 1) { dot(g, s[0]); continue; }
       for (let i = 1; i < s.length - 1; i++) segment(g, s[i - 1], s[i], s[i + 1]);

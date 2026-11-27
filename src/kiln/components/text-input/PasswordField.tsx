@@ -75,10 +75,11 @@ export const PasswordField = forwardRef<HTMLInputElement, Omit<InputHTMLAttribut
   labels?: Partial<PasswordFieldLabels>;
   /** Replace any built-in icon. Merged over `passwordFieldIcons`. */
   icons?: Partial<PasswordFieldIcons>;
-  /** Accessibility features to add for this field only (adds to the person's settings). */
+  /** Accessibility features to add for this field only (`calm` and `reduceMotion` swap the eye icon without scaling; adds to the person's settings). */
   accessibilityFeatures?: AccessibilityFeaturesProp;
 }>(function PasswordField({ value: valueProp, defaultValue = "", onValueChange: onValueProp, label = "Password", error, meter, rules = defaultPasswordRules, size = "md", id: idProp, labels, icons, accessibilityFeatures, ...rest }, ref) {
-  const { rootProps } = useA11yProps(accessibilityFeatures);
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...passwordFieldLabels, ...labels };
   const ic = { ...passwordFieldIcons, ...icons };
   const [value, onValueChange] = useControllable(valueProp, defaultValue, onValueProp);
@@ -113,10 +114,10 @@ export const PasswordField = forwardRef<HTMLInputElement, Omit<InputHTMLAttribut
           aria-pressed={shown}
           className="grid size-7 shrink-0 place-items-center rounded-md text-muted transition-colors hover:bg-raised hover:text-ink [&>*]:[grid-area:1/1] [&_svg]:size-4"
         >
-          <motion.span className="grid" initial={false} animate={{ opacity: shown ? 0 : 1, scale: shown ? 0.7 : 1 }} transition={springSnappy}>
+          <motion.span className="grid" initial={false} animate={{ opacity: shown ? 0 : 1, scale: shown && !still ? 0.7 : 1 }} transition={springSnappy}>
             {ic.show}
           </motion.span>
-          <motion.span className="grid" initial={false} animate={{ opacity: shown ? 1 : 0, scale: shown ? 1 : 0.7 }} transition={springSnappy}>
+          <motion.span className="grid" initial={false} animate={{ opacity: shown ? 1 : 0, scale: shown || still ? 1 : 0.7 }} transition={springSnappy}>
             {ic.hide}
           </motion.span>
         </button>
