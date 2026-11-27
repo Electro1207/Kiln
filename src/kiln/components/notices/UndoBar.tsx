@@ -65,6 +65,7 @@ export function UndoBar({ item, onUndo, onCommit, duration = 6000, labels, class
         <motion.div
           key="undo"
           {...rootProps}
+          // A one-off height fold of this single bar (allowed): the page below moves once.
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: "auto", opacity: 1, transition: { height: springFirm, opacity: { ...fade, delay: 0.06 } } }}
           exit={{ height: 0, opacity: 0, transition: { height: { ...springFirm, delay: 0.06 }, opacity: { duration: 0.14, ease: easeOut } } }}

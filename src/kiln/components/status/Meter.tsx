@@ -2,6 +2,7 @@ import { useEffect, useId } from "react";
 import { motion, useSpring, useTransform } from "motion/react";
 import { cn } from "../../cn";
 import { springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by Meter. Pass a partial via `labels` to translate or reword. */
 export interface MeterLabels {
@@ -9,10 +10,16 @@ export interface MeterLabels {
   of: (max: string, unit: string) => string;
   /** Accessible value text, e.g. "4.2 of 10 GB". */
   valueText: (used: string, max: number, unit: string) => string;
+  /** Word for the state at the warning level; spoken always, shown under `colourSafe`. */
+  nearlyFull: string;
+  /** Word for the state at the full level; spoken always, shown under `colourSafe`. */
+  full: string;
 }
 export const meterLabels: MeterLabels = {
   of: (max, unit) => `of ${max} ${unit}`,
   valueText: (used, max, unit) => `${used} of ${max} ${unit}`,
+  nearlyFull: "nearly full",
+  full: "full",
 };
 
 export type MeterSegment = { label: string; value: number; tone?: "accent" | "info" | "warning" | "muted" };
@@ -33,23 +40,27 @@ export type MeterProps = {
   className?: string;
   /** Override any UI text. Merged over `meterLabels`. */
   labels?: Partial<MeterLabels>;
+  /** Accessibility features to add for this meter only (`colourSafe` writes the word nearly full or full beside the figure, so the amber and red are never colour alone; `reduceMotion` and `calm` jump to the value). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const segTone = { accent: "bg-accent", info: "bg-info", warning: "bg-warning", muted: "bg-faint" };
 
 /** How much of a limit is used: storage, seats, a monthly quota. Turns amber, then red, as it fills. */
-export function Meter({ label, value = 0, max, unit = "", segments, warnAt = 0.8, fullAt = 0.95, decimals = 1, className, labels }: MeterProps) {
+export function Meter({ label, value = 0, max, unit = "", segments, warnAt = 0.8, fullAt = 0.95, decimals = 1, className, labels, accessibilityFeatures }: MeterProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion || a11y.calm;
   const l = { ...meterLabels, ...labels };
   const id = useId();
   const used = segments ? segments.reduce((a, s) => a + s.value, 0) : value;
   const frac = Math.min(used / max, 1);
   const state = frac >= fullAt ? "full" : frac >= warnAt ? "warn" : "ok";
   const sp = useSpring(0, springFirm);
-  useEffect(() => sp.set(used), [sp, used]);
+  useEffect(() => { if (still) sp.jump(used); else sp.set(used); }, [sp, used, still]);
   const usedText = useTransform(sp, (n) => n.toFixed(decimals));
 
   return (
-    <div className={cn("w-full", className)}>
+    <div {...rootProps} className={cn("w-full", className)}>
       <div className="mb-2 flex items-baseline justify-between gap-3 text-sm">
         <span id={id} className="font-medium text-ink">{label}</span>
         <span className="tabular text-muted">
@@ -57,6 +68,7 @@ export function Meter({ label, value = 0, max, unit = "", segments, warnAt = 0.8
             {usedText}
           </motion.span>{" "}
           {l.of(max.toFixed(decimals).replace(/\.0+$/, ""), unit)}
+          {a11y.colourSafe && state !== "ok" && <span className="ml-1.5 font-medium text-ink">· {state === "full" ? l.full : l.nearlyFull}</span>}
         </span>
       </div>
       <div
@@ -65,17 +77,18 @@ export function Meter({ label, value = 0, max, unit = "", segments, warnAt = 0.8
         aria-valuemin={0}
         aria-valuemax={max}
         aria-valuenow={used}
-        aria-valuetext={l.valueText(used.toFixed(decimals), max, unit)}
+        aria-valuetext={l.valueText(used.toFixed(decimals), max, unit) + (state === "ok" ? "" : `, ${state === "full" ? l.full : l.nearlyFull}`)}
         className="relative flex h-2 overflow-hidden rounded-full bg-active"
       >
         {segments ? (
           segments.map((s, i) => (
+            // Width of segments animates (flex-basis): a small, rarely-changing bar, kept as a one-off.
             <motion.span
               key={s.label}
               className={cn("h-full", segTone[s.tone ?? "accent"], i > 0 && "ml-0.5")}
               initial={false}
               animate={{ flexBasis: `${(s.value / max) * 100}%` }}
-              transition={springFirm}
+              transition={still ? { duration: 0 } : springFirm}
               style={{ flexShrink: 0 }}
             />
           ))
@@ -87,7 +100,7 @@ export function Meter({ label, value = 0, max, unit = "", segments, warnAt = 0.8
             )}
             initial={false}
             animate={{ x: `${(frac - 1) * 100}%` }}
-            transition={springFirm}
+            transition={still ? { duration: 0 } : springFirm}
           />
         )}
       </div>

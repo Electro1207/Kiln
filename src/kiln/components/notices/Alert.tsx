@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type AlertTone = "info" | "success" | "warning" | "error";
 
@@ -29,6 +30,8 @@ export type AlertProps = {
   /** Replaces the tone icon for this alert. `null` hides it. */
   icon?: ReactNode;
   className?: string;
+  /** Accessibility features to add for this alert only (`reduceMotion` drops the small shrink as it closes; the tone is always shown by an icon and a spoken word, never colour alone). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Text used by Alert. Pass a partial via `labels` to translate or reword. */
@@ -87,7 +90,9 @@ export function Alert({
   icons,
   icon,
   className,
+  accessibilityFeatures,
 }: AlertProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const [open, setOpen] = useState(true);
   const l = { ...alertLabels, ...labels };
   const ic = useMemo(() => ({ ...alertIcons, ...icons }), [icons]);
@@ -98,13 +103,15 @@ export function Alert({
         <motion.div
           key="alert"
           initial={false}
+          // A one-off height fold of a single element, so the stack below closes up without a jump.
           exit={{ height: 0, transition: { ...springFirm, delay: 0.1 } }}
           className="overflow-hidden"
           style={{ paddingBottom: spaceAfter }}
         >
           <motion.div
             role={tone === "error" || tone === "warning" ? "alert" : "status"}
-            exit={{ opacity: 0, scale: 0.985, transition: { duration: 0.16, ease: easeOut } }}
+            {...rootProps}
+            exit={{ opacity: 0, scale: a11y.reduceMotion ? 1 : 0.985, transition: { duration: 0.16, ease: easeOut } }}
             className={cn(
               "flex gap-3 rounded-card border border-line p-4 text-ink",
               surface === "surface" ? "bg-surface" : "bg-raised",

@@ -3,6 +3,7 @@ import { useLoop } from "../shared/useLoop";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ProgressProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
   /** 0..max. Leave undefined for an indeterminate bar. */
@@ -15,12 +16,16 @@ export type ProgressProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
   size?: "sm" | "md" | "lg";
   tone?: "accent" | "positive" | "negative";
   ref?: Ref<HTMLDivElement>;
+  /** Accessibility features to add for this bar only (`calm` and `reduceMotion` hold the indeterminate band still; `colourSafe` stripes a negative bar so it is not colour alone). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const fill = { accent: "bg-accent", positive: "bg-positive", negative: "bg-negative" };
 
 /** A horizontal progress bar. Fills with a spring; without a value it runs a band back and forth. */
-export function Progress({ value, max = 100, label, valueText, size = "md", tone = "accent", className, ref, ...rest }: ProgressProps) {
+export function Progress({ value, max = 100, label, valueText, size = "md", tone = "accent", className, ref, accessibilityFeatures, style, ...rest }: ProgressProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const id = useId();
   const indeterminate = value === undefined;
   const pct = indeterminate ? 0 : Math.min(Math.max(value / max, 0), 1);
@@ -28,13 +33,13 @@ export function Progress({ value, max = 100, label, valueText, size = "md", tone
   useLoop(
     band,
     (el) =>
-      indeterminate
+      indeterminate && !still
         ? [el.animate([{ transform: "translateX(-100%)" }, { transform: "translateX(250%)" }], { duration: 1400, endDelay: 100, iterations: Infinity, easing: "cubic-bezier(0.65, 0, 0.35, 1)" })]
         : [],
-    [indeterminate],
+    [indeterminate, still],
   );
   return (
-    <div ref={ref} {...rest} className={cn("k-fill", className)}>
+    <div ref={ref} {...rest} {...rootProps} style={{ ...rootProps.style, ...style }} className={cn("k-fill", className)}>
       {(label || valueText) && (
         <div className="mb-2 flex items-baseline justify-between gap-3 text-sm">
           {label && <span id={id} className="font-medium text-ink">{label}</span>}
@@ -50,10 +55,11 @@ export function Progress({ value, max = 100, label, valueText, size = "md", tone
         className={cn("relative overflow-hidden rounded-full bg-active", size === "sm" ? "h-1" : size === "lg" ? "h-3" : "h-2")}
       >
         {indeterminate ? (
-          <div ref={band} className={cn("absolute inset-y-0 left-0 w-2/5 rounded-full", fill[tone])} style={{ transform: "translateX(-100%)" }} />
+          <div ref={band} className={cn("absolute inset-y-0 left-0 w-2/5 rounded-full", fill[tone])} style={{ transform: still ? "translateX(75%)" : "translateX(-100%)" }} />
         ) : (
           <motion.div
             className={cn("absolute inset-0 rounded-full", fill[tone])}
+            style={a11y.colourSafe && tone === "negative" ? { backgroundImage: "repeating-linear-gradient(135deg, transparent 0 4px, rgb(255 255 255 / 0.4) 4px 6px)" } : undefined}
             initial={false}
             animate={{ x: `${(pct - 1) * 100}%` }}
             transition={springFirm}

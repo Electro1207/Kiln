@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, spring } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type FieldMessageProps = {
   /** Tie it to its field with aria-describedby={id}. */
@@ -13,6 +14,8 @@ export type FieldMessageProps = {
   /** Replace any built-in icon. Merged over `fieldMessageIcons`. */
   icons?: Partial<FieldMessageIcons>;
   className?: string;
+  /** Accessibility features to add for this message only (`reduceMotion` fades the line in without sliding; the tone always has an icon for errors and successes, so colour is never alone). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Icons used by FieldMessage. Pass a partial via `icons` to swap any of them. */
@@ -25,18 +28,20 @@ export interface FieldMessageIcons {
 export const fieldMessageIcons: FieldMessageIcons = { error: <AlertCircle />, success: <CheckCircle2 /> };
 
 /** The line under a form field: a hint, an error or a confirmation. */
-export function FieldMessage({ id, tone = "hint", children, icons, className }: FieldMessageProps) {
+export function FieldMessage({ id, tone = "hint", children, icons, className, accessibilityFeatures }: FieldMessageProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const ic = { ...fieldMessageIcons, ...icons };
   const show = children != null && children !== false && children !== "";
   return (
-    <div id={id} aria-live={tone === "error" ? "assertive" : "polite"} className={className}>
+    <div id={id} {...rootProps} aria-live={tone === "error" ? "assertive" : "polite"} className={className}>
       <AnimatePresence initial={false}>
         {show && (
           <motion.div
             key={`${tone}-${typeof children === "string" ? children : "node"}`}
-            initial={{ height: 0, opacity: 0, y: -4 }}
+            // A one-off height fold of one line (allowed): the field below shifts once, smoothly.
+            initial={{ height: 0, opacity: 0, y: a11y.reduceMotion ? 0 : -4 }}
             animate={{ height: "auto", opacity: 1, y: 0 }}
-            exit={{ height: 0, opacity: 0, y: -4, transition: { duration: 0.16, ease: easeOut } }}
+            exit={{ height: 0, opacity: 0, y: a11y.reduceMotion ? 0 : -4, transition: { duration: 0.16, ease: easeOut } }}
             transition={spring}
             className="overflow-hidden"
           >

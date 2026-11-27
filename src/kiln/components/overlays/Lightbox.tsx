@@ -3,6 +3,7 @@ import { AnimatePresence, animate, motion, useMotionValue, useTransform, type Mo
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, fade, springFirm } from "../../motion";
+import { useA11yProps, type A11yAttrs, type AccessibilityFeaturesProp } from "../../a11y";
 import { Portal, useModalLayer } from "../shared/useOverlay";
 
 /** Text used by Lightbox. Pass a partial via `labels` to translate or reword. */
@@ -61,6 +62,8 @@ export type LightboxProps = {
   /** Replace any built-in icon. Merged over `lightboxIcons`. */
   icons?: Partial<LightboxIcons>;
   className?: string;
+  /** Accessibility features to add for this gallery only (`reduceMotion` fades the picture in and out instead of flying it between thumbnail and screen). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -71,7 +74,8 @@ export type LightboxProps = {
  * The grow and the return are one transform (translate + scale) on the big picture,
  * measured from the thumbnail at that moment, so nothing re-lays out while it moves.
  */
-export function Lightbox({ images, rowHeight = 168, gap = 8, radius = 10, labels, icons, className }: LightboxProps) {
+export function Lightbox({ images, rowHeight = 168, gap = 8, radius = 10, labels, icons, className, accessibilityFeatures }: LightboxProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...lightboxLabels, ...labels };
   const ic = useMemo(() => ({ ...lightboxIcons, ...icons }), [icons]);
   const [index, setIndex] = useState<number | null>(null);
@@ -101,7 +105,7 @@ export function Lightbox({ images, rowHeight = 168, gap = 8, radius = 10, labels
 
   return (
     <>
-      <ul className={cn("flex flex-wrap", className)} style={{ gap }}>
+      <ul {...rootProps} className={cn("flex flex-wrap", className)} style={{ ...rootProps.style, gap }}>
         {images.map((img, i) => (
           <li key={img.src} className="min-w-0" style={{ flexGrow: img.width / img.height, flexBasis: (rowHeight * img.width) / img.height }}>
             <button
@@ -132,6 +136,8 @@ export function Lightbox({ images, rowHeight = 168, gap = 8, radius = 10, labels
             images={images}
             index={index}
             radius={radius}
+            still={a11y.reduceMotion}
+            rootProps={rootProps}
             l={l}
             ic={ic}
             rectOf={rectOf}
@@ -148,6 +154,9 @@ type ViewerProps = {
   images: LightboxImage[];
   index: number;
   radius: number;
+  /** Fade instead of flying between thumbnail and screen. */
+  still: boolean;
+  rootProps: A11yAttrs;
   l: LightboxLabels;
   ic: LightboxIcons;
   rectOf: (i: number) => DOMRect | null;
@@ -155,7 +164,7 @@ type ViewerProps = {
   onClosed: () => void;
 };
 
-function Viewer({ images, index, radius, l, ic, rectOf, onIndex, onClosed }: ViewerProps) {
+function Viewer({ images, index, radius, still, rootProps, l, ic, rectOf, onIndex, onClosed }: ViewerProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [closing, setClosing] = useState(false);
   const closingRef = useRef(false);
@@ -187,11 +196,13 @@ function Viewer({ images, index, radius, l, ic, rectOf, onIndex, onClosed }: Vie
   const backdrop = useMotionValue(0);
 
   useLayoutEffect(() => {
-    const m = morphTo(origin, stage.current);
+    const m = still ? null : morphTo(origin, stage.current);
     if (m) { x.set(m.x); y.set(m.y); scale.set(m.s); }
-    animate(x, 0, springFirm);
-    animate(y, 0, springFirm);
-    animate(scale, 1, springFirm);
+    if (!still) {
+      animate(x, 0, springFirm);
+      animate(y, 0, springFirm);
+      animate(scale, 1, springFirm);
+    }
     animate(backdrop, 1, fade);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -201,8 +212,9 @@ function Viewer({ images, index, radius, l, ic, rectOf, onIndex, onClosed }: Vie
     closingRef.current = true;
     setClosing(true);
     // Measure the target as it stands now (untransformed), then fly into the thumbnail of the picture shown.
-    const m = morphTo(index, stage.current);
+    const m = still ? null : morphTo(index, stage.current);
     animate(backdrop, 0, { duration: 0.26, ease: easeOut });
+    if (still) { animate(backdrop, 0, { duration: 0.2, ease: easeOut }).then(onClosed); return; }
     if (!m) { animate(scale, 0.96, { duration: 0.2 }).then(onClosed); return; }
     animate(x, m.x, springFirm);
     animate(y, m.y, springFirm);
@@ -241,6 +253,8 @@ function Viewer({ images, index, radius, l, ic, rectOf, onIndex, onClosed }: Vie
       aria-modal="true"
       aria-label={img.alt}
       tabIndex={-1}
+      {...rootProps}
+      /* outline-none: only the programmatic focus target (tabIndex -1), not a control. */
       className={cn("fixed inset-0 z-50 grid place-items-center outline-none", closing && "pointer-events-none")}
     >
       <motion.div aria-hidden className="absolute inset-0 bg-ground/95" style={{ opacity: backdrop }} onClick={close} />

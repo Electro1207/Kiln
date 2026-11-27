@@ -1,8 +1,9 @@
 import { cloneElement, useEffect, useId, type ReactElement, type ReactNode, type Ref } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, type Variants } from "motion/react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
-import { popVariants } from "../../motion";
+import { fade, popVariants } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { originFor, Portal, useAnchored, useDismiss, type Align, type Side } from "../shared/useOverlay";
 
 type TriggerProps = {
@@ -30,10 +31,15 @@ export type PopoverProps = {
   /** No padding and no width rules: the content sets its own size (menus, inboxes). */
   bare?: boolean;
   className?: string;
+  /** Accessibility features to add for this popover only (`reduceMotion` fades it in place instead of popping). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
+const fadeVariants: Variants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: fade }, exit: { opacity: 0, transition: { duration: 0.12 } } };
+
 /** A small floating panel tied to a trigger. Closes on Esc, outside click, or `close()`. */
-export function Popover({ trigger, children, side = "bottom", align = "center", open: openProp, defaultOpen = false, onOpenChange, label, bare, className }: PopoverProps) {
+export function Popover({ trigger, children, side = "bottom", align = "center", open: openProp, defaultOpen = false, onOpenChange, label, bare, className, accessibilityFeatures }: PopoverProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const [open, setOpen] = useControllable(openProp, defaultOpen, onOpenChange);
   const id = useId();
   const { anchorRef, setAnchor, focusAnchor, floatingRef, placement, floatingStyle } = useAnchored(open, side, align, 8);
@@ -73,11 +79,12 @@ export function Popover({ trigger, children, side = "bottom", align = "center", 
               ref={floatingRef}
               role="dialog"
               aria-label={label}
-              variants={popVariants}
+              {...rootProps}
+              variants={a11y.reduceMotion ? fadeVariants : popVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
-              style={{ ...floatingStyle, transformOrigin: originFor(placement) }}
+              style={{ ...rootProps.style, ...floatingStyle, transformOrigin: originFor(placement) }}
               className={cn(
                 "z-50 rounded-card border border-line bg-surface text-ink shadow-float",
                 bare ? "overflow-hidden" : "w-max max-w-[calc(100vw-16px)] p-4",

@@ -187,6 +187,7 @@ export function ToastProvider({ children, labels, icons, accessibilityFeatures }
                   dismissLabel={l.dismiss}
                   icons={ic}
                   stay={a11y.extendedTime}
+                  still={a11y.calm || a11y.reduceMotion}
                 />
               ))}
             </AnimatePresence>
@@ -204,7 +205,7 @@ const glyphTone: Record<Exclude<ToastVariant, "neutral" | "loading">, string> = 
   info: "text-info",
 };
 
-function Glyph({ variant, icons }: { variant: ToastVariant; icons: ToastIcons }) {
+function Glyph({ variant, icons, still }: { variant: ToastVariant; icons: ToastIcons; still: boolean }) {
   if (variant === "neutral") return null;
   return (
     <span className="grid h-5 w-4 shrink-0 place-items-center [&>*]:[grid-area:1/1]">
@@ -217,19 +218,20 @@ function Glyph({ variant, icons }: { variant: ToastVariant; icons: ToastIcons })
           transition={springSoft}
           className={cn("grid place-items-center [&>svg]:size-4 [&>svg]:[stroke-width:2.2]", variant !== "loading" && glyphTone[variant])}
         >
-          {variant === "loading" ? <LoadingGlyph>{icons.loading}</LoadingGlyph> : icons[variant]}
+          {variant === "loading" ? <LoadingGlyph still={still}>{icons.loading}</LoadingGlyph> : icons[variant]}
         </motion.span>
       </AnimatePresence>
     </span>
   );
 }
 
-function LoadingGlyph({ children }: { children: ReactNode }) {
+/** The loading icon turns on its own, so calm and reduced motion hold it still. */
+function LoadingGlyph({ children, still }: { children: ReactNode; still: boolean }) {
   return (
     <motion.span
       className="grid text-muted [&>svg]:size-4"
-      animate={{ rotate: 360 }}
-      transition={{ duration: 0.8, ease: "linear", repeat: Infinity }}
+      animate={still ? { rotate: 0 } : { rotate: 360 }}
+      transition={still ? { duration: 0 } : { duration: 0.8, ease: "linear", repeat: Infinity }}
       aria-hidden
     >
       {children}
@@ -249,9 +251,11 @@ type ItemProps = {
   icons: ToastIcons;
   /** Never leaves on its own (extendedTime). */
   stay: boolean;
+  /** Calm or reduced motion: the loading icon holds still. */
+  still: boolean;
 };
 
-function ToastItem({ toast, index, expanded, frontH, offset, onHeight, onDismiss, dismissLabel, icons, stay }: ItemProps) {
+function ToastItem({ toast, index, expanded, frontH, offset, onHeight, onDismiss, dismissLabel, icons, stay, still }: ItemProps) {
   const { id, title, description, variant = "neutral", action, version } = toast;
   // Something to act on must not vanish while it is being read; extendedTime keeps everything.
   const duration = stay || action ? Infinity : toast.duration ?? (variant === "loading" ? Infinity : 5000);
@@ -331,6 +335,7 @@ function ToastItem({ toast, index, expanded, frontH, offset, onHeight, onDismiss
       onDragEnd={onDragEnd}
       style={{ x, zIndex: MAX - index, transformOrigin: "50% 0%", bottom: 0, borderRadius: 14 }}
       className={cn(
+        /* dark: ring kept: needs a floating-edge token (reported). */
         "group absolute inset-x-0 touch-pan-y bg-surface text-ink shadow-float dark:ring-1 dark:ring-line dark:ring-inset",
         !shown && "pointer-events-none",
       )}
@@ -343,7 +348,7 @@ function ToastItem({ toast, index, expanded, frontH, offset, onHeight, onDismiss
           transition={expanded || front ? fade : { duration: 0.08, ease: easeOut }}
           className="flex items-start gap-3 px-4 py-3.5"
         >
-          <Glyph variant={variant} icons={icons} />
+          <Glyph variant={variant} icons={icons} still={still} />
           <div className="grid min-w-0 flex-1 [&>*]:[grid-area:1/1]">
             <AnimatePresence initial={false}>
               <motion.div

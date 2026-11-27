@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from "react";
 import { motion, useSpring, useTransform } from "motion/react";
 import { cn } from "../../cn";
 import { springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ProgressRingProps = {
   /** 0..100 */
@@ -14,15 +15,19 @@ export type ProgressRingProps = {
   label?: string;
   tone?: "accent" | "positive" | "negative" | "warning";
   className?: string;
+  /** Accessibility features to add for this ring only (`reduceMotion` and `calm` jump to the value instead of easing the arc and number). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const strokeColour = { accent: "text-accent", positive: "text-positive", negative: "text-negative", warning: "text-warning" };
 
 /** A circular progress indicator. The arc and the number move together on one spring. */
-export function ProgressRing({ value, size = 88, stroke = 7, showValue = true, children, label, tone = "accent", className }: ProgressRingProps) {
+export function ProgressRing({ value, size = 88, stroke = 7, showValue = true, children, label, tone = "accent", className, accessibilityFeatures }: ProgressRingProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion || a11y.calm;
   const v = Math.min(Math.max(value, 0), 100);
   const sp = useSpring(0, springFirm);
-  useEffect(() => sp.set(v), [sp, v]);
+  useEffect(() => { if (still) sp.jump(v); else sp.set(v); }, [sp, v, still]);
   const length = useTransform(sp, (n) => n / 100);
   const text = useTransform(sp, (n) => `${Math.round(n)}`);
   const arcOpacity = useTransform(sp, (n) => (n <= 0.2 ? 0 : 1));
@@ -35,8 +40,9 @@ export function ProgressRing({ value, size = 88, stroke = 7, showValue = true, c
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(v)}
+      {...rootProps}
       className={cn("relative inline-grid place-items-center", className)}
-      style={{ width: size, height: size }}
+      style={{ ...rootProps.style, width: size, height: size }}
     >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90" aria-hidden>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className="stroke-active" />

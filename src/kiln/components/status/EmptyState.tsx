@@ -3,6 +3,7 @@ import { useLoop } from "../shared/useLoop";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { staggerChild, staggerParent } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type EmptyStateProps = {
   /** A picture or icon. Defaults to a drawn empty shelf. */
@@ -12,19 +13,24 @@ export type EmptyStateProps = {
   /** One or two buttons. */
   action?: ReactNode;
   className?: string;
+  /** Accessibility features to add for this message only (`calm` and `reduceMotion` show it at once and hold the tipping pot still). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** What a list, search or page shows when it has nothing yet: what happened and the one thing to do next. */
-export function EmptyState({ art, title, description, action, className }: EmptyStateProps) {
+export function EmptyState({ art, title, description, action, className, accessibilityFeatures }: EmptyStateProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   return (
     <motion.div
+      {...rootProps}
       variants={staggerParent}
-      initial="hidden"
+      initial={still ? false : "hidden"}
       animate="visible"
       className={cn("mx-auto flex max-w-sm flex-col items-center px-4 py-8 text-center", className)}
     >
       <motion.div variants={staggerChild} className="mb-5 text-muted">
-        {art ?? <Shelf />}
+        {art ?? <Shelf still={still} />}
       </motion.div>
       <motion.h3 variants={staggerChild} className="text-base font-semibold text-ink">
         {title}
@@ -44,16 +50,16 @@ export function EmptyState({ art, title, description, action, className }: Empty
 }
 
 /** Three pots on a shelf, the last one gently tipping as if just set down. */
-function Shelf() {
+function Shelf({ still }: { still: boolean }) {
   const pot = useRef<SVGGElement>(null);
   useLoop(
     pot,
-    (el) => [
+    (el) => still ? [] : [
       el.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(-4deg)" }, { transform: "rotate(0deg)" }], {
         duration: 3200, endDelay: 1200, iterations: Infinity, easing: "ease-in-out",
       }),
     ],
-    [],
+    [still],
   );
   return (
     <svg width="120" height="76" viewBox="0 0 120 76" fill="none" aria-hidden>

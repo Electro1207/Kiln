@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Button } from "../buttons/Button";
+import type { AccessibilityFeaturesProp } from "../../a11y";
 import { Dialog } from "./Dialog";
 
 /** Text used by AlertDialog. Pass a partial via `labels` to translate or reword. */
@@ -22,6 +23,8 @@ export type AlertDialogProps = {
   onConfirm: () => void | Promise<void>;
   /** Override any UI text. Merged over `alertDialogLabels`. */
   labels?: Partial<AlertDialogLabels>;
+  /** Accessibility features to add for this dialog only; passed to the Dialog (`reduceMotion` fades instead of sliding). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A confirmation that must be answered. Esc and the scrim count as "cancel". */
@@ -35,6 +38,7 @@ export function AlertDialog({
   tone = "default",
   onConfirm,
   labels,
+  accessibilityFeatures,
 }: AlertDialogProps) {
   const l = { ...alertDialogLabels, ...labels };
   const [busy, setBusy] = useState(false);
@@ -56,6 +60,7 @@ export function AlertDialog({
       role="alertdialog"
       size="sm"
       hideClose
+      accessibilityFeatures={accessibilityFeatures}
       title={title}
       description={description}
       footer={

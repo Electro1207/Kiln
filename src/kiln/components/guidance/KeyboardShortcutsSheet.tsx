@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Search } from "lucide-react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { Dialog } from "../overlays/Dialog";
 
 export type Shortcut = { keys: string[]; label: string; /** Keys pressed one after another rather than together. */ sequence?: boolean };
@@ -14,11 +15,14 @@ export interface KeyboardShortcutsSheetLabels {
   noMatch: (query: string) => string;
   /** Joins keys pressed one after another. */
   then: string;
+  /** Spoken count under `screenReaderHints`, e.g. "12 shortcuts shown". */
+  count: (n: number) => string;
 }
 export const keyboardShortcutsSheetLabels: KeyboardShortcutsSheetLabels = {
   filter: "Filter shortcuts",
   noMatch: (q) => `No shortcut matches “${q}”.`,
   then: "then",
+  count: (n) => `${n} ${n === 1 ? "shortcut" : "shortcuts"} shown`,
 };
 
 export interface KeyboardShortcutsSheetIcons {
@@ -38,6 +42,8 @@ export type KeyboardShortcutsSheetProps = {
   labels?: Partial<KeyboardShortcutsSheetLabels>;
   /** Replace any built-in icon. Merged over `keyboardShortcutsSheetIcons`. */
   icons?: Partial<KeyboardShortcutsSheetIcons>;
+  /** Accessibility features to add for this sheet only (`reduceMotion` fades the dialog in instead of sliding or scaling it; `screenReaderHints` names the filter and the number of shortcuts shown). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const isTyping = (t: EventTarget | null) => {
@@ -54,7 +60,8 @@ function Key({ k }: { k: string }) {
 }
 
 /** The list of keyboard shortcuts, in groups, with a filter. "?" opens it. */
-export function KeyboardShortcutsSheet({ groups, open, onOpenChange, listen = true, title = "Keyboard shortcuts", labels, icons }: KeyboardShortcutsSheetProps) {
+export function KeyboardShortcutsSheet({ groups, open, onOpenChange, listen = true, title = "Keyboard shortcuts", labels, icons, accessibilityFeatures }: KeyboardShortcutsSheetProps) {
+  const { a11y } = useA11yProps(accessibilityFeatures);
   const l = { ...keyboardShortcutsSheetLabels, ...labels };
   const ic = { ...keyboardShortcutsSheetIcons, ...icons };
   const [q, setQ] = useState("");
@@ -86,7 +93,7 @@ export function KeyboardShortcutsSheet({ groups, open, onOpenChange, listen = tr
   }, [groups, q]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} title={title} size="lg">
+    <Dialog open={open} onOpenChange={onOpenChange} title={title} size="lg" accessibilityFeatures={accessibilityFeatures}>
       <label className="mb-4 flex h-9 items-center gap-2 rounded-control bg-raised px-3 focus-within:ring-2 focus-within:ring-accent">
         <span className="inline-flex text-muted [&>svg]:size-4" aria-hidden>{ic.search}</span>
         <span className="sr-only">{l.filter}</span>
@@ -98,6 +105,7 @@ export function KeyboardShortcutsSheet({ groups, open, onOpenChange, listen = tr
           className="h-full min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-muted"
         />
       </label>
+      {a11y.screenReaderHints && <p className="sr-only" role="status">{l.count(shown.reduce((n, g) => n + g.shortcuts.length, 0))}</p>}
       <div className="max-h-[55vh] overflow-y-auto pr-1">
         {shown.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted">{l.noMatch(q)}</p>

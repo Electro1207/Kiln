@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { X } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type BannerProps = {
   open: boolean;
@@ -17,6 +18,8 @@ export type BannerProps = {
   /** Replace any built-in icon. Merged over `bannerIcons`. */
   icons?: Partial<BannerIcons>;
   className?: string;
+  /** Accessibility features to add for this banner only (`reduceMotion` makes it fade in with the space instead of sliding down; `highContrast` and `strongFocus` come from the page-wide styles). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Icons used by Banner. Pass a partial via `icons` to swap any of them. */
@@ -36,6 +39,7 @@ export interface BannerLabels {
 export const bannerLabels: BannerLabels = { region: "Announcement", dismiss: "Dismiss announcement" };
 
 const tones = {
+  // dark: override kept: needs an inverse-surface token pair (reported).
   inverse: "bg-ink text-surface dark:bg-btn-secondary dark:text-btn-secondary-ink",
   brand: "bg-btn-primary text-btn-primary-ink",
   neutral: "bg-raised text-ink",
@@ -46,7 +50,8 @@ const tones = {
  * space opens as the bar slides down into it, and closes the same way, so the
  * page below moves once and smoothly.
  */
-export function Banner({ open, onDismiss, children, action, tone = "inverse", labels, icons, className }: BannerProps) {
+export function Banner({ open, onDismiss, children, action, tone = "inverse", labels, icons, className, accessibilityFeatures }: BannerProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...bannerLabels, ...labels };
   const ic = useMemo(() => ({ ...bannerIcons, ...icons }), [icons]);
   return (
@@ -54,6 +59,7 @@ export function Banner({ open, onDismiss, children, action, tone = "inverse", la
       {open && (
         <motion.div
           key="banner"
+          // A one-off height fold of a single element (allowed): the page below moves once.
           initial={{ height: 0 }}
           animate={{ height: "auto" }}
           exit={{ height: 0, transition: { ...springFirm, delay: 0.04 } }}
@@ -63,9 +69,10 @@ export function Banner({ open, onDismiss, children, action, tone = "inverse", la
           <motion.div
             role="region"
             aria-label={l.region}
-            initial={{ y: "-100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "-100%", transition: { duration: 0.26, ease: easeOut } }}
+            {...rootProps}
+            initial={a11y.reduceMotion ? { opacity: 0 } : { y: "-100%" }}
+            animate={a11y.reduceMotion ? { opacity: 1 } : { y: 0 }}
+            exit={a11y.reduceMotion ? { opacity: 0, transition: { duration: 0.2, ease: easeOut } } : { y: "-100%", transition: { duration: 0.26, ease: easeOut } }}
             transition={springFirm}
             className={cn("relative flex min-h-11 items-center gap-3 px-4 py-2 text-[0.84375rem] leading-5 sm:justify-center", onDismiss && "sm:px-12", tones[tone], className)}
           >
