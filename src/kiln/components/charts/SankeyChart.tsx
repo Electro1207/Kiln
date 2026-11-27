@@ -22,9 +22,13 @@ export function SankeyChart({
   const l = { ...chartA11yLabels, ...labels };
   const ca = useChartA11y({ accessibilityFeatures, tableToggle });
   const pid = `${ca.uid}-p`;
+  const hc = ca.a11y.highContrast;
+  const still = ca.a11y.calm || ca.a11y.reduceMotion || ca.a11y.noFlashing;
   const nameOf = (id: string) => nodes.find((n) => n.id === id)?.label ?? id;
   const idx = (id: string) => nodes.findIndex((n) => n.id === id);
   const box = useRef<HTMLDivElement>(null);
+  // `w` is measured from the box and only feeds the absolutely positioned svg. The svg adds nothing to the
+  // box's own width, so this can't grow without end inside a content-sized parent (the Carousel runaway).
   const [w, setW] = useState(0);
   const [focus, setFocus] = useState<{ kind: "node" | "link"; key: string } | null>(null);
   useLayoutEffect(() => {
@@ -95,7 +99,7 @@ export function SankeyChart({
       bodyClassName="flex w-full flex-col gap-3"
     >
       <p className="truncate text-sm text-muted">{readout}</p>
-      <div ref={box} className="relative w-full" style={{ height }} onPointerLeave={() => setFocus(null)}>
+      <div ref={box} className="relative w-full min-w-0 max-w-full" style={{ height }} onPointerLeave={() => setFocus(null)}>
         {layout && (
           <svg width={w} height={height} className="absolute inset-0 overflow-visible" aria-hidden>
             {ca.colourSafe && <ChartPatternDefs id={pid} size={4} />}
@@ -107,8 +111,8 @@ export function SankeyChart({
                 className={cn(!ca.colourSafe && "stroke-accent", "transition-[stroke-opacity] duration-200")}
                 stroke={ca.colourSafe ? cvd(idx(b.from)) : undefined}
                 strokeWidth={Math.max(1, b.t)}
-                style={{ strokeOpacity: lit(b) ? 0.32 : 0.07 }}
-                initial={{ pathLength: 0 }}
+                style={{ strokeOpacity: lit(b) ? (hc ? 0.6 : 0.32) : hc ? 0.15 : 0.07 }}
+                initial={still ? false : { pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.9, ease: easeInOut, delay: 0.1 + i * 0.03 }}
@@ -120,7 +124,7 @@ export function SankeyChart({
               const lastCol = Math.max(...nodes.map((x) => x.column));
               const side = n.column === 0 ? "left" : n.column === lastCol ? "right" : "top";
               return (
-                <g key={n.id} onPointerEnter={() => setFocus({ kind: "node", key: n.id })} className="transition-opacity duration-200" style={{ opacity: nodeLit(n.id) ? 1 : 0.35 }}>
+                <g key={n.id} onPointerEnter={() => setFocus({ kind: "node", key: n.id })} className="transition-opacity duration-200" style={{ opacity: nodeLit(n.id) ? 1 : hc ? 0.55 : 0.35 }}>
                   <rect x={p.x} y={p.y} width={NODE_W} height={Math.max(2, p.h)} rx={3} className={ca.colourSafe ? undefined : "fill-ink"} style={ca.colourSafe ? { fill: patternUrl(pid, idx(n.id)) } : undefined} />
                   <text
                     x={side === "right" ? p.x + NODE_W + 8 : side === "left" ? p.x - 8 : p.x + NODE_W / 2}

@@ -228,13 +228,14 @@ export function Carousel({ slides, label, value, defaultValue = 0, onChange, per
               aria-selected={i === index}
               aria-label={l.goToSlide(i + 1)}
               onClick={() => go(i)}
-              className="grid h-6 place-items-center"
+              className="grid h-6 w-5 place-items-center"
             >
+              {/* The active dot is a 20px pill drawn at full scale; the others shrink by transform (no width tween). */}
               <motion.span
-                className={cn("block h-1.5 rounded-full transition-colors duration-300", i === index ? "bg-ink" : "bg-line-strong")}
+                className={cn("block h-1.5 w-5 rounded-full transition-colors duration-300", i === index ? "bg-ink" : "bg-line-strong")}
                 initial={false}
-                animate={{ width: i === index ? 20 : 6 }}
-                transition={springFirm}
+                animate={{ scaleX: i === index ? 1 : 0.3 }}
+                transition={a11y.calm || a11y.reduceMotion ? { duration: 0 } : springFirm}
               />
             </button>
           ))}

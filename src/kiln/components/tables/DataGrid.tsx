@@ -9,6 +9,7 @@ import { Pagination } from "../wayfinding/Pagination";
 import { SearchField, type SearchFieldIcons } from "../text-input/SearchField";
 import { SegmentedControl } from "../buttons/SegmentedControl";
 import { useControllable } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { TickBox, tableIcons, useRowFlip, type TableIcons, type TableSort } from "./Table";
 
 export type GridColumn<T> = {
@@ -122,6 +123,8 @@ export type DataGridProps<T> = {
   labels?: Partial<DataGridLabels>;
   /** Replace any built-in icon. Merged over `dataGridIcons`. */
   icons?: Partial<DataGridIcons>;
+  /** Accessibility features to add for this grid only (`calm` and `reduceMotion` re-sort, page and change density without fades or gliding rows; the sorted column is also marked with an arrow and `aria-sort`). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 type Density = "compact" | "comfortable";
@@ -132,8 +135,11 @@ type Density = "compact" | "comfortable";
  */
 export function DataGrid<T>({
   rows, columns, rowKey, noun, caption, pageSize = 8, query: queryProp, defaultQuery = "", onQueryChange, sort: sortProp, defaultSort = null, onSortChange,
-  page: pageProp, defaultPage = 1, onPageChange, selected: selectedProp, defaultSelected, onSelectedChange, bulkActions = [], className, labels, icons,
+  page: pageProp, defaultPage = 1, onPageChange, selected: selectedProp, defaultSelected, onSelectedChange, bulkActions = [], className, labels, icons, accessibilityFeatures,
 }: DataGridProps<T>) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
+  const dur = (s: number) => (still ? 0 : s);
   const l = { ...dataGridLabels, ...labels };
   const ic = useMemo(() => ({ ...dataGridIcons, ...icons }), [icons]);
   const [query, setQuery] = useControllable(queryProp, defaultQuery, onQueryChange);
@@ -186,7 +192,7 @@ export function DataGrid<T>({
     setSelected(next);
   };
   const body = useRef<HTMLTableSectionElement>(null);
-  const capture = useRowFlip(body, pageRows.map(rowKey).join("|") + `|${page}|${query}`);
+  const capture = useRowFlip(body, pageRows.map(rowKey).join("|") + `|${page}|${query}`, still);
   const cycle = (key: string) => {
     capture();
     setSort(sort?.key !== key ? { key, dir: "asc" } : sort.dir === "asc" ? { key, dir: "desc" } : null);
@@ -197,7 +203,7 @@ export function DataGrid<T>({
   // and it comes back. No remount and no height tween.
   const changeDensity = (d: Density) => {
     const el = body.current;
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (!el || still || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setDensity(d);
       return;
     }
@@ -214,7 +220,7 @@ export function DataGrid<T>({
   const to = Math.min(page * pageSize, sorted.length);
 
   return (
-    <div className={cn("relative flex w-full min-w-0 flex-col gap-3", className)}>
+    <div {...rootProps} className={cn("relative flex w-full min-w-0 flex-col gap-3", className)}>
       <div className="flex flex-wrap items-center gap-2">
         <SearchField
           value={query}
@@ -297,7 +303,7 @@ export function DataGrid<T>({
                           type="button"
                           onClick={() => cycle(c.key)}
                           className={cn(
-                            "inline-flex items-center gap-1 rounded-control py-1 transition-colors duration-200 hover:text-ink",
+                            "inline-flex items-center gap-1 rounded-control py-1 outline-offset-2 transition-colors duration-200 hover:text-ink focus-visible:outline-2 focus-visible:outline-accent",
                             c.align === "right" && "flex-row-reverse",
                             active && "text-ink",
                           )}
@@ -328,7 +334,7 @@ export function DataGrid<T>({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.16 }}
+                transition={{ duration: dur(0.16) }}
               >
                 {pageRows.map((row) => {
                   const id = rowKey(row);
@@ -391,10 +397,10 @@ export function DataGrid<T>({
                 key="bulk"
                 role="toolbar"
                 aria-label={l.bulkBar}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: still ? 0 : 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 12, transition: { ...springSoft, opacity: fade } }}
-                transition={springSoft}
+                exit={{ opacity: 0, y: still ? 0 : 12, transition: { ...springSoft, opacity: fade } }}
+                transition={still ? { duration: 0 } : springSoft}
                 className="flex min-h-14 items-center gap-1 bg-surface px-2 py-2.5 sm:px-3"
               >
                 <span className="tabular mr-auto whitespace-nowrap pl-2 text-[0.8125rem] font-medium text-ink">
@@ -404,7 +410,7 @@ export function DataGrid<T>({
                   <motion.button
                     key={a.label}
                     type="button"
-                    whileTap={{ scale: 0.95 }}
+                    whileTap={still ? undefined : { scale: 0.95 }}
                     transition={springSnappy}
                     onClick={() => {
                       a.onRun([...selected]);

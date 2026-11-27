@@ -33,6 +33,8 @@ function niceMax(v: number) {
 export function BarChart({ data, highlight, height = 200, format = String, title, className, labels, accessibilityFeatures, tableToggle }: BarChartProps) {
   const l = { ...chartA11yLabels, ...labels };
   const ca = useChartA11y({ accessibilityFeatures, tableToggle });
+  // One-off entrances (draw, grow, fade in) are skipped under calm, reduced motion and no flashing.
+  const still = ca.a11y.calm || ca.a11y.reduceMotion || ca.a11y.noFlashing;
   const [rove, setRove] = useState<number | null>(null);
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const [hover, setHover] = useState<number | null>(null);
@@ -84,7 +86,7 @@ export function BarChart({ data, highlight, height = 200, format = String, title
                     aria-hidden
                     className="block w-[62%] overflow-hidden rounded-t-[4px]"
                     style={{ height: `${pct}%` }}
-                    initial="hidden"
+                    initial={still ? false : "hidden"}
                     whileInView="shown"
                     viewport={{ once: true }}
                   >
@@ -116,7 +118,7 @@ export function BarChart({ data, highlight, height = 200, format = String, title
                   <AnimatePresence>
                     {hover === i && (
                       <motion.span
-                        initial={{ opacity: 0, y: 4 }}
+                        initial={still ? false : { opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, transition: fade }}
                         transition={springFirm}

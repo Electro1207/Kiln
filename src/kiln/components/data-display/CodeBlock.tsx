@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { CopyButton } from "../buttons/CopyButton";
 
 /** Text used by CodeBlock. Pass a partial via `labels` to translate or reword. */
@@ -19,6 +20,8 @@ export type CodeBlockProps = {
   className?: string;
   /** Override any UI text. Merged over `codeBlockLabels`. */
   labels?: Partial<CodeBlockLabels>;
+  /** Accessibility features to add for this listing only (`highContrast` turns comments and line numbers to ink, since they are text on a plain background). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const KEYWORDS = new Set(
@@ -50,24 +53,25 @@ function highlight(line: string): ReactNode[] {
 }
 
 /** A code listing with a filename bar, line numbers and a copy button. */
-export function CodeBlock({ code, filename, language, showLineNumbers = true, className, labels }: CodeBlockProps) {
+export function CodeBlock({ code, filename, language, showLineNumbers = true, className, labels, accessibilityFeatures }: CodeBlockProps) {
   const l = { ...codeBlockLabels, ...labels };
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const lines = code.replace(/\n$/, "").split("\n");
 
   return (
-    <div className={cn("w-full overflow-hidden rounded-card border border-line bg-surface", className)}>
+    <div {...rootProps} className={cn("w-full overflow-hidden rounded-card border border-line bg-surface", className)}>
       <div className="flex h-11 items-center justify-between gap-3 border-b border-line pl-4 pr-1.5">
         <span className="truncate text-[0.8125rem] text-muted">
           {filename ?? language ?? l.code}
         </span>
         <CopyButton value={code} label={l.copy} />
       </div>
-      <pre className="overflow-x-auto py-3 font-mono text-[0.8125rem] leading-6">
+      <pre tabIndex={0} className="overflow-x-auto py-3 font-mono text-[0.8125rem] leading-6">
         <code>
           {lines.map((line, i) => (
             <span key={i} className="flex px-4">
               {showLineNumbers && (
-                <span aria-hidden className="tabular mr-4 inline-block w-6 shrink-0 select-none text-right text-faint">
+                <span aria-hidden className={cn("tabular mr-4 inline-block w-6 shrink-0 select-none text-right", a11y.highContrast ? "text-muted" : "text-faint")}>
                   {i + 1}
                 </span>
               )}

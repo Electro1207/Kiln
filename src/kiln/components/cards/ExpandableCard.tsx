@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { fade, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ExpandableItem = {
   id: string;
@@ -34,7 +35,7 @@ export const expandableCardsLabels: ExpandableCardsLabels = { close: "Close" };
  * Cards that grow into a full detail view. The picture, title and frame are
  * shared elements, so the card itself becomes the dialog.
  */
-export function ExpandableCards({ items, value, defaultValue = null, onChange, className, labels, icons }: {
+export function ExpandableCards({ items, value, defaultValue = null, onChange, className, labels, icons, accessibilityFeatures }: {
   items: ExpandableItem[];
   /** Controlled id of the open card, or `null` for none. Leave out to let the cards keep their own. */
   value?: string | null;
@@ -47,8 +48,12 @@ export function ExpandableCards({ items, value, defaultValue = null, onChange, c
   labels?: Partial<ExpandableCardsLabels>;
   /** Replace any built-in icon. Merged over `expandableCardsIcons`. */
   icons?: Partial<ExpandableCardsIcons>;
+  /** Accessibility features to add for this one only (`calm` and `reduceMotion` open and close without the flying card). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
   const l = { ...expandableCardsLabels, ...labels };
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const tr = a11y.calm || a11y.reduceMotion ? { duration: 0 } : springSoft;
   const ic = useMemo(() => ({ ...expandableCardsIcons, ...icons }), [icons]);
   const uid = useId();
   const [openId, setOpenId] = useControllable<string | null>(value, defaultValue, onChange);
@@ -82,7 +87,7 @@ export function ExpandableCards({ items, value, defaultValue = null, onChange, c
 
   return (
     <LayoutGroup id={uid}>
-      <ul className={cn("grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3", className)}>
+      <ul {...rootProps} className={cn("grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3", className)}>
         {items.map((item) => (
           <li key={item.id} className={cn("relative min-w-0", (openId === item.id || returning === item.id) && "z-[1]")}>
             <motion.button
@@ -93,20 +98,20 @@ export function ExpandableCards({ items, value, defaultValue = null, onChange, c
               layoutId={`card-${item.id}`}
               onClick={() => setOpenId(item.id)}
               onLayoutAnimationComplete={() => setReturning((r) => (r === item.id ? null : r))}
-              whileTap={{ scale: 0.98 }}
-              transition={springSoft}
+              whileTap={a11y.calm || a11y.reduceMotion ? undefined : { scale: 0.98 }}
+              transition={tr}
               style={{ borderRadius: 14 }}
-              className="block w-full overflow-hidden border border-line bg-surface text-left"
+              className="block w-full overflow-hidden border border-line bg-surface text-left outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent"
               aria-haspopup="dialog"
             >
-              <motion.div layoutId={`img-${item.id}`} transition={springSoft} className="aspect-[16/10] overflow-hidden bg-raised">
+              <motion.div layoutId={`img-${item.id}`} transition={tr} className="aspect-[16/10] overflow-hidden bg-raised">
                 <img decoding="async" src={item.image} alt={item.alt} width={640} height={400} className="size-full object-cover" loading="lazy" />
               </motion.div>
               <div className="p-4">
-                <motion.span layoutId={`meta-${item.id}`} layout="position" transition={springSoft} className="block text-xs text-muted">
+                <motion.span layoutId={`meta-${item.id}`} layout="position" transition={tr} className="block text-xs text-muted">
                   {item.meta}
                 </motion.span>
-                <motion.span layoutId={`title-${item.id}`} layout="position" transition={springSoft} className="mt-0.5 block font-semibold text-ink">
+                <motion.span layoutId={`title-${item.id}`} layout="position" transition={tr} className="mt-0.5 block font-semibold text-ink">
                   {item.title}
                 </motion.span>
               </div>
@@ -131,14 +136,14 @@ export function ExpandableCards({ items, value, defaultValue = null, onChange, c
               <div key="frame" className="pointer-events-none fixed inset-0 z-[61] grid place-items-center overflow-y-auto p-4">
                 <motion.div
                   layoutId={`card-${open.id}`}
-                  transition={springSoft}
+                  transition={tr}
                   style={{ borderRadius: 22 }}
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby={`${uid}-${open.id}-t`}
                   className="pointer-events-auto relative w-full max-w-xl overflow-hidden bg-surface shadow-float"
                 >
-                  <motion.div layoutId={`img-${open.id}`} transition={springSoft} className="aspect-[16/10] overflow-hidden bg-raised">
+                  <motion.div layoutId={`img-${open.id}`} transition={tr} className="aspect-[16/10] overflow-hidden bg-raised">
                     <img decoding="async" src={open.image} alt={open.alt} width={1120} height={700} className="size-full object-cover" />
                   </motion.div>
                   <motion.button
@@ -147,23 +152,23 @@ export function ExpandableCards({ items, value, defaultValue = null, onChange, c
                     type="button"
                     onClick={close}
                     aria-label={l.close}
-                    className="absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-surface text-ink [&>svg]:size-4"
+                    className="absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-surface text-ink outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent [&>svg]:size-4"
                     initial={{ opacity: 0, scale: 0.6 }}
-                    animate={{ opacity: 1, scale: 1, transition: { delay: 0.15, ...springSoft } }}
+                    animate={{ opacity: 1, scale: 1, transition: { delay: 0.15, ...tr } }}
                     exit={{ opacity: 0, scale: 0.6, transition: { duration: 0.12 } }}
                     whileTap={{ scale: 0.9 }}
                   >
                     {ic.close}
                   </motion.button>
                   <div className="p-6">
-                    <motion.span layoutId={`meta-${open.id}`} layout="position" transition={springSoft} className="block text-xs text-muted">
+                    <motion.span layoutId={`meta-${open.id}`} layout="position" transition={tr} className="block text-xs text-muted">
                       {open.meta}
                     </motion.span>
                     <motion.span
                       id={`${uid}-${open.id}-t`}
                       layoutId={`title-${open.id}`}
                       layout="position"
-                      transition={springSoft}
+                      transition={tr}
                       className="mt-0.5 block font-semibold text-ink"
                     >
                       {open.title}
@@ -172,7 +177,7 @@ export function ExpandableCards({ items, value, defaultValue = null, onChange, c
                       layout="position"
                       className="mt-4 text-sm text-ink"
                       initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0, transition: { delay: 0.12, ...springSoft } }}
+                      animate={{ opacity: 1, y: 0, transition: { delay: 0.12, ...tr } }}
                       exit={{ opacity: 0, y: 6, transition: { duration: 0.1 } }}
                     >
                       {open.detail}

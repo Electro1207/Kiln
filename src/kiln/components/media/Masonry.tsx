@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { spring } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type MasonryItem = { id: string; src: string; alt: string; width: number; height: number; caption?: string };
 
@@ -33,10 +34,12 @@ function deal(items: MasonryItem[], n: number) {
   return cols.map((c) => c.items.sort((a, b) => a.i - b.i).map((e) => e.it));
 }
 
-/** Pictures of mixed heights in columns. Each rises in as it enters the view. */
-export function Masonry({ items, columns = 3, className }: { items: MasonryItem[]; columns?: 2 | 3 | 4; className?: string }) {
+/** Pictures of mixed heights in columns. Each rises in as it enters the view; `calm`, `reduceMotion` and `noFlashing` show them at once and stop the hover zoom. */
+export function Masonry({ items, columns = 3, className, accessibilityFeatures }: { items: MasonryItem[]; columns?: 2 | 3 | 4; className?: string; /** Accessibility features to add for this grid only (`calm`, `reduceMotion` and `noFlashing` skip the rise and the zoom). Adds to the person's own settings, never removes them. */ accessibilityFeatures?: AccessibilityFeaturesProp }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion || a11y.noFlashing;
   return (
-    <div className={cn("w-full", className)}>
+    <div {...rootProps} className={cn("w-full", className)}>
       {LAYOUTS[columns].map(({ n, className: shown }) => (
         <div key={n} className={cn("items-start gap-3 sm:gap-4", shown)}>
           {deal(items, n).map((col, c) => (
@@ -44,7 +47,7 @@ export function Masonry({ items, columns = 3, className }: { items: MasonryItem[
               {col.map((it) => (
                 <motion.li
                   key={it.id}
-                  initial={{ opacity: 0, y: 24 }}
+                  initial={still ? false : { opacity: 0, y: 24 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "0px 0px -8% 0px" }}
                   transition={{ ...spring, delay: c * 0.07 }}
@@ -56,7 +59,7 @@ export function Masonry({ items, columns = 3, className }: { items: MasonryItem[
                       width={it.width}
                       height={it.height}
                       loading="lazy"
-                      className="block h-auto w-full transition-transform duration-[1200ms] ease-out-soft group-hover:scale-[1.04]"
+                      className={cn("block h-auto w-full", !still && "transition-transform duration-[1200ms] ease-out-soft group-hover:scale-[1.04]")}
                     />
                     {it.caption && <figcaption className="px-3 py-2 text-xs text-muted">{it.caption}</figcaption>}
                   </figure>

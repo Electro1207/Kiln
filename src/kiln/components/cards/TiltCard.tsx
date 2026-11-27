@@ -56,7 +56,7 @@ export function TiltCard({ children, max = 8, className, cardClassName, accessib
         <motion.span
           aria-hidden
           style={{ x: sheenX, y: sheenY, opacity: sheenOpacity }}
-          className="pointer-events-none absolute left-1/4 top-1/4 size-1/2 rounded-full bg-surface blur-3xl dark:bg-line-strong"
+          className="pointer-events-none absolute left-1/4 top-1/4 size-1/2 rounded-full bg-elevated blur-3xl"
         />
       </motion.div>
     </div>

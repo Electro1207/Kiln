@@ -4,6 +4,7 @@ import { ArrowDown, Check, Minus } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { easeOut, springSnappy } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by Table. Pass a partial via `labels` to translate or reword. */
 export interface TableLabels {
@@ -63,6 +64,8 @@ export type TableProps<T> = {
   labels?: Partial<TableLabels>;
   /** Replace any built-in icon. Merged over `tableIcons`. */
   icons?: Partial<TableIcons>;
+  /** Accessibility features to add for this one only (`calm` and `reduceMotion` re-sort without the gliding rows; the sorted column is also marked with an arrow and `aria-sort`, and a selected row with a tick). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** The column being sorted and its direction, or `null` for the original order. */
@@ -74,7 +77,7 @@ export type TableSort = { key: string; dir: "asc" | "desc" } | null;
  * After the commit each moved row slides from there with a Web Animation,
  * which runs on the compositor, so a sort costs no main-thread work per frame.
  */
-export function useRowFlip(body: RefObject<HTMLElement | null>, order: string) {
+export function useRowFlip(body: RefObject<HTMLElement | null>, order: string, skip = false) {
   const before = useRef<Map<string, number> | null>(null);
   const capture = () => {
     const el = body.current;
@@ -87,7 +90,7 @@ export function useRowFlip(body: RefObject<HTMLElement | null>, order: string) {
     const el = body.current;
     const prev = before.current;
     before.current = null;
-    if (!el || !prev || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!el || !prev || skip || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     el.querySelectorAll<HTMLElement>("[data-row]").forEach((r) => {
       r.getAnimations().forEach((a) => a.cancel());
       const from = prev.get(r.dataset.row!);
@@ -99,7 +102,7 @@ export function useRowFlip(body: RefObject<HTMLElement | null>, order: string) {
         easing: `cubic-bezier(${easeOut.join(",")})`,
       });
     });
-  }, [order, body]);
+  }, [order, body, skip]);
   return capture;
 }
 
@@ -120,7 +123,10 @@ export function Table<T>({
   className,
   labels,
   icons,
+  accessibilityFeatures,
 }: TableProps<T>) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...tableLabels, ...labels };
   const ic = useMemo(() => ({ ...tableIcons, ...icons }), [icons]);
   const [sort, setSort] = useControllable<TableSort>(sortProp, defaultSort, onSortChange);
@@ -139,7 +145,7 @@ export function Table<T>({
   }, [rows, columns, sort]);
 
   const body = useRef<HTMLTableSectionElement>(null);
-  const capture = useRowFlip(body, sorted.map(rowKey).join("|"));
+  const capture = useRowFlip(body, sorted.map(rowKey).join("|"), still);
   const cycle = (key: string) => {
     capture();
     setSort(sort?.key !== key ? { key, dir: "asc" } : sort.dir === "asc" ? { key, dir: "desc" } : null);
@@ -158,8 +164,9 @@ export function Table<T>({
 
   return (
     <div
+      {...rootProps}
       className={cn("relative w-full overflow-auto rounded-card border border-line bg-surface", className)}
-      style={{ maxHeight }}
+      style={{ ...rootProps.style, maxHeight }}
       tabIndex={0}
       role="region"
       aria-label={caption ?? l.table}
@@ -191,7 +198,7 @@ export function Table<T>({
                       type="button"
                       onClick={() => cycle(c.key)}
                       className={cn(
-                        "inline-flex items-center gap-1 rounded-control py-1 transition-colors hover:text-ink",
+                        "inline-flex items-center gap-1 rounded-control py-1 outline-offset-2 transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-accent",
                         c.align === "right" && "flex-row-reverse",
                         active && "text-ink",
                       )}

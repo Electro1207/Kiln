@@ -293,7 +293,7 @@ export type VideoPlayerProps = {
   /** Replace any built-in icon. Merged over `videoPlayerIcons`. */
   icons?: Partial<VideoPlayerIcons>;
   className?: string;
-  /** Accessibility features to add for this player only. `captions` starts it with captions on, when it has any. */
+  /** Accessibility features to add for this player only. `captions` starts it with captions on, when it has any; `calm` and `reduceMotion` turn off autoplay and looping. */
   accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
@@ -384,6 +384,7 @@ const useVideoIcons = () => useContext(VideoIconsContext);
 
 /** Pixels either side of a marker where a press on the scrubber lands on the marker. */
 const MARKER_REACH = 12;
+// Allowed exception: the player draws white-on-black controls over the video itself, which has no theme, so these are fixed colours by design.
 const MARKER_TONES = {
   accent: "bg-accent text-on-accent shadow-[0_0_0_3px_color-mix(in_oklab,var(--color-accent)_28%,transparent),0_0_14px_color-mix(in_oklab,var(--color-accent)_70%,transparent)]",
   neutral: "bg-white text-black shadow-[0_0_0_3px_rgb(255_255_255/0.22),0_0_14px_rgb(255_255_255/0.5)]",
@@ -455,6 +456,9 @@ export function VideoPlayer({
   autoPlay = false, loop = false, defaultMuted, freeze = false, theater = false, onTheaterChange, labels, icons, className, accessibilityFeatures,
 }: VideoPlayerProps) {
   const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  // Nothing plays on its own under calm or reduced motion: no autoplay, no loop.
+  const auto = autoPlay && !a11y.calm && !a11y.reduceMotion;
+  const looping = loop && !a11y.calm;
   const l = { ...videoPlayerLabels, ...labels };
   const ic = useMemo(() => ({ ...videoPlayerIcons, ...icons }), [icons]);
   const root = useRef<HTMLDivElement>(null);
@@ -505,7 +509,7 @@ export function VideoPlayer({
   // Muted autoplay while the player is mostly on screen; a viewer's own pause wins.
   useEffect(() => {
     const el = root.current;
-    if (!autoPlay || !el) return;
+    if (!auto || !el) return;
     const io = new IntersectionObserver(
       ([e]) => {
         const v = video.current;
@@ -519,16 +523,16 @@ export function VideoPlayer({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [autoPlay, rendition.src]);
+  }, [auto, rendition.src]);
 
   // Coming out of a freeze, an autoplaying player picks up again: a visibility check made while it was
   // moving in 3D can be wrong in some browsers, so it is not left to the observer alone.
   useEffect(() => {
     const v = video.current, el = root.current;
-    if (freeze || !autoPlay || !v || !el || heldByViewer.current || !v.paused) return;
+    if (freeze || !auto || !v || !el || heldByViewer.current || !v.paused) return;
     const r = el.getBoundingClientRect();
     if (r.bottom > 0 && r.top < window.innerHeight && r.right > 0 && r.left < window.innerWidth) void v.play().catch(() => {});
-  }, [freeze, autoPlay]);
+  }, [freeze, auto]);
 
   useEffect(() => {
     const v = video.current;
@@ -925,9 +929,9 @@ export function VideoPlayer({
           key={rendition.src}
           src={rendition.src}
           poster={poster}
-          preload={autoPlay ? "auto" : "metadata"}
+          preload={auto ? "auto" : "metadata"}
           muted={muted}
-          loop={loop}
+          loop={looping}
           playsInline
           className="absolute inset-0 size-full object-contain"
           style={freeze ? { opacity: 0 } : undefined}
@@ -1496,6 +1500,7 @@ function Scrubber({ time, played, buffered, duration, chapters, split, markers, 
   return (
     <div
       ref={track}
+      // outline-none is fine here: the inner track shows focus through group-focus-visible/scrub.
       className="group/scrub relative flex h-6 min-w-0 flex-1 cursor-pointer items-center touch-none outline-none"
       onPointerEnter={(e) => {
         if (e.pointerType === "mouse") {

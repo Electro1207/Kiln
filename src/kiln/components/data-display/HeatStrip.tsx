@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useMotionValue } from "motion/react";
 import { cn } from "../../cn";
 import { fade } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by HeatStrip. Pass a partial via `labels` to translate or reword. */
 export interface HeatStripLabels {
@@ -34,9 +35,12 @@ export type HeatStripProps = {
   className?: string;
   /** Override any UI text. Merged over `heatStripLabels`. */
   labels?: Partial<HeatStripLabels>;
+  /** Accessibility features to add for this strip only (`calm`, `reduceMotion` and `noFlashing` skip the entrance; `highContrast` makes the lightest days and the ring solid). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const LEVELS = [0, 0.25, 0.5, 0.75, 1];
+const LEVELS_HC = [0, 0.5, 0.7, 0.85, 1];
 const CELL = 12;
 const GAP = 3;
 const PITCH = CELL + GAP;
@@ -57,7 +61,10 @@ const fmt = (iso: string, locale = "en-GB") => {
  * hover; the ring is positioned through motion values and only the readout
  * re-renders. The entrance runs on the compositor (Web Animations), not React.
  */
-export function HeatStrip({ days, unit, locale, className, labels }: HeatStripProps) {
+export function HeatStrip({ days, unit, locale, className, labels, accessibilityFeatures }: HeatStripProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion || a11y.noFlashing;
+  const levels = a11y.highContrast ? LEVELS_HC : LEVELS;
   // Stable, so the memoised cells don't re-render on every hover.
   const l = useMemo(() => ({ ...heatStripLabels, ...labels }), [labels]);
   const [active, setActive] = useState<number | null>(null);
@@ -88,7 +95,7 @@ export function HeatStrip({ days, unit, locale, className, labels }: HeatStripPr
 
   const cur = active != null ? days[active] : null;
   return (
-    <div className={cn("flex w-full min-w-0 flex-col gap-3", className)}>
+    <div {...rootProps} className={cn("flex w-full min-w-0 flex-col gap-3", className)}>
       <div className="flex items-baseline justify-between gap-3 text-[0.8125rem]" aria-live="polite">
         <span className="tabular text-muted">{cur ? fmt(cur.date, locale) : l.lastWeeks(weeks)}</span>
         <span className="tabular font-medium text-ink">
@@ -112,7 +119,7 @@ export function HeatStrip({ days, unit, locale, className, labels }: HeatStripPr
             if (!grid.current?.contains(e.relatedTarget as Node)) show(null);
           }}
         >
-          <Cells days={days} unit={unit} gridRef={grid} locale={locale} l={l} />
+          <Cells days={days} unit={unit} gridRef={grid} locale={locale} l={l} levels={levels} still={still} />
           {/* One ring for the whole grid, above every cell. It jumps cell to cell. */}
           <motion.span
             aria-hidden
@@ -126,7 +133,7 @@ export function HeatStrip({ days, unit, locale, className, labels }: HeatStripPr
       </div>
       <div className="flex items-center gap-1.5 self-end text-[0.6875rem] text-muted" aria-hidden>
         {l.fewer}
-        {LEVELS.map((lv, i) => (
+        {levels.map((lv, i) => (
           <span key={i} className={cn("size-2.5 rounded-[3px]", i === 0 ? "bg-active" : "bg-accent")} style={{ opacity: i === 0 ? 1 : lv }} />
         ))}
         {l.more}
@@ -136,7 +143,7 @@ export function HeatStrip({ days, unit, locale, className, labels }: HeatStripPr
 }
 
 /** The cells. Rendered once per data set; hover never re-renders them. */
-const Cells = memo(function Cells({ days, unit, gridRef, locale, l }: { days: HeatStripProps["days"]; unit: string; gridRef: React.RefObject<HTMLDivElement | null>; locale?: string; l: HeatStripLabels }) {
+const Cells = memo(function Cells({ days, unit, gridRef, locale, l, levels, still }: { days: HeatStripProps["days"]; unit: string; gridRef: React.RefObject<HTMLDivElement | null>; locale?: string; l: HeatStripLabels; levels: number[]; still: boolean }) {
   const wrap = useRef<HTMLDivElement>(null);
   const max = useMemo(() => Math.max(1, ...days.map((d) => d.count)), [days]);
   const weeks = useMemo(() => {
@@ -149,7 +156,7 @@ const Cells = memo(function Cells({ days, unit, gridRef, locale, l }: { days: He
 
   useEffect(() => {
     const el = wrap.current;
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!el || still || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const cells = Array.from(el.querySelectorAll<HTMLElement>("[data-i]"));
     cells.forEach((c) => (c.style.visibility = "hidden"));
     const io = new IntersectionObserver(([e]) => {
@@ -166,7 +173,7 @@ const Cells = memo(function Cells({ days, unit, gridRef, locale, l }: { days: He
       io.disconnect();
       cells.forEach((c) => (c.style.visibility = ""));
     };
-  }, [days, gridRef]);
+  }, [days, gridRef, still]);
 
   const lastIndex = days.length - 1;
   return (
@@ -195,7 +202,7 @@ const Cells = memo(function Cells({ days, unit, gridRef, locale, l }: { days: He
                   cells[n].focus();
                 }}
                 className={cn("rounded-[3px] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent", lvl === 0 ? "bg-active" : "bg-accent")}
-                style={{ width: CELL, height: CELL, opacity: lvl === 0 ? 1 : LEVELS[lvl] }}
+                style={{ width: CELL, height: CELL, opacity: lvl === 0 ? 1 : levels[lvl] }}
               />
             );
           })}

@@ -2,6 +2,7 @@ import { useRef, type ReactNode, type Ref } from "react";
 import { animate, motion, useMotionValue, useMotionValueEvent, useTransform, type PanInfo } from "motion/react";
 import { cn } from "../../cn";
 import { springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ListAction = {
   label: string;
@@ -29,6 +30,8 @@ export type ListItemProps = {
   ref?: Ref<HTMLLIElement>;
   /** Override any UI text. Merged over `listItemLabels`. */
   labels?: Partial<ListItemLabels>;
+  /** Accessibility features to add for this one only (`calm` and `reduceMotion` open the actions without the spring; `largeTargets` makes the row and actions at least 44px tall). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const ACTION_W = 72;
@@ -39,17 +42,20 @@ const tones = {
 };
 
 /** A vertical list of ListItem rows. */
-export function List({ children, className, label }: { children: ReactNode; className?: string; label?: string }) {
+export function List({ children, className, label, accessibilityFeatures }: { children: ReactNode; className?: string; label?: string; /** Accessibility features to add for this list only (`highContrast` makes the row lines stronger via the page rules). Adds to the person's own settings, never removes them. */ accessibilityFeatures?: AccessibilityFeaturesProp }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   return (
-    <ul aria-label={label} className={cn("overflow-hidden rounded-card border border-line bg-surface", className)}>
+    <ul {...rootProps} aria-label={label} className={cn("overflow-hidden rounded-card border border-line bg-surface", className)}>
       {children}
     </ul>
   );
 }
 
 /** A list row with a title, description, leading and trailing content, and actions. */
-export function ListItem({ title, description, leading, trailing, actions, onClick, className, ref, labels }: ListItemProps) {
+export function ListItem({ title, description, leading, trailing, actions, onClick, className, ref, labels, accessibilityFeatures }: ListItemProps) {
   const l = { ...listItemLabels, ...labels };
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const x = useMotionValue(0);
   const width = (actions?.length ?? 0) * ACTION_W;
   const actionsOpacity = useTransform(x, [-width, -16, 0], [1, 0.4, 0]);
@@ -62,7 +68,7 @@ export function ListItem({ title, description, leading, trailing, actions, onCli
     if (actionsRef.current) actionsRef.current.style.visibility = v < -0.5 ? "visible" : "hidden";
   });
 
-  const settle = (target: number) => animate(x, target, springFirm);
+  const settle = (target: number) => animate(x, target, still ? { duration: 0 } : springFirm);
   const onDragEnd = (_: unknown, info: PanInfo) => {
     const open = info.offset.x < -width / 2 || info.velocity.x < -400;
     settle(open && !(info.velocity.x > 400) ? -width : 0);
@@ -75,7 +81,9 @@ export function ListItem({ title, description, leading, trailing, actions, onCli
         if (typeof ref === "function") ref(el);
         else if (ref) ref.current = el;
       }}
+      {...rootProps}
       initial={false}
+      // Allowed exception: a one-off height fold when a row is removed.
       exit={{ opacity: 0, height: 0, borderBottomWidth: 0, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } }}
       className={cn("relative overflow-hidden border-b border-line bg-surface outline-offset-[-2px] last:border-b-0", className)}
       tabIndex={width && !onClick ? 0 : undefined}
@@ -125,7 +133,7 @@ export function ListItem({ title, description, leading, trailing, actions, onCli
         style={{ x, touchAction: "pan-y" }}
         className="relative flex min-h-16 items-center gap-3 bg-surface px-4 py-3"
       >
-        {onClick && <button type="button" onClick={onClick} className="absolute inset-0 transition-colors hover:bg-raised" aria-label={typeof title === "string" ? title : undefined} />}
+        {onClick && <button type="button" onClick={onClick} className="absolute inset-0 outline-offset-[-2px] transition-colors hover:bg-raised focus-visible:outline-2 focus-visible:outline-accent" aria-label={typeof title === "string" ? title : undefined} />}
         {leading && <span className="pointer-events-none relative shrink-0">{leading}</span>}
         <span className="pointer-events-none relative flex min-w-0 flex-1 flex-col">
           <span className="truncate font-medium text-ink">{title}</span>

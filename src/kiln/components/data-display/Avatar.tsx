@@ -2,6 +2,7 @@ import { useState, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type AvatarSize = "sm" | "md" | "lg";
 export type AvatarStatus = "online" | "away" | "busy" | "offline";
@@ -29,6 +30,8 @@ export type AvatarProps = Omit<HTMLAttributes<HTMLSpanElement>, "children"> & {
   ref?: Ref<HTMLSpanElement>;
   /** Override any UI text. Merged over `avatarLabels`. */
   labels?: Partial<AvatarLabels>;
+  /** Accessibility features to add for this one only (`highContrast` adds a solid ring and ink initials; `colourSafe` gives each status its own mark, so presence is never colour alone). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Inline style and dot size for a numeric avatar size. */
@@ -49,6 +52,9 @@ const statusColour: Record<AvatarStatus, string> = {
   offline: "bg-faint",
 };
 
+/** Under `colourSafe` each presence also has its own shape: circle, rounded square, diamond, hollow circle. */
+const statusShape: Record<AvatarStatus, string> = { online: "rounded-full", away: "rounded-[2px]", busy: "rotate-45 rounded-none", offline: "rounded-full border-2 border-faint !bg-surface" };
+
 /** A stable hue per name, so a person keeps their colour everywhere. */
 export function hueFor(name: string) {
   let h = 0;
@@ -62,16 +68,17 @@ export function initials(name: string) {
 }
 
 /** A person's photo, or their initials on a colour of their own. */
-export function Avatar({ name, src, size = "md", status, className, ref, labels, ...rest }: AvatarProps) {
+export function Avatar({ name, src, size = "md", status, className, ref, labels, accessibilityFeatures, ...rest }: AvatarProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...avatarLabels, ...labels };
   const num = typeof size === "number" ? custom(size) : null;
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const hue = hueFor(name);
   return (
-    <span ref={ref} {...rest} className={cn("relative inline-flex shrink-0", className)}>
+    <span ref={ref} {...rest} {...rootProps} style={{ ...rootProps.style, ...rest.style }} className={cn("relative inline-flex shrink-0", className)}>
       <span
-        className={cn("relative grid place-items-center overflow-hidden rounded-full font-medium", num ? "" : sizes[size as AvatarSize])}
+        className={cn("relative grid place-items-center overflow-hidden rounded-full font-medium", a11y.highContrast && "ring-1 ring-ink", num ? "" : sizes[size as AvatarSize])}
         style={{
           ...num?.style,
           backgroundColor: `light-dark(hsl(${hue} 60% 90%), hsl(${hue} 30% 24%))`,
@@ -102,7 +109,7 @@ export function Avatar({ name, src, size = "md", status, className, ref, labels,
       {status && (
         <span
           aria-hidden
-          className={cn("absolute bottom-0 right-0 rounded-full ring-2 ring-surface", num ? num.dot : dot[size as AvatarSize], statusColour[status])}
+          className={cn("absolute bottom-0 right-0 ring-2 ring-surface", a11y.colourSafe ? statusShape[status] : "rounded-full", num ? num.dot : dot[size as AvatarSize], statusColour[status])}
         />
       )}
     </span>
@@ -124,13 +131,18 @@ export type AvatarGroupProps = {
   extra?: ReactNode;
   /** Override any UI text. Merged over `avatarGroupLabels`. */
   labels?: Partial<AvatarGroupLabels>;
+  /** Accessibility features to add for this one only (`calm` and `reduceMotion` keep the avatars fanned out only on focus or hover without the spring; `highContrast` is applied to each avatar). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Overlapping avatars that fan out on hover or focus. The hover zone is the
     fanned-out width, reserved up front, so spreading never moves an avatar out
     from under the pointer. */
-export function AvatarGroup({ people, max = 5, size = "md", className, labels }: AvatarGroupProps) {
+export function AvatarGroup({ people, max = 5, size = "md", className, labels, accessibilityFeatures }: AvatarGroupProps) {
   const l = { ...avatarGroupLabels, ...labels };
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
+  const fan = still ? { duration: 0 } : springFirm;
   const [open, setOpen] = useState(false);
   const shown = people.slice(0, max);
   const rest = people.length - shown.length;
@@ -141,8 +153,9 @@ export function AvatarGroup({ people, max = 5, size = "md", className, labels }:
   const reserve = (count - 1) * spread;
   return (
     <div
+      {...rootProps}
       className={cn("relative inline-flex items-center rounded-full", className)}
-      style={{ paddingRight: reserve }}
+      style={{ ...rootProps.style, paddingRight: reserve }}
       onPointerEnter={() => setOpen(true)}
       onPointerLeave={() => setOpen(false)}
       onFocus={() => setOpen(true)}
@@ -158,9 +171,9 @@ export function AvatarGroup({ people, max = 5, size = "md", className, labels }:
           style={{ zIndex: count - i, marginLeft: i === 0 ? 0 : -overlap }}
           initial={false}
           animate={{ x: open ? i * spread : 0 }}
-          transition={springFirm}
+          transition={fan}
         >
-          <Avatar name={p.name} src={p.src} size={size} />
+          <Avatar name={p.name} src={p.src} size={size} accessibilityFeatures={accessibilityFeatures} />
         </motion.span>
       ))}
       {rest > 0 && (
@@ -169,7 +182,7 @@ export function AvatarGroup({ people, max = 5, size = "md", className, labels }:
           style={{ marginLeft: -overlap, width: px, height: px, fontSize: size === "lg" ? 15 : size === "md" ? 12 : 10.5 }}
           initial={false}
           animate={{ x: open ? shown.length * spread : 0 }}
-          transition={springFirm}
+          transition={fan}
           aria-hidden
         >
           +{rest}

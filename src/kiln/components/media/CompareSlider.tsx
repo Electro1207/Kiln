@@ -35,7 +35,7 @@ export type CompareSliderProps = {
   /** Replace any built-in icon. Merged over `compareSliderIcons`. */
   icons?: Partial<CompareSliderIcons>;
   className?: string;
-  /** Accessibility features to add for this slider only (adds to the person's settings). */
+  /** Accessibility features for this slider only (`calm` and `reduceMotion` jump the handle instead of gliding it). */
   accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
@@ -45,6 +45,8 @@ export type CompareSliderProps = {
  * large pictures stay smooth.
  */
 /** Icons used by CompareSlider. Pass a partial via `icons` to swap any of them. */
+const INSTANT = { duration: 0 } as const;
+
 export interface CompareSliderIcons {
   /** Drag handle. */
   handle: ReactNode;
@@ -52,7 +54,8 @@ export interface CompareSliderIcons {
 export const compareSliderIcons: CompareSliderIcons = { handle: <ChevronsLeftRight /> };
 
 export function CompareSlider({ before, after, beforeLabel = "Before", afterLabel = "After", value: valueProp, defaultValue, onChange, initial = 50, label = "Compare", labels, icons, className, accessibilityFeatures }: CompareSliderProps) {
-  const { rootProps } = useA11yProps(accessibilityFeatures);
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const tr = a11y.calm || a11y.reduceMotion ? INSTANT : springFirm;
   const l = { ...compareSliderLabels, ...labels };
   const ic = useMemo(() => ({ ...compareSliderIcons, ...icons }), [icons]);
   const box = useRef<HTMLDivElement>(null);
@@ -66,8 +69,8 @@ export function CompareSlider({ before, after, beforeLabel = "Before", afterLabe
   useEffect(() => {
     if (Math.round(pos.get()) === value) return;
     outside.current = true;
-    animate(pos, value, { ...springFirm, onComplete: () => (outside.current = false) });
-  }, [value, pos]);
+    animate(pos, value, { ...tr, onComplete: () => (outside.current = false) });
+  }, [value, pos, tr]);
   const dragging = useRef(false);
 
   // The "after" layer is a window from the split to the right edge; its content is shifted back so it stays put.
@@ -88,7 +91,7 @@ export function CompareSlider({ before, after, beforeLabel = "Before", afterLabe
         dragging.current = true;
         outside.current = false;
         e.currentTarget.setPointerCapture(e.pointerId);
-        animate(pos, fromPointer(e.clientX), springFirm);
+        animate(pos, fromPointer(e.clientX), tr);
       }}
       onPointerMove={(e) => {
         if (!dragging.current) return;
@@ -130,7 +133,7 @@ export function CompareSlider({ before, after, beforeLabel = "Before", afterLabe
             if (to === null) return;
             e.preventDefault();
             outside.current = false;
-            animate(pos, Math.min(100, Math.max(0, to)), springFirm);
+            animate(pos, Math.min(100, Math.max(0, to)), tr);
           }}
           className="pointer-events-auto absolute left-0 top-1/2 grid size-9 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize place-items-center rounded-full bg-surface text-ink shadow-float [&>svg]:size-4"
         >

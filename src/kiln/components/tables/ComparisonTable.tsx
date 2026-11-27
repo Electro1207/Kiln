@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 import { Check, Minus } from "lucide-react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ComparisonPlan = { id: string; name: string; price: string; note?: string; featured?: boolean; action?: ReactNode };
 export type ComparisonRow = {
@@ -33,20 +34,24 @@ export type ComparisonGroup = { title: string; rows: ComparisonRow[] };
  * of the scroll area and the feature column stays at the left on phones.
  */
 export function ComparisonTable({
-  plans, groups, caption, maxHeight = 520, className, labels, icons,
+  plans, groups, caption, maxHeight = 520, className, labels, icons, accessibilityFeatures,
 }: {
   plans: ComparisonPlan[]; groups: ComparisonGroup[]; caption: string; maxHeight?: number; className?: string;
   /** Override any UI text. Merged over `comparisonTableLabels`. */
   labels?: Partial<ComparisonTableLabels>;
   /** Replace any built-in icon. Merged over `comparisonTableIcons`. */
   icons?: Partial<ComparisonTableIcons>;
+  /** Accessibility features to add for this one only (included and not included are a check and a dash with a screen-reader word, never colour alone; `highContrast` makes the dash text darker). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
   const l = { ...comparisonTableLabels, ...labels };
   const ic = { ...comparisonTableIcons, ...icons };
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   return (
     <div
+      {...rootProps}
       className={cn("w-full overflow-auto rounded-card border border-line bg-surface", className)}
-      style={{ maxHeight }}
+      style={{ ...rootProps.style, maxHeight }}
       role="region"
       aria-label={caption}
       tabIndex={0}
@@ -105,7 +110,7 @@ export function ComparisonTable({
                             <span className="sr-only">{l.included}</span>
                           </span>
                         ) : v === false || v == null ? (
-                          <span className="flex items-center text-faint">
+                          <span className={cn("flex items-center", a11y.highContrast ? "text-muted" : "text-faint")}>
                             <span className="grid place-items-center [&>svg]:size-4" aria-hidden>{ic.notIncluded}</span>
                             <span className="sr-only">{l.notIncluded}</span>
                           </span>
