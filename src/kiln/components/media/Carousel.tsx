@@ -164,7 +164,9 @@ export function Carousel({ slides, label, value, defaultValue = 0, onChange, per
       <div className="group/car relative">
       <div
         ref={viewport}
-        className="overflow-hidden rounded-card outline-offset-4"
+        // inline-size containment: the slides (sized from this width) can never widen it, which in a
+        // content-sized parent (a wrapping flex column, a grid auto track) grew it without end.
+        className="overflow-hidden rounded-card outline-offset-4 [contain:inline-size]"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === "ArrowRight") { e.preventDefault(); go(index + 1); }
