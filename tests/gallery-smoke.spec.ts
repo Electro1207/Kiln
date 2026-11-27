@@ -53,8 +53,10 @@ async function focusChecks(page: Page) {
         el.focus({ preventScroll: true });
         if (document.activeElement !== el) continue;
         let shown = false;
-        // The ring may sit on the control or on a wrapper that reacts to focus-within.
-        for (let n: HTMLElement | null = el, i = 0; n && i < 4; n = n.parentElement, i++) {
+        // The ring may sit on the control or on a wrapper that reacts to focus-within, anywhere up to the
+        // demo's own root (a visually hidden input, like Terminal's, shows focus on the component's frame).
+        // Never above the demo, so gallery chrome can't count.
+        for (let n: HTMLElement | null = el; n && demo.contains(n); n = n.parentElement) {
           const cs = getComputedStyle(n);
           const outline = cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0;
           const shadow = cs.boxShadow !== "none";

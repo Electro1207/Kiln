@@ -201,7 +201,7 @@ const Cells = memo(function Cells({ days, unit, gridRef, locale, l, levels, stil
                   cells[n].tabIndex = 0;
                   cells[n].focus();
                 }}
-                className={cn("rounded-[3px] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent", lvl === 0 ? "bg-active" : "bg-accent")}
+                className={cn("rounded-[3px] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-accent", lvl === 0 ? "bg-active" : "bg-accent")}
                 style={{ width: CELL, height: CELL, opacity: lvl === 0 ? 1 : levels[lvl] }}
               />
             );

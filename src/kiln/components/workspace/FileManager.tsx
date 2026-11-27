@@ -567,7 +567,7 @@ export function FileManager({ initial, rootName = "Home", onOpenFile, onChange, 
         onClick={() => !renaming && setSel(new Set())}
         onContextMenu={(e) => openMenu(e, null)}
         {...dropProps(cwd, `here-${cwd ?? "root"}`)}
-        className="relative min-h-72 flex-1 overflow-y-auto bg-raised/50 p-2 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
+        className="relative min-h-72 flex-1 overflow-y-auto bg-raised/50 p-2 outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-accent"
       >
         <AnimatePresence initial={false} mode="wait">
           <motion.div
