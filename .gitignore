@@ -45,3 +45,5 @@ packages/kiln/README.md
 packages/kiln/LICENSE
 packages/kiln/CHANGELOG.md
 packages/kiln/bin/
+test-results/
+playwright-report/
