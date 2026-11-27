@@ -12,6 +12,7 @@
     "gen:registry": "node scripts/gen-registry.mjs",
     "build:lib": "node scripts/build-lib.mjs",
     "check:parity": "node scripts/check-parity.mjs",
+    "check:files": "node scripts/check-files.mjs",
     "test:smoke": "playwright test"
   },
   "dependencies": {

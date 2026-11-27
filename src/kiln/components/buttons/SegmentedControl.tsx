@@ -45,12 +45,11 @@ export function SegmentedControl<T extends string>({
     refs.current[n]?.focus();
   };
   return (
-    // dark:bg-ground is kept for now: no token gives a track darker than the raised pill in dark mode (reported for tokens.css).
     <div
       {...rootProps}
       role="radiogroup"
       aria-label={label}
-      className={cn("relative isolate inline-flex rounded-control bg-active p-1 dark:bg-ground", fullWidth && "flex w-full", className)}
+      className={cn("relative isolate inline-flex rounded-control bg-track p-1", fullWidth && "flex w-full", className)}
     >
       {options.map((o, i) => {
         const on = o.value === value;

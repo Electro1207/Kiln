@@ -17,6 +17,9 @@
   --k-raised: #eeefec;   /* wells, inputs at rest, hovered rows         */
   --k-active: #e4e5e2;   /* pressed / selected neutral                  */
   --k-elevated: #ffffff; /* a pill or thumb rising out of a raised track */
+  --k-track: #e4e5e2;    /* the groove a segmented pill slides in      */
+  --k-inverse: #141413;  /* tooltips, inverse banners, footers          */
+  --k-on-inverse: #ffffff; /* text on the inverse surface                 */
 
   /* Lines */
   --k-line: #e2e4e0;     /* card and sheet edges                        */
@@ -52,6 +55,8 @@
   --k-radius-sheet: 18px;   /* sheets, dialogs                          */
 
   /* Floating things only (menus, dialogs, toasts). Nothing at rest. */
+  --k-float-ring: transparent;   /* hairline edge of floating sheets (dark only) */
+  --k-inverse-ring: transparent; /* hairline edge of the inverse surface (dark only) */
   --k-float-shadow: 0 1px 2px rgb(20 20 19 / 0.06), 0 12px 32px -8px rgb(20 20 19 / 0.18);
   --k-scrim: rgb(20 20 19 / 0.32);
   --k-tour-scrim: rgb(14 16 17 / 0.5);  /* the page dimmed around a tour spotlight */
@@ -69,6 +74,9 @@
   --k-raised: #1f2023;
   --k-active: #2a2b2f;
   --k-elevated: #303136;
+  --k-track: #0f1011;
+  --k-inverse: #303136;
+  --k-on-inverse: #ededea;
 
   --k-line: #27292c;
   --k-line-strong: #3b3d42;
@@ -93,6 +101,8 @@
   --k-warning: #e8b04f;   --k-warning-soft: #33250c;
   --k-info: #7fa9ec;      --k-info-soft: #16243b;
 
+  --k-float-ring: #27292c;
+  --k-inverse-ring: rgb(59 61 66 / 0.6);
   --k-float-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -8px rgb(0 0 0 / 0.6);
   --k-scrim: rgb(0 0 0 / 0.55);
   --k-tour-scrim: rgb(0 0 0 / 0.62);

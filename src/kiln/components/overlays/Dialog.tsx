@@ -127,7 +127,7 @@ function DialogLayer({
         style={rootProps.style}
         /* outline-none: this is only the programmatic focus target (tabIndex -1), not a control. */
         className={cn(
-          "relative flex max-h-[88dvh] w-full flex-col bg-surface text-ink shadow-float outline-none dark:ring-1 dark:ring-line",
+          "relative flex max-h-[88dvh] w-full flex-col bg-surface text-ink shadow-float outline-none ring-1 ring-float-ring",
           "rounded-t-sheet pb-[env(safe-area-inset-bottom)] sm:rounded-sheet sm:pb-0",
           widths[size],
           className,

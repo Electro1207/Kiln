@@ -84,36 +84,6 @@ export const meta: A11yMetaMap = {
       "With screen reader hints on, an extra sentence explains why the button is disabled.",
     ],
   },
-  toolbar: {
-    features: ["largeTargets", "strongFocus"],
-    pattern: "Toolbar",
-    keys: [
-      ["Tab", "One stop for the whole toolbar"],
-      ["← →", "Next or previous tool (↑ ↓ when vertical)"],
-      ["Home / End", "First or last tool"],
-      ["Space or Enter", "Press, or toggle"],
-    ],
-    notes: [
-      "Roving tabindex: tabbing out and back returns to the tool you left.",
-      "Toggles use aria-pressed; icon-only tools carry their name as aria-label and a tooltip.",
-    ],
-  },
-  menubar: {
-    features: ["reduceMotion", "largeTargets", "strongFocus"],
-    pattern: "Menu bar",
-    keys: [
-      ["Tab", "One stop for the whole bar"],
-      ["← →", "Move between menus; while one is open, switch to the next"],
-      ["↓ or Enter", "Open the menu on its first item"],
-      ["↑ ↓", "Move within a menu"],
-      ["→ in a submenu row", "Open the submenu"],
-      ["Esc", "Close and return focus to the bar"],
-    ],
-    notes: [
-      "Roving tabindex across the bar; opening with the keyboard lands on the first item.",
-      "Hovering another menu while one is open switches to it, as native menu bars do.",
-    ],
-  },
   "bottom-tab-bar": {
     features: ["largeTargets", "highContrast", "colourSafe"],
     pattern: "Navigation landmark with current-page links",

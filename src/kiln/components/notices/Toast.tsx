@@ -335,8 +335,7 @@ function ToastItem({ toast, index, expanded, frontH, offset, onHeight, onDismiss
       onDragEnd={onDragEnd}
       style={{ x, zIndex: MAX - index, transformOrigin: "50% 0%", bottom: 0, borderRadius: 14 }}
       className={cn(
-        /* dark: ring kept: needs a floating-edge token (reported). */
-        "group absolute inset-x-0 touch-pan-y bg-surface text-ink shadow-float dark:ring-1 dark:ring-line dark:ring-inset",
+        "group absolute inset-x-0 touch-pan-y bg-surface text-ink shadow-float ring-1 ring-inset ring-float-ring",
         !shown && "pointer-events-none",
       )}
     >

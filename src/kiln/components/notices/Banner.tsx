@@ -39,8 +39,7 @@ export interface BannerLabels {
 export const bannerLabels: BannerLabels = { region: "Announcement", dismiss: "Dismiss announcement" };
 
 const tones = {
-  // dark: override kept: needs an inverse-surface token pair (reported).
-  inverse: "bg-ink text-surface dark:bg-btn-secondary dark:text-btn-secondary-ink",
+  inverse: "bg-inverse text-on-inverse",
   brand: "bg-btn-primary text-btn-primary-ink",
   neutral: "bg-raised text-ink",
 };
