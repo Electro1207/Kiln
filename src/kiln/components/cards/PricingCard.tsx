@@ -43,7 +43,7 @@ export function BillingToggle({ value: valueProp, defaultValue = "monthly", onCh
     { id: "yearly", label: l.yearly },
   ];
   return (
-    <div {...rootProps} role="radiogroup" aria-label={l.billingPeriod} className="inline-flex rounded-full bg-raised p-1">
+    <div {...rootProps} role="radiogroup" aria-label={l.billingPeriod} className="inline-flex rounded-full bg-active p-1">
       {opts.map((o) => {
         const on = value === o.id;
         return (

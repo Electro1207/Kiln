@@ -1500,8 +1500,7 @@ function Scrubber({ time, played, buffered, duration, chapters, split, markers, 
   return (
     <div
       ref={track}
-      // outline-none is fine here: the inner track shows focus through group-focus-visible/scrub.
-      className="group/scrub relative flex h-6 min-w-0 flex-1 cursor-pointer items-center touch-none outline-none"
+      className="group/scrub relative flex h-6 min-w-0 flex-1 cursor-pointer items-center touch-none rounded-full focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80"
       onPointerEnter={(e) => {
         if (e.pointerType === "mouse") {
           setHover(true);
@@ -1554,7 +1553,7 @@ function Scrubber({ time, played, buffered, duration, chapters, split, markers, 
       }}
     >
       <motion.div
-        className="flex h-[6px] w-full origin-center gap-[3px] group-focus-visible/scrub:outline group-focus-visible/scrub:outline-2 group-focus-visible/scrub:outline-offset-4 group-focus-visible/scrub:outline-white/70"
+        className="flex h-[6px] w-full origin-center gap-[3px]"
         initial={false}
         animate={{ scaleY: lifted ? 1 : 0.6 }}
         transition={springFirm}
