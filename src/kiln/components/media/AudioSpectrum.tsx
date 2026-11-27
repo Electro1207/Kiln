@@ -44,7 +44,12 @@ export type AudioSpectrumProps = Omit<HTMLAttributes<HTMLDivElement>, "children"
   crossOrigin?: "anonymous" | "use-credentials";
   /** Override any UI text. Merged over `audioSpectrumLabels`. */
   labels?: Partial<AudioSpectrumLabels>;
-  /** Accessibility features to add for this meter only (`calm` swaps the moving bars for one still level bar). Adds to the person's own settings, never removes them. */
+  /**
+   * Hide the meter from screen readers (the play button stays). Use it when the meter sits beside a player
+   * or mic control that already says what is happening, so it isn't read out as an extra picture. Default false.
+   */
+  decorative?: boolean;
+  /** Accessibility features to add for this meter only (`calm`, `reduceMotion` and `noFlashing` swap the moving bars for one still level bar; `highContrast` makes the peak caps solid). Adds to the person's own settings, never removes them. */
   accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
@@ -86,13 +91,16 @@ function graphFor(el: HTMLMediaElement) {
 export const AudioSpectrum = forwardRef<HTMLDivElement, AudioSpectrumProps>(function AudioSpectrum(
   {
     src, media, stream, playing: playingProp, defaultPlaying = false, onPlayingChange, bars = 32, variant = "bars", size = "md", showPeaks = true,
-    smoothing = 0.7, fftSize = 2048, crossOrigin = "anonymous", labels, accessibilityFeatures, className, style, ...rest
+    smoothing = 0.7, fftSize = 2048, crossOrigin = "anonymous", labels, decorative = false, accessibilityFeatures, className, style, ...rest
   },
   ref,
 ) {
   const l = { ...audioSpectrumLabels, ...labels };
   const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
-  const calm = a11y.calm || a11y.reduceMotion;
+  // Bars that change many times a second count as motion and, for some people, as flicker: all three get the still level.
+  const calm = a11y.calm || a11y.reduceMotion || a11y.noFlashing;
+  const meterA11y = decorative ? { "aria-hidden": true } : { role: "img", "aria-label": l.meter };
+  const capTone = a11y.highContrast ? "bg-ink" : "bg-ink/60";
   const [playing, setPlaying] = useControllable(playingProp, defaultPlaying, onPlayingChange);
   const own = !stream && src !== undefined;
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -326,13 +334,13 @@ export const AudioSpectrum = forwardRef<HTMLDivElement, AudioSpectrumProps>(func
       )}
 
       {calm ? (
-        <div role="img" aria-label={l.meter} className={cn("flex min-w-0 flex-1 items-center", heights[size])}>
+        <div {...meterA11y} className={cn("flex min-w-0 flex-1 items-center", heights[size])}>
           <div className="h-2 w-full overflow-hidden rounded-full bg-raised">
             <span ref={levelEl} className="block h-full w-full origin-left rounded-full bg-accent" style={{ transform: `scaleX(${MIN})` }} />
           </div>
         </div>
       ) : (
-        <div ref={meterRef} role="img" aria-label={l.meter} className={cn("flex min-w-0 flex-1 items-center gap-[2px] sm:gap-[3px]", heights[size])}>
+        <div ref={meterRef} {...meterA11y} className={cn("flex min-w-0 flex-1 items-center gap-[2px] sm:gap-[3px]", heights[size])}>
           {Array.from({ length: bars }, (_, i) => (
             <span key={i} className="relative h-full min-w-0 flex-1 overflow-visible">
               <span
@@ -347,7 +355,7 @@ export const AudioSpectrum = forwardRef<HTMLDivElement, AudioSpectrumProps>(func
                   ref={(el) => {
                     capEls.current[i] = el;
                   }}
-                  className={cn("absolute inset-x-0 h-[2px] rounded-full bg-ink/60", mirrored ? "top-1/2" : "bottom-0")}
+                  className={cn("absolute inset-x-0 h-[2px] rounded-full", capTone, mirrored ? "top-1/2" : "bottom-0")}
                   style={{ transform: "translateY(0)" }}
                 />
               )}
@@ -356,7 +364,7 @@ export const AudioSpectrum = forwardRef<HTMLDivElement, AudioSpectrumProps>(func
                   ref={(el) => {
                     capEls2.current[i] = el;
                   }}
-                  className="absolute inset-x-0 top-1/2 h-[2px] rounded-full bg-ink/60"
+                  className={cn("absolute inset-x-0 top-1/2 h-[2px] rounded-full", capTone)}
                   style={{ transform: "translateY(0)" }}
                 />
               )}

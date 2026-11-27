@@ -130,6 +130,18 @@ export const meta: A11yMetaMap = {
     ],
     notes: ["The seek bar reads out the time, \"1:12 of 3:45\"."],
   },
+  "audio-spectrum": {
+    features: ["calm", "reduceMotion", "noFlashing", "highContrast", "largeTargets"],
+    pattern: "Button and image",
+    keys: [["Enter or Space", "Play or pause the file"]],
+    notes: [
+      "The meter is one picture named \"Live spectrum of the sound\"; it never announces levels as they change.",
+      "With decorative on, the meter is hidden from screen readers, for use beside a player or mic control that already says what is happening.",
+      "Calm, reduced motion and no flashing show one still level instead of moving bars.",
+      "High contrast makes the peak caps solid ink.",
+      "Sound only starts when someone presses play. The microphone is measured, never played back.",
+    ],
+  },
   "infinite-feed": {
     features: ["calm", "screenReaderHints", "extendedTime"],
     pattern: "Feed",
