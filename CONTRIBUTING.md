@@ -25,10 +25,16 @@ Keep every commit atomic: one logical change, with a message that says what it c
 
 ```bash
 npm ci
+npx playwright install chromium   # once, for the smoke test
 npm run lint
 npm run build
 npm run build:lib
+npm run check:parity   # npm and the registry ship the same library
+npm run check:files    # each demo's file list matches what its component imports
+npm run test:smoke     # every demo in light, dark and at 390px: errors, runaway sizes, overflow, visible focus
 ```
+
+CI runs the same checks. If the smoke test flags something that is genuinely fine, add it to `tests/smoke-allow.json` with a reason; don't weaken the test.
 
 Then check your change in a real browser, in light and dark, at desktop width and at 390px.
 

@@ -291,6 +291,9 @@ npm run build        # regenerates public/r/*.json, then builds the gallery to d
 npm run build:lib    # builds the npm package into packages/kiln/ (then: cd packages/kiln && npm pack)
 npm run lint
 npx tsc --noEmit -p tsconfig.app.json
+npm run check:parity # npm and the registry ship the same library
+npm run check:files  # each demo's file list matches what its component imports
+npm run test:smoke   # Playwright smoke test of every demo (once first: npx playwright install chromium)
 ```
 
 | Path | What it is |
