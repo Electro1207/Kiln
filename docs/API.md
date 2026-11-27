@@ -275,6 +275,20 @@ Defaults are exported too, so you can extend them: `{ ...paginationLabels, next:
 - Wayfinding: Pagination, BackToTop, ScrollProgress, Breadcrumbs, Stepper
 - Workspace: CalendarMonth (+ `locale`), WeekCalendar, FilterBar, FileManager, GanttChart, KanbanBoard, NotificationPreferences, ResizablePanels, SortableList
 
+**Label keys that speak to screen readers** (added by the accessibility sweep; every one has a default, override it to translate):
+
+- Meter: `nearlyFull`, `full` (the state word; shown on screen under `colourSafe`)
+- CartDrawer: `removed(name)`
+- OrderHistory: `stepDone`, `stepPending` (read before each tracking step)
+- MessageActions: `actions` (name of the button row)
+- DiffViewer: `addedLine`, `removedLine`
+- KeyValueEditor: `added`, `removed(name)`
+- TagInput: `added(tag)`, `removed(tag)`, `armed(tag)`
+- KeyboardShortcutsSheet: `count(n)`; BookingSlots: `available(n)`; Combobox: `results(n)` (these three speak under `screenReaderHints`)
+- FileDropzone: `uploadedAnnounce(name)`, `failedAnnounce(name, reason)`
+
+`useRowFlip(body, order, skip = false)` (Table, DataGrid): pass `skip` to turn the row glide off; the tables pass `calm || reduceMotion`.
+
 **Left in code on purpose**
 
 - Caller data: chart aria-labels built from `title` and series names, GridList action labels, and anything that is a `label`, `title` or `aria-label` prop.

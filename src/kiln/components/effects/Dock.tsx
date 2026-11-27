@@ -186,8 +186,7 @@ function DockIcon({ item, index, size, left, layout, showLabel, onFocusItem, onB
         animate={{ opacity: showLabel ? 1 : 0 }}
         transition={fade}
         style={{ y: lift }}
-        // Inverse tooltip: `dark:` overrides kept until an inverse-surface token pair exists in tokens.css (reported to the main session).
-        className="pointer-events-none absolute bottom-full left-1/2 mb-2.5 -translate-x-1/2 whitespace-nowrap rounded-[7px] bg-ink px-2 py-1 text-xs font-medium text-surface dark:bg-elevated dark:text-ink dark:ring-1 dark:ring-line-strong/60"
+        className="pointer-events-none absolute bottom-full left-1/2 mb-2.5 -translate-x-1/2 whitespace-nowrap rounded-[7px] bg-inverse px-2 py-1 text-xs font-medium text-on-inverse ring-1 ring-inset ring-inverse-ring"
       >
         {item.label}
       </motion.span>

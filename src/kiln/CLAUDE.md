@@ -75,7 +75,7 @@ Look here first, then open the file for props. `a11y.tsx` (in `kiln/`, next to `
 ### `ai/`
 - `ChatMessage` (ChatMessage, AssistantMark) — One chat message, user or assistant, with avatar and name; AssistantMark is the logo
 - `Citation` (Citation, Sources) — Inline citation chips with a hover card, and the list of everything it read
-- `MessageActions` — Copy, rate up or down, and regenerate, under an answer
+- `MessageActions` — Copy, rate up or down, and regenerate, under an answer; the row is a named group (`labels.actions`)
 - `ModelPicker` — A select-like listbox of models with a description and speed and cost badges
 - `PromptInput` — Assistant composer: grows with text, attachments, model picker, Send turns into Stop while streaming
 - `Reasoning` — The model’s thinking behind one line: open while it works, folded when it’s done
@@ -137,13 +137,13 @@ Look here first, then open the file for props. `a11y.tsx` (in `kiln/`, next to `
 - `Switch` — On or off, taking effect at once
 
 ### `commerce/`
-- `CartDrawer` — Line items, steppers, rows that fold away, a free-shipping bar and totals that add up
+- `CartDrawer` — Line items, steppers, rows that fold away, a free-shipping bar and totals that add up; a removed line is announced (`labels.removed`)
 - `CategoryFilters` (CategoryFilters, FilterPanel) — Facets with counts, a price range and colours; chips for what's on; a drawer on phones
 - `CheckoutForm` — Contact, address, delivery and a demo payment step beside a summary that stays in view
 - `commerce` — Types and money maths (cents) shared by the commerce components; not a component
 - `CouponField` — A promo code box with async `onApply`; an applied code becomes a removable chip
 - `Invoice` — An invoice or receipt as a document, with totals computed from its lines
-- `OrderHistory` — Past orders with status, items, tracking that folds open and buy again
+- `OrderHistory` — Past orders with status, items, tracking that folds open and buy again; tracking steps are read as done or not yet (`labels.stepDone`, `stepPending`)
 - `ProductGallery` — Large picture, thumbnails, a magnifier under the pointer, swipe on phones, arrow keys
 - `ProductQuickView` — A product in a dialog: gallery, colour, size with sold-out sizes struck, quantity and add to cart
 - `ReviewsSummary` (Stars, ReviewsSummary) — Average, a distribution that grows in, sorting and helpful votes
@@ -169,7 +169,7 @@ Look here first, then open the file for props. `a11y.tsx` (in `kiln/`, next to `
 - `Timeline` — An activity feed whose entries rise in one after another
 
 ### `dev-tools/`
-- `DiffViewer` — Two versions side by side or unified, with the changed words marked and unchanged stretches folded away
+- `DiffViewer` — Two versions side by side or unified, with the changed words marked and unchanged stretches folded away; changed lines are prefixed for screen readers (`labels.addedLine`, `removedLine`)
 - `JSONViewer` — A document as a tree: fold branches, copy any path or value, and search to open what matches
 - `LogStream` — A live tail with level filters that pauses under the pointer and renders only the rows in view
 - `Terminal` — Scrollback with coloured output, a typed prompt with a blinking caret, and auto-scroll that lets go when you scroll up
@@ -201,12 +201,12 @@ Look here first, then open the file for props. `a11y.tsx` (in `kiln/`, next to `
 - `Fieldset` — A real fieldset and legend with a description and a group error
 - `ImageCropper` — Pan and zoom a picture inside a round frame (used by AvatarUpload)
 - `InlineEdit` — Click or press Enter to edit text where it sits; Escape puts it back
-- `KeyValueEditor` — Environment-variable rows with validation and secrets that stay masked until revealed
+- `KeyValueEditor` — Environment-variable rows with validation and secrets that stay masked until revealed; adding and removing a row is announced (`labels.added`, `removed`)
 - `SaveBar` — Bar that rises from the bottom when a form has unsaved changes
 - `SettingsSection` (SettingsSection, SettingsRow) — Label column beside a panel of controls, and a bar that rises when there are unsaved changes
 
 ### `guidance/`
-- `KeyboardShortcutsSheet` — Press ? for a filterable, grouped list of every shortcut
+- `KeyboardShortcutsSheet` — Press ? for a filterable, grouped list of every shortcut (`labels.count` is spoken under `screenReaderHints`)
 - `OnboardingWizard` — Steps that check themselves, Back that keeps your answers, and a summary with links back
 - `ProductTour` — Coach marks: a hairline spotlight dims the page around one feature and eases onto the next, following it as the page scrolls
 
@@ -273,15 +273,15 @@ Look here first, then open the file for props. `a11y.tsx` (in `kiln/`, next to `
 - `TypeToConfirmDialog` — A danger confirmation whose button stays off until the person types the name of the thing
 
 ### `pickers/`
-- `BookingSlots` — Length, day and time in the visitor's time zone, then details and a confirmation
+- `BookingSlots` — Length, day and time in the visitor's time zone, then details and a confirmation (`labels.available` is spoken when a day is chosen)
 - `Cascader` — Pick one leaf of a tree through side-by-side columns, with arrow keys across them
 - `ChipFilter` — Toggle chips for filtering, one or several at a time
-- `Combobox` (Highlight, Combobox) — Type to filter a long list; matches are marked and rows glide as the list narrows
+- `Combobox` (Highlight, Combobox) — Type to filter a long list; matches are marked and rows glide as the list narrows (`labels.results` is spoken as the matches change)
 - `DatePicker` (Calendar, DatePicker, DateRangePicker) — A calendar that slides by month, for one date or a range with presets
-- `FileDropzone` — Drag files in or browse; each upload reports progress and can be retried or removed
+- `FileDropzone` — Drag files in or browse; each upload reports progress and can be retried or removed; finished and failed uploads are announced (`labels.uploadedAnnounce`, `failedAnnounce`)
 - `Select` — A custom listbox: arrow keys, type to jump, a tick on the chosen row
 - `SignaturePad` — Smooth strokes that follow pressure and speed, with undo, clear and PNG export
-- `TagInput` — Several values in one field
+- `TagInput` — Several values in one field; adding, removing and marking a tag are announced (`labels.added`, `removed`, `armed`)
 - `TimePicker` (TimeWheels, TimePicker) — Two scroll-snapping wheels, driven by native scrolling
 - `TransferList` — Two listboxes with move buttons, filters and multi-select
 
@@ -297,7 +297,7 @@ Look here first, then open the file for props. `a11y.tsx` (in `kiln/`, next to `
 - `Badge` — Short statuses and counts, and a presence dot that breathes when something is live
 - `Countdown` — Time left to a date in a grid; digits cross-fade in place, screen readers hear one label
 - `EmptyState` — What a page shows when it has nothing yet, and the one thing to do next
-- `Meter` — How much of a limit is used, split by kind, turning amber then red as it fills
+- `Meter` — How much of a limit is used, split by kind, turning amber then red as it fills; the state is spoken as a word (`labels.nearlyFull`, `full`) and shown under `colourSafe`
 - `MultiStepLoader` — A checklist that completes itself, with a line filling down as it goes
 - `Progress` — Fills on a spring when the amount is known; runs a band when it isn’t
 - `ProgressRing` — A circular gauge whose arc and number move on the same spring
@@ -309,7 +309,7 @@ Look here first, then open the file for props. `a11y.tsx` (in `kiln/`, next to `
 - `ComparisonTable` — Plans across, features down, with the plan names held at the top as you scroll
 - `DataGrid` — Filter, sort, choose columns, change density, page through and act on a selection
 - `InfiniteFeed` — Loads the next page as you near the end, with skeleton rows and no jump in scroll position
-- `Table` (Table, TickBox) — Sortable, selectable rows that glide to their new order; the header stays put while the body scrolls
+- `Table` (Table, TickBox, `useRowFlip`) — Sortable, selectable rows that glide to their new order; the header stays put while the body scrolls. `useRowFlip(body, order, skip?)` is exported for your own tables; pass `skip` (true under `calm` or `reduceMotion`) to make rows jump instead of glide
 - `VirtualList` — 10,000 rows of mixed heights with sticky group headers; only what is near the viewport is drawn
 
 ### `text-effects/`
@@ -382,6 +382,7 @@ It prints every local dependency (not the file itself). Copy those into the same
    | Use | Utilities |
    | --- | --- |
    | Page, cards, wells | `bg-ground`, `bg-surface`, `bg-raised` (inputs at rest, hovered rows), `bg-active` (pressed/selected neutral), `bg-elevated` (pill or thumb rising out of a `bg-raised` track) |
+   | Inverse and tracks | `bg-inverse text-on-inverse` (tooltips, inverse banner, footer; with `ring-1 ring-inset ring-inverse-ring` for the dark hairline), `bg-track` (groove a segmented pill slides in), `ring-1 ring-float-ring` (dark hairline on dialogs, drawers, toasts) |
    | Text | `text-ink`, `text-muted`, `text-faint` (placeholder, disabled) |
    | Borders | `border-line` (cards), `border-line-strong` (form controls), `divide-line` |
    | Filled controls | `bg-btn-primary text-btn-primary-ink`, `bg-btn-secondary text-btn-secondary-ink`, `bg-btn-danger text-btn-danger-ink` (each has `-hover`) |

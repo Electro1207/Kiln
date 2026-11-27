@@ -26,6 +26,11 @@
   --color-raised: var(--k-raised);
   --color-active: var(--k-active);
   --color-elevated: var(--k-elevated);
+  --color-track: var(--k-track);
+  --color-inverse: var(--k-inverse);
+  --color-on-inverse: var(--k-on-inverse);
+  --color-float-ring: var(--k-float-ring);
+  --color-inverse-ring: var(--k-inverse-ring);
   --color-line: var(--k-line);
   --color-line-strong: var(--k-line-strong);
   --color-ink: var(--k-ink);

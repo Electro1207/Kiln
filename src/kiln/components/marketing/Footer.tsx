@@ -90,7 +90,7 @@ export function Footer({ name, columns, details, legal, credit, reveal = false, 
     <footer
       {...rootProps}
       className={cn(
-        "w-full overflow-hidden bg-ink px-5 pt-10 text-surface dark:bg-elevated dark:text-ink sm:px-8 sm:pt-12",
+        "w-full overflow-hidden bg-inverse px-5 pt-10 text-on-inverse sm:px-8 sm:pt-12",
         reveal ? "sticky bottom-0 z-0 grid min-h-svh grid-rows-[auto_1fr_auto] pb-6" : "rounded-sheet",
         className,
       )}

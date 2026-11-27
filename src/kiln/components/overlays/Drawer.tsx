@@ -119,7 +119,7 @@ function DrawerLayer({ onOpenChange, side = "right", title, label, children, foo
         style={side === "bottom" ? rootProps.style : { ...rootProps.style, width: `min(${width}px, 88vw)` }}
         /* outline-none: this is only the programmatic focus target (tabIndex -1), not a control. */
         className={cn(
-          "absolute flex flex-col bg-surface text-ink shadow-float outline-none dark:ring-1 dark:ring-line",
+          "absolute flex flex-col bg-surface text-ink shadow-float outline-none ring-1 ring-float-ring",
           side === "left" && "inset-y-0 left-0 rounded-r-sheet",
           side === "right" && "inset-y-0 right-0 rounded-l-sheet",
           side === "bottom" && "inset-x-0 bottom-0 max-h-[85dvh] rounded-t-sheet pb-[env(safe-area-inset-bottom)]",

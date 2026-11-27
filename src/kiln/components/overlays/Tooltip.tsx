@@ -149,9 +149,8 @@ export function Tooltip({ content, children, side = "top", delay = 450, classNam
               transition={springSoft}
               style={{ ...rootProps.style, ...floatingStyle, transformOrigin: originFor(placement) }}
               className={cn(
-                "z-[60] max-w-64 rounded-[7px] bg-ink px-2.5 py-1.5 text-[0.7812rem] font-medium leading-[18px] text-surface shadow-float",
-                /* dark: overrides kept: needs an inverse-surface token pair (reported). */
-                "dark:bg-elevated dark:text-ink dark:ring-1 dark:ring-inset dark:ring-line-strong/60",
+                "z-[60] max-w-64 rounded-[7px] bg-inverse px-2.5 py-1.5 text-[0.7812rem] font-medium leading-[18px] text-on-inverse shadow-float",
+                "ring-1 ring-inset ring-inverse-ring",
                 className,
               )}
             >
@@ -171,5 +170,5 @@ function Arrow({ side, at }: { side: Side; at: number }) {
     : side === "bottom" ? { left: at - 4, top: -4 }
     : side === "left" ? { top: at - 4, right: -4 }
     : { top: at - 4, left: -4 };
-  return <span aria-hidden className="absolute size-2 rotate-45 rounded-[1px] bg-ink dark:bg-elevated" style={pos} />;
+  return <span aria-hidden className="absolute size-2 rotate-45 rounded-[1px] bg-inverse" style={pos} />;
 }

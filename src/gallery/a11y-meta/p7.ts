@@ -95,13 +95,18 @@ export const meta: A11yMetaMap = {
     ],
   },
   "image-cropper": {
-    features: ["reduceMotion"],
-    pattern: "Slider with arrow-key panning",
+    features: ["reduceMotion", "largeTargets", "strongFocus"],
+    pattern: "Slider-like control with 2D movement",
     keys: [
-      ["← → ↑ ↓", "Move the picture"],
-      ["+ −", "Zoom in and out"],
+      ["← → ↑ ↓", "Move the picture by 10 px"],
+      ["Shift + arrows", "Move by 40 px"],
+      ["+ or −", "Zoom in or out"],
+      ["Tab", "Go to the zoom slider"],
     ],
-    notes: ["The frame carries its zoom and position as its spoken value (aria-valuetext)."],
+    notes: [
+      "Zoom and position are read out as one value (aria-valuetext), for example \"Zoom 150%, 20% left, centred down\".",
+      "Arrow keys pan and + / − zoom, so nothing needs a drag; reduceMotion makes zoom and pan jump instead of gliding.",
+    ],
   },
   "size-picker": {
     features: ["largeTargets"],

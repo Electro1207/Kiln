@@ -51,17 +51,6 @@ export const meta: A11yMetaMap = {
       "The mode change is announced.",
     ],
   },
-  "image-cropper": {
-    features: ["reduceMotion", "largeTargets", "strongFocus"],
-    pattern: "Slider-like control with 2D movement",
-    keys: [
-      ["← → ↑ ↓", "Move the picture by 10 px"],
-      ["Shift + arrows", "Move by 40 px"],
-      ["+ or −", "Zoom in or out"],
-      ["Tab", "Go to the zoom slider"],
-    ],
-    notes: ["Zoom and position are read out as one value, for example \"Zoom 150%, 20% left, centred down\"."],
-  },
   "compare-slider": {
     features: ["reduceMotion", "largeTargets", "strongFocus"],
     pattern: "Slider",
@@ -181,8 +170,13 @@ export const meta: A11yMetaMap = {
     notes: ["The remove button keeps its look and gains a larger hit area."],
   },
   "tag-input": {
-    features: ["largeTargets"],
-    notes: ["The remove buttons on chips keep their look and gain a larger hit area."],
+    features: ["largeTargets", "colourSafe", "calm", "reduceMotion", "screenReaderHints"],
+    notes: [
+      "The remove buttons on chips keep their look and gain a larger hit area.",
+      "Screen readers are told when a tag is added, when one is removed, and when one is marked for removal (Backspace once marks the last tag, Backspace again removes it).",
+      "With colourSafe, the tag marked for removal is struck through as well as highlighted, so colour is not the only cue.",
+      "With calm or reduceMotion, chips appear and leave without scaling.",
+    ],
   },
   banner: {
     features: ["largeTargets", "extendedTime"],
