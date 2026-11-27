@@ -49,8 +49,8 @@ const total = groups.reduce((n, g) => n + g.entries.length, 0);
 
 /* Copy shared with src/gallery/seo.ts. */
 const SITE_DESCRIPTION = "200+ animated React components for Tailwind CSS v4 and Motion: light and dark, 60fps, keyboard-ready. Use the npm package or copy any one in with the shadcn CLI.";
-const entryMeta = (e) => ({ title: `${e.title} — Animated React Component | Kiln`, description: `${e.description} A free React component for Tailwind CSS v4 and Motion, in light and dark.` });
-const groupMeta = (g) => ({ title: `${g.name} — Animated React Components | Kiln`, description: `${g.summary} ${g.entries.length} free React components for Tailwind CSS v4 and Motion.` });
+const entryMeta = (e) => ({ title: `${e.title}: Animated React Component | Kiln`, description: `${e.description} A free React component for Tailwind CSS v4 and Motion, in light and dark.` });
+const groupMeta = (g) => ({ title: `${g.name}: Animated React Components | Kiln`, description: `${g.summary} ${g.entries.length} free React components for Tailwind CSS v4 and Motion.` });
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const inline = (s) => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, u) => `<a href="${u.replace(/^(PRIVACY|TERMS)\.md$/, (m) => "/" + m.slice(0, -3).toLowerCase())}">${t}</a>`);
@@ -122,10 +122,10 @@ const add = (p) => { pages.push(p); if (!p.robots) sitemap.push(p.path); };
 add({
   path: "/",
   file: "index.html",
-  title: "Kiln — Animated React Components",
+  title: "Kiln | Animated React Components",
   description: SITE_DESCRIPTION,
   ld: [APP, { "@type": "WebSite", "@id": `${SITE}/#site`, name: "Kiln", url: `${SITE}/`, about: { "@id": `${SITE}/#kiln` } }],
-  body: `<h1>Kiln — Animated React Components</h1>
+  body: `<h1>Kiln: Animated React Components</h1>
 <p>${esc(SITE_DESCRIPTION)} Free and open source under the MIT licence; the source is on <a href="${REPO}">GitHub</a>.</p>
 <p>${total} components for React 19, Tailwind CSS v4 and Motion, in light and dark, each with a live demo, its source and its install command. Every component takes its text from props, works from the keyboard, and animates only transform and opacity.</p>
 <h2>Install</h2>
@@ -190,7 +190,7 @@ const paras = (md) => md.split(/\n{2,}/).filter((b) => b.trim() && !b.startsWith
 
 add({
   path: "/about",
-  title: "About Kiln — Animated React Components",
+  title: "About Kiln | Animated React Components",
   description: "Why Kiln exists, how it is built, and how to use it: npm package or copy-in components for React 19, Tailwind CSS v4 and Motion.",
   ld: [{ "@type": "AboutPage", url: `${SITE}/about`, about: { "@id": `${SITE}/#kiln` } }, APP],
   body: `<h1>About Kiln</h1>${paras(readme.split("\n## ")[0].replace(/^# .*\n/, ""))}<h2>Why Kiln</h2>${paras(section(readme, "Why Kiln"))}<h2>About</h2>${paras(section(readme, "About"))}<h2>Requests, bugs and questions</h2>${paras(section(readme, "Requests, bugs and questions"))}`,
@@ -199,28 +199,28 @@ add({
 const changelog = read("CHANGELOG.md");
 add({
   path: "/whats-new",
-  title: "What's New in Kiln — Changelog",
+  title: "What's New in Kiln | Changelog",
   description: "Every Kiln release, newest first: new components, new props, changes and fixes, for the npm package and the copy-in registry alike.",
   ld: [{ "@type": "WebPage", name: "What's new in Kiln", url: `${SITE}/whats-new`, about: { "@id": `${SITE}/#kiln` } }],
   body: `<h1>What's new in Kiln</h1>${paras(changelog.replace(/^# .*\n/, "").replace(/^## \[Unreleased\]\s*(?=^## )/m, "").replace(/^\[[^\]]+\]:.*$/gm, "").replace(/^## \[([^\]]+)\](?: - (\S+))?/gm, (_, v, d) => `## ${v === "Unreleased" ? "Next release" : v}${d ? ` (${d})` : ""}`).replace(/^### /gm, "## "))}`,
 });
 add({
   path: "/studio",
-  title: "Theme Studio — Kiln",
+  title: "Theme Studio | Kiln",
   description: "Make a Kiln theme: set the colours for light and dark, watch every component update, and download the tokens.css.",
   ld: [{ "@type": "WebPage", name: "Kiln theme studio", url: `${SITE}/studio`, isPartOf: { "@id": `${SITE}/#site` } }],
   body: `<h1>Theme studio</h1><p>Pick a preset or set each colour for light and dark, watch every Kiln component update, then download a <code>tokens.css</code> to drop into your project. It needs JavaScript.</p>`,
 });
 for (const [doc, title, description] of [
-  ["privacy", "Privacy Policy — Kiln", "Kiln collects no personal information: no accounts, cookies, analytics or tracking."],
-  ["terms", "Terms of Use — Kiln", "The terms for using the Kiln website, the npm package and the copy-in registry."],
+  ["privacy", "Privacy Policy | Kiln", "Kiln collects no personal information: no accounts, cookies, analytics or tracking."],
+  ["terms", "Terms of Use | Kiln", "The terms for using the Kiln website, the npm package and the copy-in registry."],
 ]) add({ path: `/${doc}`, title, description, ld: [{ "@type": "WebPage", name: title, url: `${SITE}/${doc}` }], body: paras(read(`${doc.toUpperCase()}.md`).replace(/^# (.*)$/m, "## $1")).replace("<h2>", "<h1>").replace("</h2>", "</h1>") });
 
 add({
   path: "/404",
   file: "404.html",
   robots: "noindex",
-  title: "Page not found — Kiln",
+  title: "Page not found | Kiln",
   description: SITE_DESCRIPTION,
   ld: [],
   body: `<h1>Page not found</h1><p>Try the <a href="/">overview</a>, which lists every component.</p>`,
