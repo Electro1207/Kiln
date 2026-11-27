@@ -65,7 +65,7 @@ export const TAXONOMY: SectionSpec[] = [
     name: "Surfaces & media",
     groups: [
       { id: "cards", name: "Cards", summary: "Containers for one thing each: plain, pictured, selectable, expanding, tilting, floating and priced.", entries: ["card", "media-card", "interactive-card", "stat-card", "expandable-card", "tilt-card", "floating-card", "pricing"] },
-      { id: "media", name: "Media", summary: "Players, carousels and galleries for video, sound and pictures.", entries: ["video-player", "media-player", "carousel", "masonry", "compare-slider", "marquee"] },
+      { id: "media", name: "Media", summary: "Players, carousels and galleries for video, sound and pictures.", entries: ["video-player", "media-player", "audio-spectrum", "carousel", "masonry", "compare-slider", "marquee"] },
     ],
   },
   {
