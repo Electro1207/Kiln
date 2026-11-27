@@ -1,7 +1,8 @@
 import { createContext, useContext, useId, useMemo, useRef, type KeyboardEvent, type ReactNode } from "react";
-import { motion } from "motion/react";
+import { MotionConfig, motion } from "motion/react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { spring, springSnappy, fade } from "../../motion";
 
 export type Swatch = { value: string; name: string; /** Set for pale colours so the tick is drawn dark. */ light?: boolean };
@@ -27,13 +28,16 @@ export interface ColorSwatchesIcons {
 export const colorSwatchesIcons: ColorSwatchesIcons = { check: <DrawnTick /> };
 
 /** Pick one colour. The ring slides to the choice; the tick pops in. */
-export function ColorSwatches({ label = "Colour", swatches, value: valueProp, defaultValue, onChange: onChangeProp, className, icons }: {
+export function ColorSwatches({ label = "Colour", swatches, value: valueProp, defaultValue, onChange: onChangeProp, className, icons, accessibilityFeatures }: {
   label?: string; swatches: Swatch[];
   /** Controlled value. Leave out and use `defaultValue` (or nothing: the first swatch) to let it keep its own. */
   value?: string; defaultValue?: string; onChange?: (v: string) => void; className?: string;
   /** Replace any built-in icon. Merged over `colorSwatchesIcons`. */
   icons?: Partial<ColorSwatchesIcons>;
+  /** Accessibility features to add for this picker only. `reduceMotion` removes the hover and press scale. The chosen swatch is always marked by a ring and a tick, and each swatch is named, so colour is never the only cue (`colourSafe` needs nothing more). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const ic = useMemo(() => ({ ...colorSwatchesIcons, ...icons }), [icons]);
   const [value, onChange] = useControllable(valueProp, defaultValue ?? swatches[0]?.value ?? "", onChangeProp);
   const id = useId();
@@ -47,8 +51,8 @@ export function ColorSwatches({ label = "Colour", swatches, value: valueProp, de
     onChange(swatches[n].value);
     refs.current[n]?.focus();
   };
-  return (
-    <div className={cn("flex flex-col gap-3", className)}>
+  const el = (
+    <div {...rootProps} className={cn("flex flex-col gap-3", className)}>
       <div className="flex items-baseline gap-2">
         <span id={`${id}-l`} className="text-sm font-medium text-ink">{label}</span>
         <span className="text-sm text-muted">{current?.name}</span>
@@ -72,14 +76,14 @@ export function ColorSwatches({ label = "Colour", swatches, value: valueProp, de
               <motion.span aria-hidden initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className="pointer-events-none absolute inset-0 z-10 border-2 border-ink" style={{ borderRadius: 18 }} />
               <motion.span
                 className="grid size-7 place-items-center rounded-full"
-                style={{ background: s.value }}
+                style={{ background: s.value }} /* the swatch colour is the data: an allowed exception to tokens-only colour */
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.9 }}
                 transition={spring}
               >
                 <motion.span
                   aria-hidden
-                  className={cn("grid [&>svg]:size-3.5", s.light ? "text-black/80" : "text-white")}
+                  className={cn("grid [&>svg]:size-3.5", s.light ? "text-black/80" : "text-white" /* tick ink must contrast the arbitrary swatch, so it cannot be a theme token */)}
                   initial={false}
                   animate={{ opacity: on ? 1 : 0 }}
                   transition={on ? { ...springSnappy, delay: 0.08 } : { duration: 0.1 }}
@@ -93,4 +97,5 @@ export function ColorSwatches({ label = "Colour", swatches, value: valueProp, de
       </div>
     </div>
   );
+  return a11y.reduceMotion ? <MotionConfig reducedMotion="always">{el}</MotionConfig> : el;
 }

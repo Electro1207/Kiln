@@ -1,5 +1,5 @@
 import { useId, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { AnimatePresence, LayoutGroup, animate, motion, useMotionValue } from "motion/react";
+import { AnimatePresence, LayoutGroup, MotionConfig, animate, motion, useMotionValue } from "motion/react";
 import { ArrowLeft, Mail, MailCheck, User } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, fade, spring, springSoft } from "../../motion";
@@ -100,10 +100,11 @@ export function AuthForms({
   labels?: Partial<AuthFormsLabels>;
   /** Replace any built-in icon. Merged over `authFormsIcons`. */
   icons?: Partial<AuthFormsIcons>;
-  /** Accessibility features to add for this form only (adds to the person's settings). */
+  /** Accessibility features to add for this form only. `reduceMotion` makes the card change height and the fields rearrange without gliding; errors use `role="alert"` and the password reveal has a text name. Adds to the person's own settings, never removes them. */
   accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
-  const { rootProps } = useA11yProps(accessibilityFeatures);
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion;
   const l = { ...authFormsLabels, ...labels };
   const ic = { ...authFormsIcons, ...icons };
   const id = useId();
@@ -141,18 +142,19 @@ export function AuthForms({
     let first = true;
     const ro = new ResizeObserver(() => {
       const h = el.offsetHeight;
-      if (first) { height.set(h); first = false; } else animate(height, h, springSoft);
+      if (first) { height.set(h); first = false; } else if (still) height.set(h);
+      else animate(height, h, springSoft);
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, [height]);
+  }, [height, still]);
 
   // Items that stay glide to their new places; new ones fade in once the movers have
   // passed, and leaving ones fade out at once, so no two ever overlap.
   const item = { layout: "position" as const, transition: spring };
   const enter = { initial: { opacity: 0 }, animate: { opacity: 1, transition: { duration: 0.22, delay: 0.16, ease: easeOut } }, exit: { opacity: 0, transition: { duration: 0.08 } } };
 
-  return (
+  const el = (
     <LayoutGroup id={id}>
       <motion.div
         {...rootProps}
@@ -239,6 +241,7 @@ export function AuthForms({
       </motion.div>
     </LayoutGroup>
   );
+  return still ? <MotionConfig reducedMotion="always">{el}</MotionConfig> : el;
 }
 
 function ModeLine({ show, children }: { show: boolean; children: ReactNode }) {

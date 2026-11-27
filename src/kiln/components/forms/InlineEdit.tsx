@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Pencil } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by InlineEdit. Pass a partial via `labels` to translate or reword. */
 export interface InlineEditLabels {
@@ -23,7 +24,7 @@ export interface InlineEditIcons {
 export const inlineEditIcons: InlineEditIcons = { edit: <Pencil /> };
 
 export function InlineEdit({
-  value: valueProp, defaultValue = "", onChange: onChangeProp, label, placeholder = "Untitled", className, textClassName = "text-sm", maxLength = 80, labels, icons,
+  value: valueProp, defaultValue = "", onChange: onChangeProp, label, placeholder = "Untitled", className, textClassName = "text-sm", maxLength = 80, labels, icons, accessibilityFeatures,
 }: {
   /** Replace any built-in icon. Merged over `inlineEditIcons`. */
   icons?: Partial<InlineEditIcons>;
@@ -42,7 +43,10 @@ export function InlineEdit({
   maxLength?: number;
   /** Override any UI text. Merged over `inlineEditLabels`. */
   labels?: Partial<InlineEditLabels>;
+  /** Accessibility features to add for this field only. The button names the field and its text, and the pencil also shows on focus, so `screenReaderHints` needs nothing more; `strongFocus` and `largeTargets` are answered by the page CSS. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...inlineEditLabels, ...labels };
   const ic = { ...inlineEditIcons, ...icons };
   const [value, onChange] = useControllable<string>(valueProp, defaultValue, onChangeProp);
@@ -70,7 +74,7 @@ export function InlineEdit({
   const box = "col-start-1 row-start-1 rounded-md px-1.5 py-0.5";
 
   return (
-    <span className={cn("group relative -mx-1.5 inline-grid w-fit max-w-full grid-cols-[minmax(0,max-content)] align-baseline", className)}>
+    <span {...rootProps} className={cn("group relative -mx-1.5 inline-grid w-fit max-w-full grid-cols-[minmax(0,max-content)] align-baseline", className)}>
       <span aria-hidden className={cn(box, textClassName, "invisible overflow-hidden whitespace-pre pr-7")}>{shown || placeholder}</span>
       {editing ? (
         <input
@@ -87,7 +91,7 @@ export function InlineEdit({
             if (e.key === "Escape") { e.preventDefault(); cancel(); }
           }}
           placeholder={placeholder}
-          className={cn(box, textClassName, "w-full min-w-0 bg-surface text-ink outline-none ring-2 ring-accent/50 placeholder:text-faint")}
+          className={cn(box, textClassName, "w-full min-w-0 bg-surface text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent/50 placeholder:text-faint")}
         />
       ) : (
         <button

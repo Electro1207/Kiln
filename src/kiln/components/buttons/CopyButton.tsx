@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { motion } from "motion/react";
+import { MotionConfig, motion } from "motion/react";
 import { cn } from "../../cn";
 import { springSnappy } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by CopyButton. Pass a partial via `labels` to translate or reword. */
 export interface CopyButtonLabels {
@@ -45,7 +46,7 @@ export const copyButtonIcons: CopyButtonIcons = {
 
 /** A button that copies text to the clipboard and confirms in place. */
 export function CopyButton({
-  value, label: labelProp, copiedLabel: copiedLabelProp, className, showLabel = false, labels, icons,
+  value, label: labelProp, copiedLabel: copiedLabelProp, className, showLabel = false, labels, icons, accessibilityFeatures,
 }: {
   value: string;
   label?: string;
@@ -57,7 +58,10 @@ export function CopyButton({
   labels?: Partial<CopyButtonLabels>;
   /** Replace any built-in icon. Merged over `copyButtonIcons`. */
   icons?: Partial<CopyButtonIcons>;
+  /** Accessibility features to add for this button only. `reduceMotion` removes the press scale and icon swap movement; `extendedTime` keeps "Copied" three times longer; `screenReaderHints` is not needed (the result is always announced). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...copyButtonLabels, ...labels };
   const ic = useMemo(() => ({ ...copyButtonIcons, ...icons }), [icons]);
   const [count, setCount] = useState(0);
@@ -71,12 +75,13 @@ export function CopyButton({
     setCopied(true);
     setCount((n) => n + 1);
     window.clearTimeout(t.current);
-    t.current = window.setTimeout(() => setCopied(false), 1600);
+    t.current = window.setTimeout(() => setCopied(false), a11y.extendedTime ? 4800 : 1600);
   };
-  return (
+  const el = (
     <motion.button
       type="button"
       onClick={copy}
+      {...rootProps}
       whileTap={{ scale: 0.92 }}
       transition={springSnappy}
       aria-label={showLabel ? undefined : copied ? copiedLabel : label}
@@ -121,4 +126,5 @@ export function CopyButton({
       <span className="sr-only" aria-live="polite">{copied ? copiedLabel : ""}</span>
     </motion.button>
   );
+  return a11y.reduceMotion ? <MotionConfig reducedMotion="always">{el}</MotionConfig> : el;
 }

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { Camera, Trash2, Upload } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { fade, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { Button } from "../buttons/Button";
 import { ImageCropper, type ImageCropperHandle, type ImageCropperLabels } from "./ImageCropper";
 
@@ -54,7 +55,7 @@ export const avatarUploadIcons: AvatarUploadIcons = { upload: <Upload />, sample
  * the saved picture cross-fades into the avatar.
  */
 export function AvatarUpload({
-  value: valueProp, defaultValue = null, onChange: onChangeProp, name, size = 96, className, sample, labels, cropperLabels, icons,
+  value: valueProp, defaultValue = null, onChange: onChangeProp, name, size = 96, className, sample, labels, cropperLabels, icons, accessibilityFeatures,
 }: {
   /** Controlled picture as a URL or data URL; null shows initials. Leave out to let the component keep its own. */
   value?: string | null;
@@ -74,7 +75,10 @@ export function AvatarUpload({
   cropperLabels?: Partial<ImageCropperLabels>;
   /** Replace any built-in icon. Merged over `avatarUploadIcons`. */
   icons?: Partial<AvatarUploadIcons>;
+  /** Accessibility features to add for this component only. `reduceMotion` makes the cropper appear without sliding and the picture swap without a cross-fade movement; errors are announced (`role="alert"`) and the picture has a text name. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...avatarUploadLabels, ...labels };
   const ic = { ...avatarUploadIcons, ...icons };
   const [value, onChange] = useControllable<string | null>(valueProp, defaultValue, onChangeProp);
@@ -100,8 +104,8 @@ export function AvatarUpload({
     setEditing(null);
   };
 
-  return (
-    <div className={cn("flex w-full flex-col items-center gap-5", className)}>
+  const el = (
+    <div {...rootProps} className={cn("flex w-full flex-col items-center gap-5", className)}>
       <div className="flex flex-wrap items-center justify-center gap-5">
         <div
           className="relative grid shrink-0 place-items-center overflow-hidden rounded-full bg-btn-secondary text-btn-secondary-ink [&>*]:[grid-area:1/1]"
@@ -139,7 +143,7 @@ export function AvatarUpload({
             transition={springSoft}
             className="flex w-full max-w-sm flex-col items-center gap-5 rounded-sheet bg-surface p-5"
           >
-            <ImageCropper ref={cropper} src={editing} size={208} labels={cropperLabels} />
+            <ImageCropper ref={cropper} src={editing} size={208} labels={cropperLabels} accessibilityFeatures={accessibilityFeatures} />
             <div className="flex w-full justify-end gap-2">
               <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>{l.cancel}</Button>
               <Button size="sm" onClick={save}>{l.use}</Button>
@@ -149,4 +153,5 @@ export function AvatarUpload({
       </AnimatePresence>
     </div>
   );
+  return a11y.reduceMotion ? <MotionConfig reducedMotion="always">{el}</MotionConfig> : el;
 }

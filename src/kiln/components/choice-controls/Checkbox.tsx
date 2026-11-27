@@ -1,8 +1,9 @@
 import { createContext, forwardRef, useContext, useId, useMemo, type ReactNode } from "react";
-import { motion } from "motion/react";
+import { MotionConfig, motion } from "motion/react";
 import { cn } from "../../cn";
 import { fade, springSnappy } from "../../motion";
 import { useControllable, type Size } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type CheckedState = boolean | "indeterminate";
 
@@ -60,13 +61,16 @@ export type CheckboxProps = {
   name?: string;
   /** Replace any built-in icon. Merged over `checkboxIcons`. */
   icons?: Partial<CheckboxIcons>;
+  /** Accessibility features to add for this box only. `reduceMotion` removes the press scale; the state is always a tick or dash plus `aria-checked`, never colour alone; `largeTargets`, `highContrast` and `strongFocus` are answered by the page CSS. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A checkbox with an optional label and description. Supports `"indeterminate"`. */
 export const Checkbox = forwardRef<HTMLButtonElement, CheckboxProps>(function Checkbox(
-  { checked: checkedProp, defaultChecked = false, onCheckedChange, label, description, size = "md", disabled, className, id: idProp, name, icons },
+  { checked: checkedProp, defaultChecked = false, onCheckedChange, label, description, size = "md", disabled, className, id: idProp, name, icons, accessibilityFeatures },
   ref,
 ) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const ic = useMemo(() => ({ ...checkboxIcons, ...icons }), [icons]);
   const [checked, setChecked] = useControllable<CheckedState>(checkedProp, defaultChecked, onCheckedChange as (v: CheckedState) => void);
   const sz = boxes[size];
@@ -74,8 +78,8 @@ export const Checkbox = forwardRef<HTMLButtonElement, CheckboxProps>(function Ch
   const id = idProp ?? autoId;
   const on = checked === true;
   const mixed = checked === "indeterminate";
-  return (
-    <div className={cn("group flex items-start gap-3", disabled && "opacity-50", className)}>
+  const el = (
+    <div {...rootProps} className={cn("group flex items-start gap-3", disabled && "opacity-50", className)}>
       <motion.button
         ref={ref}
         id={id}
@@ -116,4 +120,5 @@ export const Checkbox = forwardRef<HTMLButtonElement, CheckboxProps>(function Ch
       )}
     </div>
   );
+  return a11y.reduceMotion ? <MotionConfig reducedMotion="always">{el}</MotionConfig> : el;
 });

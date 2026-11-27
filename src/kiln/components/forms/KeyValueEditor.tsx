@@ -1,10 +1,12 @@
 import { useId, useRef, type ReactNode } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { Eye, EyeOff, LockOpen, Plus, X } from "lucide-react";
 import { cn } from "../../cn";
 import { spring, springSnappy } from "../../motion";
 import { Button } from "../buttons/Button";
 import { useControllable } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { announce } from "../accessibility/announce";
 
 export type KeyValueRow = { id: string; key: string; value: string; secret: boolean; revealed?: boolean };
 
@@ -35,6 +37,10 @@ export interface KeyValueEditorLabels {
   reveal: (name: string) => string;
   markSecret: (name: string) => string;
   remove: (name: string) => string;
+  /** Spoken after a row is added. */
+  added: string;
+  /** Spoken after a row is removed, given its name. */
+  removed: (name: string) => string;
 }
 export const keyValueEditorLabels: KeyValueEditorLabels = {
   key: "Key",
@@ -50,6 +56,8 @@ export const keyValueEditorLabels: KeyValueEditorLabels = {
   reveal: (n) => `Reveal ${n}`,
   markSecret: (n) => `Mark ${n} as secret`,
   remove: (n) => `Remove ${n}`,
+  added: "Row added",
+  removed: (n) => `${n} removed`,
 };
 
 const KEY_RE = /^[A-Z_][A-Z0-9_]*$/;
@@ -73,7 +81,7 @@ export interface KeyValueEditorIcons {
 }
 export const keyValueEditorIcons: KeyValueEditorIcons = { markSecret: <LockOpen />, reveal: <Eye />, hide: <EyeOff />, remove: <X />, add: <Plus /> };
 
-export function KeyValueEditor({ rows: rowsProp, defaultRows = [], onChange: onChangeProp, keyLabel, valueLabel, addLabel, className, labels, icons }: {
+export function KeyValueEditor({ rows: rowsProp, defaultRows = [], onChange: onChangeProp, keyLabel, valueLabel, addLabel, className, labels, icons, accessibilityFeatures }: {
   /** Replace any built-in icon. Merged over `keyValueEditorIcons`. */
   icons?: Partial<KeyValueEditorIcons>;
   /** The rows; leave out to let the component keep them. */
@@ -87,7 +95,10 @@ export function KeyValueEditor({ rows: rowsProp, defaultRows = [], onChange: onC
   className?: string;
   /** Override any UI text. Merged over `keyValueEditorLabels`. */
   labels?: Partial<KeyValueEditorLabels>;
+  /** Accessibility features to add for this editor only. `reduceMotion` makes rows appear and leave without sliding. Adding and removing a row is always announced, and a secret is marked by its lock icon and a masked field, never colour alone. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...keyValueEditorLabels, ...labels };
   const ic = { ...keyValueEditorIcons, ...icons };
   keyLabel ??= l.key;
@@ -102,20 +113,22 @@ export function KeyValueEditor({ rows: rowsProp, defaultRows = [], onChange: onC
   const add = () => {
     const r = newRow();
     onChange([...rows, r]);
+    announce(l.added);
     requestAnimationFrame(() => keyInputs.current.get(r.id)?.focus());
   };
   const remove = (rid: string) => {
     const i = rows.findIndex((r) => r.id === rid);
     const next = rows.filter((r) => r.id !== rid);
     onChange(next);
+    announce(l.removed(rows[i]?.key || l.fallbackRow));
     const focusTo = next[Math.min(i, next.length - 1)];
     requestAnimationFrame(() => (focusTo ? keyInputs.current.get(focusTo.id)?.focus() : undefined));
   };
 
-  const cell = "h-9 w-full min-w-0 rounded-control border bg-surface px-2.5 text-[0.8125rem] text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-faint focus:border-accent focus:ring-[3px] focus:ring-accent/20";
+  const cell = "h-9 w-full min-w-0 rounded-control border bg-surface px-2.5 text-[0.8125rem] text-ink outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-faint focus-visible:border-accent focus-visible:ring-[3px] focus-visible:ring-accent/20";
 
-  return (
-    <div className={cn("flex w-full flex-col gap-2", className)}>
+  const el = (
+    <div {...rootProps} className={cn("flex w-full flex-col gap-2", className)}>
       <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,3fr)_76px] gap-2 px-0.5 text-[0.8125rem] font-medium text-muted sm:grid" aria-hidden>
         <span>{keyLabel}</span><span>{valueLabel}</span><span />
       </div>
@@ -182,6 +195,7 @@ export function KeyValueEditor({ rows: rowsProp, defaultRows = [], onChange: onC
       </motion.div>
     </div>
   );
+  return a11y.reduceMotion ? <MotionConfig reducedMotion="always">{el}</MotionConfig> : el;
 }
 
 function RowIcon({ label, onClick, a, b, showB = false, danger, active }: {

@@ -1,8 +1,9 @@
 import { forwardRef, useEffect, useId, useLayoutEffect, useRef, useState, type HTMLAttributes, type KeyboardEvent, type PointerEvent as RPointerEvent } from "react";
-import { AnimatePresence, animate, motion, useMotionValue, useTransform, type MotionValue } from "motion/react";
+import { AnimatePresence, MotionConfig, animate, motion, useMotionValue, useTransform, type MotionValue } from "motion/react";
 import { cn } from "../../cn";
 import { springFirm, springSnappy } from "../../motion";
 import { useControllable } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by Slider. Pass a partial via `labels` to translate or reword. */
 export interface SliderLabels {
@@ -21,7 +22,7 @@ const T = 20;
  * value jumps (a click on the track, a key) and track the finger 1:1 while dragged.
  */
 export function Slider({
-  value: valueProp, defaultValue, onChange: onChangeProp, min = 0, max = 100, step = 1, label, ariaLabel, format = (n) => String(n), className, showTicks, labels,
+  value: valueProp, defaultValue, onChange: onChangeProp, min = 0, max = 100, step = 1, label, ariaLabel, format = (n) => String(n), className, showTicks, labels, accessibilityFeatures,
 }: {
   /** Controlled value: one number, or two for a range. Leave out and use `defaultValue` to let it keep its own. */
   value?: number[];
@@ -42,7 +43,10 @@ export function Slider({
   showTicks?: boolean;
   /** Override any UI text. Merged over `sliderLabels`. */
   labels?: Partial<SliderLabels>;
+  /** Accessibility features to add for this slider only. `reduceMotion` makes thumbs jump instead of gliding and drops the bubble pop; `highContrast`, `largeTargets` and `strongFocus` are answered by the page CSS. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...sliderLabels, ...labels };
   const [value, onChange] = useControllable(valueProp, defaultValue ?? [min], onChangeProp);
   const id = useId();
@@ -75,6 +79,7 @@ export function Slider({
         // While dragging, follow the pointer with jump(): it records no velocity, so the
         // spring that runs after release can never inherit a fling and overshoot.
         if (drag === i) mv.jump(toPct(v));
+        else if (a11y.reduceMotion) mv.jump(toPct(v));
         else animate(mv, toPct(v), springFirm);
       });
     };
@@ -139,8 +144,8 @@ export function Slider({
 
   const ticks = showTicks ? Array.from({ length: Math.round((max - min) / step) + 1 }, (_, k) => k) : [];
 
-  return (
-    <div className={cn("k-fill flex flex-col gap-3", className)}>
+  const el = (
+    <div {...rootProps} className={cn("k-fill flex flex-col gap-3", className)}>
       {label && (
         <div className="flex items-baseline justify-between gap-3">
           <span id={`${id}-l`} className="text-sm font-medium text-ink">{label}</span>
@@ -188,6 +193,7 @@ export function Slider({
       </div>
     </div>
   );
+  return a11y.reduceMotion ? <MotionConfig reducedMotion="always">{el}</MotionConfig> : el;
 }
 
 const Thumb = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement> & {

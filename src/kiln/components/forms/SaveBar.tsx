@@ -1,8 +1,10 @@
-import { AnimatePresence, motion } from "motion/react";
-import type { ReactNode } from "react";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
+import { useEffect, type ReactNode } from "react";
 import { cn } from "../../cn";
 import { springSoft } from "../../motion";
 import { Button } from "../buttons/Button";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
+import { announce } from "../accessibility/announce";
 
 /** Text used by SaveBar. Pass a partial via `labels` to translate or reword. */
 export interface SaveBarLabels {
@@ -22,7 +24,7 @@ export const saveBarLabels: SaveBarLabels = { region: "Unsaved changes", message
  * Place it last inside a `relative` container with bottom padding, or let it stick to the viewport (`sticky`).
  */
 export function SaveBar({
-  dirty, saving, onSave, onReset, message, saveLabel, resetLabel, className, sticky, labels,
+  dirty, saving, onSave, onReset, message, saveLabel, resetLabel, className, sticky, labels, accessibilityFeatures,
 }: {
   dirty: boolean;
   saving?: boolean;
@@ -36,10 +38,15 @@ export function SaveBar({
   sticky?: boolean;
   /** Override any UI text. Merged over `saveBarLabels`. */
   labels?: Partial<SaveBarLabels>;
+  /** Accessibility features to add for this bar only. `reduceMotion` makes it appear without rising. Its appearance is always announced politely. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...saveBarLabels, ...labels };
-  return (
-    <div className={cn("pointer-events-none inset-x-0 bottom-0 z-20 flex justify-center px-3 pb-3", sticky ? "sticky" : "absolute", className)}>
+  const spoken = typeof message === "string" ? message : l.message;
+  useEffect(() => { if (dirty) announce(spoken); }, [dirty, spoken]);
+  const el = (
+    <div {...rootProps} className={cn("pointer-events-none inset-x-0 bottom-0 z-20 flex justify-center px-3 pb-3", sticky ? "sticky" : "absolute", className)}>
       <AnimatePresence>
         {dirty && (
           <motion.div
@@ -61,4 +68,5 @@ export function SaveBar({
       </AnimatePresence>
     </div>
   );
+  return a11y.reduceMotion ? <MotionConfig reducedMotion="always">{el}</MotionConfig> : el;
 }

@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { fade } from "../../motion";
 import { useControllable, type Size } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type RadioOption<T extends string> = { value: T; label: ReactNode; description?: ReactNode; aside?: ReactNode; disabled?: boolean };
 
@@ -30,12 +31,15 @@ export type RadioGroupProps<T extends string> = {
   /** Hide the visible label but keep it as the accessible name. */
   hideLabel?: boolean;
   className?: string;
+  /** Accessibility features to add for this group only. The choice is a filled dot (and a border on card tiles), never colour alone; `highContrast`, `largeTargets` and `strongFocus` are answered by the page CSS. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A group of radio options with arrow-key navigation. Controlled with `value` + `onChange`, or uncontrolled with `defaultValue`. */
 export function RadioGroup<T extends string>({
-  label, options, value: valueProp, defaultValue, onChange: onChangeProp, variant = "list", columns = 1, size = "md", hideLabel, className,
+  label, options, value: valueProp, defaultValue, onChange: onChangeProp, variant = "list", columns = 1, size = "md", hideLabel, className, accessibilityFeatures,
 }: RadioGroupProps<T>) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const [value, onChange] = useControllable<T>(valueProp, (defaultValue ?? options.find((o) => !o.disabled)?.value) as T, onChangeProp);
   const sz = radioSizes[size];
   const id = useId();
@@ -55,7 +59,7 @@ export function RadioGroup<T extends string>({
   const cols = columns === 3 ? "sm:grid-cols-3" : columns === 2 ? "sm:grid-cols-2" : "";
 
   return (
-    <div role="radiogroup" aria-labelledby={`${id}-l`} className={cn("flex flex-col gap-3", className)}>
+    <div {...rootProps} role="radiogroup" aria-labelledby={`${id}-l`} className={cn("flex flex-col gap-3", className)}>
       <span id={`${id}-l`} className={cn("font-medium text-ink", sz.text, hideLabel && "sr-only")}>{label}</span>
       <div className={cn("grid gap-3", variant === "card" && "isolate", cols)}>
         {options.map((o, i) => {
