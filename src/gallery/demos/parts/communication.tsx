@@ -170,7 +170,7 @@ export function TourDemo() {
       <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-card border border-line bg-surface">
         <div className="flex h-14 items-center gap-3 border-b border-line px-3 sm:px-4">
           <span className="hidden text-sm font-semibold sm:inline">Ghostbusters</span>
-          <label data-tour="search" className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-control bg-raised px-3 text-sm text-faint sm:max-w-64">
+          <label data-tour="search" className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-control bg-raised px-3 focus-within:ring-2 focus-within:ring-accent text-sm text-faint sm:max-w-64">
             <Search className="size-4 shrink-0" />
             <input placeholder="Search sightings" aria-label="Search sightings" className="min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-faint" />
           </label>
