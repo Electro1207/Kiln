@@ -84,7 +84,7 @@ for (const group of groups) {
       const ctx = await browser.newContext({ viewport: mode.viewport, reducedMotion: "no-preference" });
       await ctx.addInitScript((t) => { try { localStorage.setItem("kiln-theme", t); } catch {} }, mode.theme);
       // Web fonts come from Google; keep the run offline-safe.
-      await ctx.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: "text/css", body: "" }));
+      await ctx.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, (r) => r.fulfill({ status: 200, contentType: "text/css", body: "" }));
       const page = await ctx.newPage();
       const failures: Failure[] = [];
       let current = group;
