@@ -242,7 +242,7 @@ const placeSlides = () =>
 
 export function CarouselDemo() {
   return (
-    <Stage className="flex-col items-stretch gap-10">
+    <Stage className="flex-col flex-nowrap items-stretch gap-10">
       <div className="flex min-w-0 flex-col gap-3">
         <span className="text-xs text-muted">Drag, flick or use the arrows</span>
         <Carousel label="Places in Middle-earth" slides={placeSlides()} />
