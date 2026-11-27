@@ -1,10 +1,11 @@
 import { useId, useLayoutEffect, useMemo, useRef, type KeyboardEvent, type ReactNode } from "react";
-import { animate, AnimatePresence, motion, useMotionValue } from "motion/react";
+import { AnimatePresence, motion, useMotionValue } from "motion/react";
 import { ArrowUp, ChevronDown, FileText, Paperclip, X } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { easeOut, fade, springFirm, springSoft } from "../../motion";
 import { DropdownMenu } from "../menus/DropdownMenu";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type PromptAttachment = { id: string; name: string; size: string };
 export type PromptModel = { id: string; name: string; note?: string; disabled?: boolean };
@@ -68,6 +69,8 @@ export type PromptInputProps = {
   labels?: Partial<PromptInputLabels>;
   /** Replace any built-in icon. Merged over `promptInputIcons`. */
   icons?: Partial<PromptInputIcons>;
+  /** Accessibility features to add for this input only (`reduceMotion` and `calm` swap Send and Stop and fold attachments at once). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Icons used by PromptInput. Pass a partial via `icons` to replace any. */
@@ -104,8 +107,10 @@ const LINE = 22;
 export function PromptInput({
   value: valueProp, defaultValue = "", onChange, onSubmit, streaming, onStop, models, model: modelProp, defaultModel, onModelChange,
   attachments: attachmentsProp, defaultAttachments, onAttachmentsChange,
-  placeholder: placeholderProp, tools, maxRows = 8, className, labels, icons,
+  placeholder: placeholderProp, tools, maxRows = 8, className, labels, icons, accessibilityFeatures,
 }: PromptInputProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...promptInputLabels, ...labels };
   const ic = useMemo(() => ({ ...promptInputIcons, ...icons }), [icons]);
   const placeholder = placeholderProp ?? l.placeholder;
@@ -117,9 +122,8 @@ export function PromptInput({
   const area = useRef<HTMLTextAreaElement>(null);
   const file = useRef<HTMLInputElement>(null);
   const height = useMotionValue(LINE);
-  const first = useRef(true);
 
-  // Grow with the text: measure, then ease the height so new lines never jump.
+  // Grow with the text: measure, then set the height at once (no animated height).
   useLayoutEffect(() => {
     const t = area.current;
     if (!t) return;
@@ -127,10 +131,7 @@ export function PromptInput({
     t.style.height = "0px";
     const target = Math.min(Math.max(t.scrollHeight, LINE), LINE * maxRows);
     t.style.height = prev;
-    if (first.current) {
-      height.set(target);
-      first.current = false;
-    } else animate(height, target, springFirm);
+    height.set(target);
   }, [value, maxRows, height]);
 
   const canSend = value.trim().length > 0 && !streaming;
@@ -149,6 +150,7 @@ export function PromptInput({
 
   return (
     <div
+      {...rootProps}
       className={cn(
         "rounded-[20px] border border-line-strong bg-surface text-ink transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent-soft",
         className,
@@ -162,7 +164,8 @@ export function PromptInput({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ height: springFirm, opacity: fade }}
+            // One-off fold (allowed height animation): the attachment row opening or closing.
+            transition={still ? { duration: 0 } : { height: springFirm, opacity: fade }}
             className="overflow-hidden"
           >
             <ul className="flex flex-wrap gap-2 px-3 pt-3">
@@ -185,7 +188,7 @@ export function PromptInput({
                       type="button"
                       aria-label={l.removeAttachment(a.name)}
                       onClick={() => setAttachments(attachments.filter((x) => x.id !== a.id))}
-                      className="grid size-6 place-items-center rounded-full text-muted transition-colors hover:bg-active hover:text-ink"
+                      className="grid size-6 place-items-center rounded-full text-muted transition-colors hover:bg-active hover:text-ink focus-visible:outline-2 focus-visible:outline-accent"
                     >
                       <span className="grid [&>svg]:size-3.5" aria-hidden>{ic.remove}</span>
                     </button>
@@ -233,7 +236,7 @@ export function PromptInput({
               type="button"
               aria-label={l.attachFiles}
               onClick={() => file.current?.click()}
-              className="grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink"
+              className="grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink focus-visible:outline-2 focus-visible:outline-accent"
             >
               <span className="grid [&>svg]:size-[18px]" aria-hidden>{ic.attach}</span>
             </button>
@@ -254,7 +257,7 @@ export function PromptInput({
                 {...p}
                 type="button"
                 className={cn(
-                  "inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium text-muted transition-colors hover:bg-raised hover:text-ink",
+                  "inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium text-muted transition-colors hover:bg-raised hover:text-ink focus-visible:outline-2 focus-visible:outline-accent",
                   open && "bg-raised text-ink",
                 )}
               >
@@ -273,7 +276,7 @@ export function PromptInput({
           aria-label={streaming ? l.stop : l.send}
           whileTap={{ scale: 0.9 }}
           transition={springSoft}
-          className="grid size-9 place-items-center rounded-full bg-btn-primary text-btn-primary-ink transition-[background-color,opacity] duration-200 hover:bg-btn-primary-hover disabled:opacity-35 [&>*]:[grid-area:1/1]"
+          className="grid size-9 place-items-center rounded-full bg-btn-primary text-btn-primary-ink transition-[background-color,opacity] duration-200 hover:bg-btn-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-35 [&>*]:[grid-area:1/1]"
         >
           <motion.span initial={false} animate={{ opacity: streaming ? 0 : 1, scale: streaming ? 0.6 : 1 }} transition={springFirm} className="grid place-items-center [&>svg]:size-[18px] [&>svg]:stroke-[2.25]" aria-hidden>
             {ic.send}

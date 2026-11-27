@@ -5,6 +5,7 @@ import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { fade } from "../../motion";
 import { SegmentedControl } from "../buttons/SegmentedControl";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 type Op = { type: "same" | "del" | "add"; text: string; a?: number; b?: number };
 type Row =
@@ -82,11 +83,11 @@ function build(oldText: string, newText: string, context: number) {
   return { rows: out, added, removed };
 }
 
-const words = (segs: Seg[] | undefined, text: string, tone: "add" | "del"): ReactNode =>
+const words = (segs: Seg[] | undefined, text: string, tone: "add" | "del", safe = false): ReactNode =>
   segs
     ? segs.map((s, i) =>
         s.changed && s.text.trim() ? (
-          <mark key={i} className={cn("rounded-[3px] text-ink", tone === "add" ? "bg-positive/25" : "bg-negative/25")}>
+          <mark key={i} className={cn("rounded-[3px] text-ink", tone === "add" ? "bg-positive/25" : "bg-negative/25", safe && (tone === "add" ? "underline decoration-2 underline-offset-2" : "line-through decoration-2"))}>
             {s.text}
           </mark>
         ) : (
@@ -103,12 +104,18 @@ export interface DiffViewerLabels {
   unified: string;
   /** Fold button, given the number of hidden lines. */
   showUnchanged: (count: number) => string;
+  /** Read by screen readers before an added line. */
+  addedLine: string;
+  /** Read by screen readers before a removed line. */
+  removedLine: string;
 }
 export const diffViewerLabels: DiffViewerLabels = {
   diffView: "Diff view",
   split: "Split",
   unified: "Unified",
   showUnchanged: (n) => `Show ${n} unchanged ${n === 1 ? "line" : "lines"}`,
+  addedLine: "Added:",
+  removedLine: "Removed:",
 };
 
 export interface DiffViewerIcons {
@@ -134,6 +141,8 @@ export type DiffViewerProps = {
   labels?: Partial<DiffViewerLabels>;
   /** Replace any built-in icon. Merged over `diffViewerIcons`. */
   icons?: Partial<DiffViewerIcons>;
+  /** Accessibility features to add for this viewer only (`colourSafe` adds +/− markers and underline or strike-through on changed words; `highContrast` and `strongFocus` apply as page-wide). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -141,7 +150,9 @@ export type DiffViewerProps = {
  * the words that changed are marked; long unchanged stretches fold away and open
  * in place.
  */
-export function DiffViewer({ oldText, newText, filename, context = 3, defaultView = "split", view: viewProp, onViewChange, className, labels, icons }: DiffViewerProps) {
+export function DiffViewer({ oldText, newText, filename, context = 3, defaultView = "split", view: viewProp, onViewChange, className, labels, icons, accessibilityFeatures }: DiffViewerProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const safe = a11y.colourSafe;
   const l = { ...diffViewerLabels, ...labels };
   const ic = { ...diffViewerIcons, ...icons };
   // Until someone picks a view, narrow containers (phones) get unified: split needs two readable columns.
@@ -166,8 +177,10 @@ export function DiffViewer({ oldText, newText, filename, context = 3, defaultVie
   const num = "tabular w-10 shrink-0 select-none pr-2 text-right text-faint";
   const code = "min-w-0 flex-1 whitespace-pre-wrap break-all pl-2 pr-3";
 
+  // [contain:inline-size] on the root: its measured width (the narrow flag) picks the layout of the children,
+  // so the children must never size it, or a content-sized parent could grow it without end.
   return (
-    <div ref={root} className={cn("w-full overflow-hidden rounded-card border border-line bg-surface", className)}>
+    <div {...rootProps} ref={root} className={cn("w-full overflow-hidden rounded-card border border-line bg-surface [contain:inline-size]", className)}>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-2.5">
         <div className="flex min-w-0 items-center gap-3 text-sm">
           <span className="truncate font-medium text-ink">{filename}</span>
@@ -205,11 +218,15 @@ export function DiffViewer({ oldText, newText, filename, context = 3, defaultVie
                 <div key={i} className="grid grid-cols-2">
                   <div className={cn("flex", left?.type === "del" && "bg-negative-soft", !left && "bg-raised/60")}>
                     <span className={num}>{left?.a ?? ""}</span>
-                    <span className={cn(code, left?.type === "del" ? "text-ink" : "text-muted")}>{left ? words(pairWords?.left, left.text, "del") : ""}</span>
+                    {left?.type === "del" && <span className="sr-only">{l.removedLine}</span>}
+                    {safe && <span aria-hidden className="w-4 shrink-0 text-center text-negative">{left?.type === "del" ? "−" : ""}</span>}
+                    <span className={cn(code, left?.type === "del" ? "text-ink" : "text-muted")}>{left ? words(pairWords?.left, left.text, "del", safe) : ""}</span>
                   </div>
                   <div className={cn("flex border-l border-line", right?.type === "add" && "bg-positive-soft", !right && "bg-raised/60")}>
                     <span className={num}>{right?.b ?? ""}</span>
-                    <span className={cn(code, right?.type === "add" ? "text-ink" : "text-muted")}>{right ? words(pairWords?.right, right.text, "add") : ""}</span>
+                    {right?.type === "add" && <span className="sr-only">{l.addedLine}</span>}
+                    {safe && <span aria-hidden className="w-4 shrink-0 text-center text-positive">{right?.type === "add" ? "+" : ""}</span>}
+                    <span className={cn(code, right?.type === "add" ? "text-ink" : "text-muted")}>{right ? words(pairWords?.right, right.text, "add", safe) : ""}</span>
                   </div>
                 </div>
               );
@@ -230,16 +247,16 @@ export function DiffViewer({ oldText, newText, filename, context = 3, defaultVie
                   <div className="flex bg-negative-soft">
                     <span className={num}>{left.a}</span>
                     <span className={num} />
-                    <span className="w-4 shrink-0 text-center text-negative">−</span>
-                    <span className={cn(code, "text-ink")}>{words(pairWords?.left, left.text, "del")}</span>
+                    <span className="w-4 shrink-0 text-center text-negative"><span aria-hidden>−</span><span className="sr-only">{l.removedLine}</span></span>
+                    <span className={cn(code, "text-ink")}>{words(pairWords?.left, left.text, "del", safe)}</span>
                   </div>
                 )}
                 {right && (
                   <div className="flex bg-positive-soft">
                     <span className={num} />
                     <span className={num}>{right.b}</span>
-                    <span className="w-4 shrink-0 text-center text-positive">+</span>
-                    <span className={cn(code, "text-ink")}>{words(pairWords?.right, right.text, "add")}</span>
+                    <span className="w-4 shrink-0 text-center text-positive"><span aria-hidden>+</span><span className="sr-only">{l.addedLine}</span></span>
+                    <span className={cn(code, "text-ink")}>{words(pairWords?.right, right.text, "add", safe)}</span>
                   </div>
                 )}
               </Fragment>

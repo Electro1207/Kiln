@@ -6,6 +6,7 @@ import { useControllable } from "../../controllable";
 import { easeOut, fade, springSoft } from "../../motion";
 import { Avatar } from "../data-display/Avatar";
 import { useLoop } from "../shared/useLoop";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ChatMessage = {
   id: string;
@@ -65,6 +66,8 @@ export type ChatThreadProps = {
   labels?: Partial<ChatThreadLabels>;
   /** Replace any built-in icon. Merged over `chatThreadIcons`. */
   icons?: Partial<ChatThreadIcons>;
+  /** Accessibility features to add for this component only (`calm`, `reduceMotion` and `noFlashing` hold the typing dots still and make scrolling jump instead of glide). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Messages from one author closer together than this share one group. */
@@ -74,23 +77,23 @@ const GAP_MINUTES = 30;
 const NEAR_BOTTOM = 96;
 
 /** Three dots breathing in turn: a compositor loop that pauses off-screen. */
-function TypingDots({ label }: { label: string }) {
+function TypingDots({ label, still }: { label: string; still: boolean }) {
   const ref = useRef<HTMLSpanElement>(null);
   useLoop(
     ref,
     (el) =>
-      Array.from(el.children).map((d, i) =>
+      still ? [] : Array.from(el.children).map((d, i) =>
         d.animate(
           [{ opacity: 0.3, transform: "translateY(0)" }, { opacity: 1, transform: "translateY(-2px)" }, { opacity: 0.3, transform: "translateY(0)" }],
           { duration: 1100, iterations: Infinity, easing: "ease-in-out", delay: i * 160 },
         ),
       ),
-    [],
+    [still],
   );
   return (
     <span ref={ref} role="status" aria-label={label} className="flex h-9 items-center gap-1 rounded-[18px] bg-raised px-3.5">
       {[0, 1, 2].map((i) => (
-        <span key={i} className="size-1.5 rounded-full bg-muted opacity-30" />
+        <span key={i} className={cn("size-1.5 rounded-full bg-muted", still ? "opacity-60" : "opacity-30")} />
       ))}
     </span>
   );
@@ -116,7 +119,9 @@ function groupMessages(messages: ChatMessage[]): Group[] {
  * rise in from the composer. If you have scrolled up when something arrives,
  * a pill offers to take you down to it instead of yanking the view.
  */
-export function ChatThread({ messages, me, typing, value, defaultValue = "", onChange, onSend, height = 420, placeholder = "Message", className, labels, icons }: ChatThreadProps) {
+export function ChatThread({ messages, me, typing, value, defaultValue = "", onChange, onSend, height = 420, placeholder = "Message", className, labels, icons, accessibilityFeatures }: ChatThreadProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion || a11y.noFlashing;
   const l = { ...chatThreadLabels, ...labels };
   const ic = useMemo(() => ({ ...chatThreadIcons, ...icons }), [icons]);
   const scroller = useRef<HTMLDivElement>(null);
@@ -134,8 +139,8 @@ export function ChatThread({ messages, me, typing, value, defaultValue = "", onC
     const el = scroller.current;
     if (!el) return;
     following.current = true;
-    el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
-  }, []);
+    el.scrollTo({ top: el.scrollHeight, behavior: smooth && !still ? "smooth" : "auto" });
+  }, [still]);
 
   useLayoutEffect(() => toBottom(false), [toBottom]);
 
@@ -169,7 +174,7 @@ export function ChatThread({ messages, me, typing, value, defaultValue = "", onC
   };
 
   return (
-    <div className={cn("relative flex flex-col overflow-hidden rounded-card border border-line bg-surface", className)}>
+    <div {...rootProps} className={cn("relative flex flex-col overflow-hidden rounded-card border border-line bg-surface", className)}>
       <div
         ref={scroller}
         onScroll={onScroll}
@@ -231,7 +236,7 @@ export function ChatThread({ messages, me, typing, value, defaultValue = "", onC
               className="flex items-end gap-2 pt-3"
             >
               <Avatar name={typing} size="sm" className="mb-0.5" />
-              <TypingDots label={l.typing(typing)} />
+              <TypingDots label={l.typing(typing)} still={still} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -250,7 +255,7 @@ export function ChatThread({ messages, me, typing, value, defaultValue = "", onC
             animate={{ opacity: 1, y: 0, x: "-50%" }}
             exit={{ opacity: 0, y: 10, x: "-50%", transition: { duration: 0.16, ease: easeOut } }}
             transition={springSoft}
-            className="absolute bottom-[68px] left-1/2 z-10 flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3 [&>svg]:size-3.5 text-[0.8125rem] font-medium text-ink shadow-float"
+            className="absolute bottom-[68px] left-1/2 z-10 flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3 [&>svg]:size-3.5 text-[0.8125rem] font-medium text-ink shadow-float focus-visible:outline-2 focus-visible:outline-accent"
           >
             {ic.latest}
             <span className="grid [&>*]:[grid-area:1/1]">
@@ -273,7 +278,7 @@ export function ChatThread({ messages, me, typing, value, defaultValue = "", onC
           onChange={(e) => setDraft(e.target.value)}
           placeholder={placeholder}
           autoComplete="off"
-          className="h-10 min-w-0 flex-1 rounded-full bg-raised px-4 text-sm text-ink outline-none transition-shadow placeholder:text-faint focus:ring-2 focus:ring-accent-soft"
+          className="h-10 min-w-0 flex-1 rounded-full bg-raised px-4 text-sm text-ink outline-none transition-shadow placeholder:text-faint focus-visible:ring-2 focus-visible:ring-accent"
         />
         <motion.button
           type="submit"

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { springSoft, staggerChild, staggerParent } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type Suggestion = { label: string; prompt?: string; icon?: ReactNode };
 
@@ -9,9 +10,11 @@ export type Suggestion = { label: string; prompt?: string; icon?: ReactNode };
  * Prompt starters as chips. They wrap on wide screens and scroll sideways on
  * a phone; picking one hands its prompt back.
  */
-export function Suggestions({ items, onPick, className }: { items: Suggestion[]; onPick: (prompt: string) => void; className?: string }) {
+export function Suggestions({ items, onPick, className, accessibilityFeatures }: { items: Suggestion[]; onPick: (prompt: string) => void; className?: string; accessibilityFeatures?: AccessibilityFeaturesProp }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   return (
     <motion.ul
+      {...rootProps}
       variants={staggerParent}
       initial="hidden"
       animate="visible"
@@ -24,7 +27,7 @@ export function Suggestions({ items, onPick, className }: { items: Suggestion[];
             onClick={() => onPick(s.prompt ?? s.label)}
             whileTap={{ scale: 0.96 }}
             transition={springSoft}
-            className="inline-flex h-9 items-center gap-2 whitespace-nowrap rounded-full border border-line bg-surface px-3.5 text-[0.84375rem] text-ink transition-colors hover:border-line-strong hover:bg-raised [&_svg]:size-4 [&_svg]:text-muted"
+            className="inline-flex h-9 items-center gap-2 whitespace-nowrap rounded-full border border-line bg-surface px-3.5 text-[0.84375rem] text-ink transition-colors hover:border-line-strong hover:bg-raised focus-visible:outline-2 focus-visible:outline-accent [&_svg]:size-4 [&_svg]:text-muted"
           >
             {s.icon}
             {s.label}

@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowDown } from "lucide-react";
 import { cn } from "../../cn";
 import { fade, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type TermTone = "plain" | "muted" | "green" | "red" | "yellow" | "blue" | "bold";
 /** One line of output: a list of coloured spans, like ANSI escapes. */
@@ -43,6 +44,8 @@ export type TerminalProps = {
   labels?: Partial<TerminalLabels>;
   /** Replace any built-in icon. Merged over `terminalIcons`. */
   icons?: Partial<TerminalIcons>;
+  /** Accessibility features to add for this terminal only (`calm`, `reduceMotion` and `noFlashing` keep the caret solid instead of blinking and make the jump scroll instant). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 export interface TerminalIcons {
@@ -56,7 +59,9 @@ export const terminalIcons: TerminalIcons = { latest: <ArrowDown /> };
  * a real input. It follows new output while you are at the bottom; scroll up and
  * it stays put, with a button to jump back to the latest line.
  */
-export function Terminal({ lines, prompt = "$", typing, onCommand, title, height = 340, className, labels, icons }: TerminalProps) {
+export function Terminal({ lines, prompt = "$", typing, onCommand, title, height = 340, className, labels, icons, accessibilityFeatures }: TerminalProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion || a11y.noFlashing;
   const lb = { ...terminalLabels, ...labels };
   const ic = useMemo(() => ({ ...terminalIcons, ...icons }), [icons]);
   const scroller = useRef<HTMLDivElement>(null);
@@ -83,7 +88,7 @@ export function Terminal({ lines, prompt = "$", typing, onCommand, title, height
   const render = (parts: TermLine["parts"]): ReactNode => parts.map((p, i) => <span key={i} className={tones[p.tone ?? "plain"]}>{p.text}</span>);
 
   return (
-    <div className={cn("relative flex w-full flex-col overflow-hidden rounded-card border border-line bg-surface transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/20", className)}>
+    <div {...rootProps} className={cn("relative flex w-full flex-col overflow-hidden rounded-card border border-line bg-surface transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/20", className)}>
       <div className="flex h-9 items-center gap-2 border-b border-line px-3">
         <span className="flex gap-1.5" aria-hidden>
           <span className="size-2.5 rounded-full bg-active" />
@@ -125,8 +130,8 @@ export function Terminal({ lines, prompt = "$", typing, onCommand, title, height
               {shown}
               <motion.span
                 className="inline-block h-[17px] w-[8px] translate-y-[3px] bg-ink"
-                animate={{ opacity: [1, 1, 0, 0] }}
-                transition={{ duration: 1.1, repeat: Infinity, ease: "linear", times: [0, 0.5, 0.5, 1] }}
+                animate={{ opacity: still ? 1 : [1, 1, 0, 0] }}
+                transition={still ? { duration: 0 } : { duration: 1.1, repeat: Infinity, ease: "linear", times: [0, 0.5, 0.5, 1] }}
               />
             </span>
             <input
@@ -160,13 +165,13 @@ export function Terminal({ lines, prompt = "$", typing, onCommand, title, height
             type="button"
             onClick={() => {
               setPinned(true);
-              scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
+              scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: still ? "auto" : "smooth" });
             }}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8, transition: fade }}
             transition={springSoft}
-            className="absolute bottom-3 right-3 inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-elevated px-3 text-xs font-medium text-ink shadow-float"
+            className="absolute bottom-3 right-3 inline-flex h-8 items-center gap-1.5 rounded-full border border-line bg-elevated px-3 text-xs font-medium text-ink shadow-float focus-visible:outline-2 focus-visible:outline-accent"
           >
             <span className="inline-flex [&>svg]:size-3.5" aria-hidden>{ic.latest}</span> {lb.jumpToLatest}
           </motion.button>

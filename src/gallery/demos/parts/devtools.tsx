@@ -6,6 +6,7 @@ import { Terminal, type TermLine } from "../../../kiln/components/dev-tools/Term
 import { TerminalScript, type TerminalStep } from "../../../kiln/components/dev-tools/TerminalScript";
 import { LogStream, type LogEntry, type LogLevel } from "../../../kiln/components/dev-tools/LogStream";
 import { Button } from "../../../kiln/components/buttons/Button";
+import { useA11y } from "../../../kiln/a11y";
 
 
 const OLD = `# Cyberdyne Systems: Skynet defence network
@@ -129,6 +130,8 @@ const SCRIPT: Step[] = [
 const GAMES = ["FALKEN'S MAZE", "BLACK JACK", "GIN RUMMY", "HEARTS", "BRIDGE", "CHECKERS", "CHESS", "POKER", "FIGHTER COMBAT", "GUERRILLA ENGAGEMENT", "DESERT WARFARE", "AIR-TO-GROUND ACTIONS", "THEATERWIDE TACTICAL WARFARE", "THEATERWIDE BIOTOXIC AND CHEMICAL WARFARE", "GLOBAL THERMONUCLEAR WAR"];
 
 export function TerminalDemo() {
+  const a11y = useA11y();
+  const still = a11y.calm || a11y.reduceMotion;
   const [lines, setLines] = useState<TermLine[]>([]);
   const [typing, setTyping] = useState<string | undefined>(undefined);
   const [run, setRun] = useState(0);
@@ -142,6 +145,14 @@ export function TerminalDemo() {
     const wait = (ms: number) => new Promise<void>((r) => timers.push(window.setTimeout(r, ms)));
     const play = async () => {
       setLines([]);
+      if (still) {
+        // Calm or reduced motion: the whole session at once, nothing types by itself.
+        for (const s of SCRIPT) {
+          if (s.type === "out") push(s.parts);
+          else if (s.type === "cmd") push([{ text: "> ", tone: "muted" }, { text: s.text }]);
+        }
+        return;
+      }
       for (const s of SCRIPT) {
         if (cancelled) return;
         if (s.type === "wait") await wait(s.ms);
@@ -169,7 +180,7 @@ export function TerminalDemo() {
       timers.forEach(clearTimeout);
       setTyping(undefined);
     };
-  }, [run]);
+  }, [run, still]);
 
   const onCommand = (raw: string) => {
     const cmd = raw.trim().toLowerCase();
@@ -215,9 +226,11 @@ const TEMPLATES: { level: LogLevel; source: string; message: string }[] = [
 ];
 
 export function LogDemo() {
+  const calm = useA11y().calm;
   const [entries, setEntries] = useState<LogEntry[]>(() => seed(600));
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    if (calm) return;
     let id = 0;
     let visible = false;
     const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting));
@@ -230,7 +243,7 @@ export function LogDemo() {
       });
     }, 450);
     return () => { clearInterval(id); io.disconnect(); };
-  }, []);
+  }, [calm]);
   return (
     <Stage className="flex-col items-stretch">
       <div ref={box}>

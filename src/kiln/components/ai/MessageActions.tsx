@@ -6,6 +6,7 @@ import { useControllable } from "../../controllable";
 import { fade, springSoft } from "../../motion";
 import { CopyButton, copyButtonIcons } from "../buttons/CopyButton";
 import { Tooltip } from "../overlays/Tooltip";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by MessageActions. Pass a partial via `labels` to translate or reword. */
 export interface MessageActionsLabels {
@@ -19,8 +20,10 @@ export interface MessageActionsLabels {
   badAnswer: string;
   /** Tooltip and aria-label of the regenerate button. */
   regenerate: string;
+  /** Name of the row of buttons, read by screen readers. */
+  actions: string;
 }
-export const messageActionsLabels: MessageActionsLabels = { copy: "Copy", copied: "Copied", goodAnswer: "Good answer", badAnswer: "Bad answer", regenerate: "Regenerate" };
+export const messageActionsLabels: MessageActionsLabels = { copy: "Copy", copied: "Copied", goodAnswer: "Good answer", badAnswer: "Bad answer", regenerate: "Regenerate", actions: "Message actions" };
 
 /** Icons used by MessageActions. Pass a partial via `icons` to replace any. */
 export interface MessageActionsIcons {
@@ -57,15 +60,18 @@ export type MessageActionsProps = {
   labels?: Partial<MessageActionsLabels>;
   /** Replace any built-in icon. Merged over `messageActionsIcons`. */
   icons?: Partial<MessageActionsIcons>;
+  /** Accessibility features to add for this component only (`reduceMotion` and `calm` stop the regenerate icon turning). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
-const btn = "relative grid size-8 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink";
+const btn = "relative grid size-8 place-items-center rounded-full text-muted transition-colors hover:bg-raised hover:text-ink focus-visible:outline-2 focus-visible:outline-accent";
 
 /**
  * The row under an answer: copy, rate it up or down, or ask again. A rating
  * fills its icon (a fade, not a jump) and the other one clears.
  */
-export function MessageActions({ text, onRegenerate, value, defaultValue = null, onFeedback, className, labels, icons }: MessageActionsProps) {
+export function MessageActions({ text, onRegenerate, value, defaultValue = null, onFeedback, className, labels, icons, accessibilityFeatures }: MessageActionsProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...messageActionsLabels, ...labels };
   const ic = useMemo(() => ({ ...messageActionsIcons, ...icons }), [icons]);
   const [vote, setVote] = useControllable<"up" | "down" | null>(value, defaultValue, onFeedback);
@@ -75,7 +81,7 @@ export function MessageActions({ text, onRegenerate, value, defaultValue = null,
     setVote(next);
   };
   return (
-    <div className={cn("flex items-center gap-0.5", className)}>
+    <div {...rootProps} role="group" aria-label={l.actions} className={cn("flex items-center gap-0.5", className)}>
       <Tooltip content={l.copy}>
         <span className="inline-flex">
           <CopyButton value={text} label={l.copy} copiedLabel={l.copied} icons={{ copy: ic.copy, copied: ic.copied }} className="size-8 justify-center rounded-full px-0" />
@@ -106,7 +112,7 @@ export function MessageActions({ text, onRegenerate, value, defaultValue = null,
             transition={springSoft}
             className={btn}
             onClick={() => {
-              if (spin.current) animate(spin.current, { rotate: [0, 360] }, { duration: 0.6, ease: [0.65, 0, 0.35, 1] });
+              if (spin.current && !a11y.reduceMotion && !a11y.calm) animate(spin.current, { rotate: [0, 360] }, { duration: 0.6, ease: [0.65, 0, 0.35, 1] });
               onRegenerate();
             }}
           >

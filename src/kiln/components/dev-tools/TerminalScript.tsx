@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { usePrefersReducedMotion } from "../shared/useLoop";
+import { useA11y } from "../../a11y";
 import { Terminal, type TermLine, type TermTone, type TerminalProps } from "./Terminal";
 
 /** One step of a script: a command typed at the prompt, or output printed under it. */
@@ -52,10 +52,13 @@ const lineOf = (parts: TermLine["parts"], n: number): TermLine => ({ id: `s${n}`
  * human pace, output prints line by line, and a `cd` can change the prompt. Click
  * or press a key while it plays to skip to the end. Once it ends, the prompt can
  * take real commands through `onCommand`. With reduced motion the whole session
- * is shown at once.
+ * is shown at once. Calm does the same, since nothing may type on its own.
+ * Takes `accessibilityFeatures` (passed on to Terminal).
  */
 export function TerminalScript({ steps, prompt: firstPrompt = "$", speed = 55, start = "view", onDone, onCommand, focusWhenDone = true, className, ...rest }: TerminalScriptProps) {
-  const reduce = usePrefersReducedMotion();
+  // Reads the person's settings and this terminal's own `accessibilityFeatures` (passed on to Terminal): calm and reduced motion show the whole session at once.
+  const a11y = useA11y(rest.accessibilityFeatures);
+  const reduce = a11y.reduceMotion || a11y.calm;
   const root = useRef<HTMLDivElement>(null);
   const [lines, setLines] = useState<TermLine[]>([]);
   const [typing, setTyping] = useState<string | undefined>("");

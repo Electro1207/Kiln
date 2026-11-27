@@ -4,6 +4,7 @@ import { ChevronRight, Search } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { fade, springSnappy } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 type Json = null | boolean | number | string | Json[] | { [k: string]: Json };
 
@@ -100,7 +101,7 @@ function Leaf({ value, q }: { value: Json; q: string }) {
  * path or its value; search marks matches and opens the branches that hold them.
  */
 export function JSONViewer({
-  data: input, title, defaultDepth = 1, expanded, defaultExpanded, onExpandedChange, query: queryProp, defaultQuery = "", onQueryChange, className, labels, icons,
+  data: input, title, defaultDepth = 1, expanded, defaultExpanded, onExpandedChange, query: queryProp, defaultQuery = "", onQueryChange, className, labels, icons, accessibilityFeatures,
 }: {
   data: unknown;
   title?: string;
@@ -123,7 +124,10 @@ export function JSONViewer({
   labels?: Partial<JSONViewerLabels>;
   /** Replace any built-in icon. Merged over `jsonViewerIcons`. Keep it stable between renders. */
   icons?: Partial<JSONViewerIcons>;
+  /** Accessibility features to add for this viewer only (`reduceMotion` and `calm` turn the caret without animating). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = useMemo(() => ({ ...jsonViewerLabels, ...labels }), [labels]);
   const ic = useMemo(() => ({ ...jsonViewerIcons, ...icons }), [icons]);
   const data = input as Json;
@@ -185,7 +189,7 @@ export function JSONViewer({
           style={{ paddingLeft: depth * 16 + 4 }}
         >
           {branch ? (
-            <button type="button" onClick={() => toggle(p)} aria-label={open ? l.collapse(p) : l.expand(p)} className="grid size-5 shrink-0 place-items-center rounded-[4px] text-muted hover:text-ink">
+            <button type="button" onClick={() => toggle(p)} aria-label={open ? l.collapse(p) : l.expand(p)} className="grid size-5 shrink-0 place-items-center rounded-[4px] text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-accent">
               <motion.span className="grid [&>svg]:size-3.5" initial={false} animate={{ rotate: open ? 90 : 0 }} transition={springSnappy}>
                 {ic.expand}
               </motion.span>
@@ -235,7 +239,7 @@ export function JSONViewer({
   };
 
   return (
-    <div className={cn("flex w-full flex-col overflow-hidden rounded-card border border-line bg-surface", className)}>
+    <div {...rootProps} className={cn("flex w-full flex-col overflow-hidden rounded-card border border-line bg-surface", className)}>
       <div className="flex items-center gap-3 border-b border-line px-3 py-2">
         {title && <span className="truncate text-sm font-medium text-ink">{title}</span>}
         <label className="ml-auto flex h-8 w-full max-w-56 items-center gap-2 rounded-control border border-line-strong bg-surface px-2.5 text-sm transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/20">

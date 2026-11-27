@@ -4,6 +4,7 @@ import { Check, Minus } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { fade } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type PrefChannel = { id: string; label: string; icon?: ReactNode };
 export type PrefEvent = { id: string; label: string; description?: string };
@@ -34,6 +35,8 @@ export type NotificationPreferencesProps = {
   /** Replace any built-in icon. Merged over `notificationPreferencesIcons`. */
   icons?: Partial<NotificationPreferencesIcons>;
   className?: string;
+  /** Accessibility features to add for this component only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Text used by NotificationPreferences. Pass a partial via `labels` to translate or reword. */
@@ -94,7 +97,8 @@ const markOf = (vals: boolean[]): Mark => (vals.every(Boolean) ? true : vals.som
  * select-all. On a narrow screen each event becomes a card with its channels
  * in a row.
  */
-export function NotificationPreferences({ channels, groups, value: valueProp, defaultValue, onChange, labels, icons, className }: NotificationPreferencesProps) {
+export function NotificationPreferences({ channels, groups, value: valueProp, defaultValue, onChange, labels, icons, className, accessibilityFeatures }: NotificationPreferencesProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...notificationPreferencesLabels, ...labels };
   const ic = useMemo(() => ({ ...notificationPreferencesIcons, ...icons }), [icons]);
   const [value, setValue] = useControllable<PrefValue>(valueProp, defaultValue ?? {}, onChange);
@@ -116,7 +120,7 @@ export function NotificationPreferences({ channels, groups, value: valueProp, de
   };
 
   return (
-    <div className={cn("@container w-full", className)}>
+    <div {...rootProps} className={cn("@container w-full", className)}>
       <div className="hidden overflow-hidden rounded-card bg-surface @2xl:block">
         <table className="w-full border-collapse text-sm">
           <thead>

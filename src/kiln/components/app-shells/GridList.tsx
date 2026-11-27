@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { staggerChild, staggerParent } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type GridListAction = { label: string; icon: ReactNode; href?: string; onSelect?: () => void };
 
@@ -20,9 +21,10 @@ export type PersonCard = {
  * People as cards in a responsive grid, each with a split footer of actions
  * (email, call). Cards rise in once as the grid comes into view.
  */
-export function PeopleGrid({ people, className }: { people: PersonCard[]; className?: string }) {
+export function PeopleGrid({ people, className, accessibilityFeatures }: { people: PersonCard[]; className?: string; accessibilityFeatures?: AccessibilityFeaturesProp }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   return (
-    <div className={cn("@container w-full", className)}>
+    <div {...rootProps} className={cn("@container w-full", className)}>
     <motion.ul
       className="grid w-full grid-cols-1 gap-4 @lg:grid-cols-2 @3xl:grid-cols-3"
       variants={staggerParent}
@@ -42,7 +44,7 @@ export function PeopleGrid({ people, className }: { people: PersonCard[]; classN
             <div className="grid border-t border-line" style={{ gridTemplateColumns: `repeat(${p.actions.length}, minmax(0, 1fr))` }}>
               {p.actions.map((a, i) => {
                 const cls = cn(
-                  "flex h-11 items-center justify-center gap-2 text-sm font-medium text-ink transition-colors duration-200 hover:bg-raised [&>svg]:size-4 [&>svg]:text-muted",
+                  "flex h-11 items-center justify-center gap-2 text-sm font-medium text-ink transition-colors duration-200 hover:bg-raised focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent [&>svg]:size-4 [&>svg]:text-muted",
                   i > 0 && "border-l border-line",
                 );
                 return a.href ? (
@@ -79,9 +81,10 @@ export type ProjectTile = {
 };
 
 /** Projects as compact tiles: a coloured initials block, the name and a line of meta. */
-export function ProjectGrid({ projects, className }: { projects: ProjectTile[]; className?: string }) {
+export function ProjectGrid({ projects, className, accessibilityFeatures }: { projects: ProjectTile[]; className?: string; accessibilityFeatures?: AccessibilityFeaturesProp }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   return (
-    <div className={cn("@container w-full", className)}>
+    <div {...rootProps} className={cn("@container w-full", className)}>
     <motion.ul
       className="grid w-full grid-cols-1 gap-3 @lg:grid-cols-2 @4xl:grid-cols-4"
       variants={staggerParent}

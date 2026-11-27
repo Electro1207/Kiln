@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by ChatMessage. Pass a partial via `labels` to translate or reword. */
 export interface ChatMessageLabels {
@@ -22,6 +23,8 @@ export type ChatMessageProps = {
   className?: string;
   /** Override any UI text. Merged over `chatMessageLabels`. */
   labels?: Partial<ChatMessageLabels>;
+  /** Accessibility features to add for this component only (`reduceMotion` and `calm` show the message without rising in). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -29,11 +32,13 @@ export type ChatMessageProps = {
  * the assistant's answer reads as open text beside its mark, with room for
  * reasoning, code, sources and actions below it.
  */
-export function ChatMessage({ role, name = "Assistant", avatar, children, className, labels }: ChatMessageProps) {
+export function ChatMessage({ role, name = "Assistant", avatar, children, className, labels, accessibilityFeatures }: ChatMessageProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...chatMessageLabels, ...labels };
   if (role === "user") {
     return (
       <motion.div
+        {...rootProps}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={springSoft}
@@ -48,6 +53,7 @@ export function ChatMessage({ role, name = "Assistant", avatar, children, classN
   }
   return (
     <motion.div
+      {...rootProps}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={springSoft}

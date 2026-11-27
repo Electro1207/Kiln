@@ -4,6 +4,7 @@ import { ChevronRight, File, FileCode2, FileImage, FileText, Folder, FolderOpen 
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { fade, springSnappy, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type TreeNode = { id: string; name: string; icon?: ReactNode; children?: TreeNode[]; meta?: string };
 
@@ -52,6 +53,8 @@ export type TreeViewProps = {
   /** Replace any built-in icon. Merged over `treeViewIcons`. */
   icons?: Partial<TreeViewIcons>;
   className?: string;
+  /** Accessibility features to add for this tree only (`reduceMotion` and `calm` open and close folders at once). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 type Flat = { node: TreeNode; level: number; parent: string | null; setSize: number; pos: number };
@@ -69,8 +72,10 @@ function fileIcon(name: string): "fileImage" | "fileCode" | "fileText" | "file" 
  * Enter/Space selects, and typing jumps to a name.
  */
 export function TreeView({
-  nodes, selected: selectedProp, defaultSelected = null, onSelect, expanded: expandedProp, defaultExpanded = [], onExpandedChange, label, icons, className,
+  nodes, selected: selectedProp, defaultSelected = null, onSelect, expanded: expandedProp, defaultExpanded = [], onExpandedChange, label, icons, className, accessibilityFeatures,
 }: TreeViewProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const ic = useMemo(() => ({ ...treeViewIcons, ...icons }), [icons]);
   const id = useId();
   const [selected, setSelected] = useControllable<string | null>(selectedProp, defaultSelected);
@@ -170,7 +175,6 @@ export function TreeView({
           aria-posinset={i + 1}
           aria-expanded={isFolder ? open : undefined}
           aria-selected={isSel}
-          className="outline-none"
         >
           <div
             data-node={node.id}
@@ -182,7 +186,7 @@ export function TreeView({
               if (isFolder) toggle(node.id);
             }}
             className={cn(
-              "flex h-8 cursor-default select-none items-center gap-1.5 rounded-[6px] pr-2 text-[0.8125rem] outline-offset-[-2px] transition-colors duration-150",
+              "flex h-8 cursor-default select-none items-center gap-1.5 rounded-[6px] pr-2 text-[0.8125rem] outline-offset-[-2px] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-accent",
               isSel ? "bg-accent-soft text-ink" : "text-ink hover:bg-raised",
             )}
             style={{ paddingLeft: 6 + (level - 1) * 16 }}
@@ -218,7 +222,8 @@ export function TreeView({
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ height: springSoft, opacity: fade }}
+                  // One-off fold (allowed height animation): a folder opening, not continuous resizing.
+                  transition={still ? { duration: 0 } : { height: springSoft, opacity: fade }}
                   className="overflow-hidden"
                 >
                   {renderLevel(node.children!, level + 1)}
@@ -231,7 +236,7 @@ export function TreeView({
     });
 
   return (
-    <ul ref={rootRef} id={id} role="tree" aria-label={label} onKeyDown={onKey} className={cn("flex flex-col text-ink", className)}>
+    <ul {...rootProps} ref={rootRef} id={id} role="tree" aria-label={label} onKeyDown={onKey} className={cn("flex flex-col text-ink", className)}>
       {renderLevel(nodes, 1)}
     </ul>
   );

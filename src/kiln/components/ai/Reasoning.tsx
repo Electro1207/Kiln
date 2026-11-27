@@ -102,7 +102,7 @@ export function Reasoning({ thinking, seconds, children, autoCollapse = true, op
         aria-expanded={open}
         aria-controls={id}
         onClick={() => setOpen((o) => !o)}
-        className="-ml-1 inline-flex h-8 items-center gap-2 rounded-full px-1 text-muted transition-colors hover:text-ink"
+        className="-ml-1 inline-flex h-8 items-center gap-2 rounded-full px-1 text-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-accent"
       >
         <span className="grid [&>svg]:size-4" aria-hidden>{ic.brain}</span>
         <span ref={label} className="grid [&>*]:[grid-area:1/1]">
@@ -121,6 +121,7 @@ export function Reasoning({ thinking, seconds, children, autoCollapse = true, op
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
+            // One-off fold (allowed height animation): the thinking panel opening or closing.
             transition={still ? { duration: 0 } : { height: springFirm, opacity: fade }}
             className="overflow-hidden"
           >

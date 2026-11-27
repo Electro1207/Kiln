@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { fade } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type HeadingTab = { id: string; label: string; count?: number };
 type TabsProp = { items: HeadingTab[]; value: string; onChange: (id: string) => void; label: string };
@@ -22,9 +23,19 @@ export function HeadingTabs({ items, value, onChange, label }: TabsProp) {
             type="button"
             role="tab"
             aria-selected={on}
+            tabIndex={on ? 0 : -1}
             onClick={() => onChange(t.id)}
+            onKeyDown={(e) => {
+              const i = items.findIndex((x) => x.id === t.id);
+              const to = e.key === "ArrowRight" ? items[(i + 1) % items.length] : e.key === "ArrowLeft" ? items[(i - 1 + items.length) % items.length] : e.key === "Home" ? items[0] : e.key === "End" ? items[items.length - 1] : null;
+              if (!to) return;
+              e.preventDefault();
+              onChange(to.id);
+              requestAnimationFrame(() => (e.currentTarget.parentElement?.querySelector(`[data-tab="${to.id}"]`) as HTMLElement | null)?.focus());
+            }}
+            data-tab={t.id}
             className={cn(
-              "relative flex h-11 shrink-0 items-center gap-1.5 text-sm transition-colors duration-200",
+              "relative flex h-11 shrink-0 items-center gap-1.5 text-sm transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-accent",
               on ? "font-medium text-ink" : "text-muted hover:text-ink",
             )}
           >
@@ -54,13 +65,16 @@ export type SectionHeadingProps = {
   as?: "h1" | "h2" | "h3";
   size?: "md" | "lg";
   className?: string;
+  /** Accessibility features to add for this one component. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A section's title with a line of description, optional actions and tabs. */
-export function SectionHeading({ title, description, actions, tabs, align = "start", as: Tag = "h2", size = "md", className }: SectionHeadingProps) {
+export function SectionHeading({ title, description, actions, tabs, align = "start", as: Tag = "h2", size = "md", className, accessibilityFeatures }: SectionHeadingProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const centred = align === "center";
   return (
-    <div className={cn("@container flex w-full flex-col gap-4", centred && "items-center text-center", className)}>
+    <div {...rootProps} className={cn("@container flex w-full flex-col gap-4", centred && "items-center text-center", className)}>
       <div className={cn("flex w-full flex-col gap-4 @2xl:flex-row @2xl:items-end @2xl:justify-between", centred && "@2xl:flex-col @2xl:items-center")}>
         <div className={cn("min-w-0 max-w-2xl", centred && "mx-auto")}>
           <Tag className={cn("font-semibold tracking-[-0.025em] text-ink text-balance", size === "lg" ? "text-3xl leading-[1.1] @2xl:text-[2.75rem]" : "text-2xl leading-tight @2xl:text-[1.75rem]")}>
@@ -92,12 +106,15 @@ export type PageHeadingProps = {
   /** A picture or avatar before the title. */
   leading?: ReactNode;
   className?: string;
+  /** Accessibility features to add for this one component. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** The top of an app or content page: title, facts about it, actions and tabs. */
-export function PageHeading({ title, above, meta, actions, tabs, leading, className }: PageHeadingProps) {
+export function PageHeading({ title, above, meta, actions, tabs, leading, className, accessibilityFeatures }: PageHeadingProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   return (
-    <div className={cn("@container flex w-full flex-col gap-4", className)}>
+    <div {...rootProps} className={cn("@container flex w-full flex-col gap-4", className)}>
       {above}
       <div className="flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
         <div className="flex min-w-0 items-center gap-4">

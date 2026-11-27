@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowDownUp, Check, ChevronDown, Plus, Search, X } from "lucide-react";
 import { cn } from "../../cn";
 import { fade, springFirm } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { AnchoredLayer, RowHighlight, SwapText, optionClass } from "../shared/Anchored";
 import { DropdownMenu } from "../menus/DropdownMenu";
 import { useControllable } from "../../controllable";
@@ -67,6 +68,8 @@ export type FilterBarProps = {
   /** Replace any built-in icon. Merged over `filterBarIcons`. */
   icons?: Partial<FilterBarIcons>;
   className?: string;
+  /** Accessibility features to add for this component only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Text used by FilterBar. Pass a partial via `labels` to translate or reword. */
@@ -133,7 +136,7 @@ function ValueList({ field, value, onChange, check }: { check: ReactNode; field:
       tabIndex={0}
       aria-activedescendant={`${id}-${hl}`}
       onKeyDown={onKey}
-      className="outline-none"
+      className="rounded-control outline-none focus-visible:ring-2 focus-visible:ring-accent"
       ref={listRef}
     >
       {field.options.map((o, i) => {
@@ -204,8 +207,9 @@ function FilterChip({ field, value, onChange, onRemove, autoOpen, l, ic }: {
  */
 export function FilterBar({
   fields, filters: filtersProp, defaultFilters = {}, onFiltersChange, query: queryProp, defaultQuery = "", onQueryChange,
-  sorts, sort: sortProp, defaultSort, onSortChange, views, summary, searchLabel, labels, icons, className,
+  sorts, sort: sortProp, defaultSort, onSortChange, views, summary, searchLabel, labels, icons, className, accessibilityFeatures,
 }: FilterBarProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...filterBarLabels, ...labels };
   const ic = { ...filterBarIcons, ...icons };
   const search = searchLabel ?? l.search;
@@ -236,7 +240,7 @@ export function FilterBar({
   };
 
   return (
-    <div className={cn("flex w-full flex-col gap-3", className)}>
+    <div {...rootProps} className={cn("flex w-full flex-col gap-3", className)}>
       {views && views.length > 0 && (
         <div role="tablist" aria-label={l.savedViews} className="flex gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {views.map((v) => {

@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useId, useMemo, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Heart, Laugh, MoreHorizontal, Pencil, ThumbsUp, Trash2 } from "lucide-react";
 import { cn } from "../../cn";
@@ -7,6 +7,7 @@ import { easeOut, fade, springFirm, springSnappy, springSoft } from "../../motio
 import { Avatar } from "../data-display/Avatar";
 import { Button } from "../buttons/Button";
 import { DropdownMenu } from "../menus/DropdownMenu";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ReactionKind = "agree" | "love" | "funny";
 
@@ -85,6 +86,8 @@ export type CommentThreadProps = {
   labels?: Partial<CommentThreadLabels>;
   /** Replace any built-in icon. Merged over `commentThreadIcons`. */
   icons?: Partial<CommentThreadIcons>;
+  /** Accessibility features to add for this thread only (`reduceMotion` and `calm` make added, deleted and replying comments appear at once and stop the count roll). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 export interface CommentThreadIcons {
@@ -135,28 +138,32 @@ const mapTree = (list: Comment[], id: string, fn: (c: Comment) => Comment | null
  * A discussion with replies, reactions and an Edit / Delete menu on your own
  * comments. Counts roll when they change; deleted comments fold away.
  */
-export function CommentThread({ comments: commentsProp, defaultComments, onChange: onChangeProp, me, maxDepth = 2, className, labels, icons }: CommentThreadProps) {
+export function CommentThread({ comments: commentsProp, defaultComments, onChange: onChangeProp, me, maxDepth = 2, className, labels, icons, accessibilityFeatures }: CommentThreadProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...commentThreadLabels, ...labels };
   const ic = useMemo(() => ({ ...commentThreadIcons, ...icons }), [icons]);
   const [comments, onChange] = useControllable<Comment[]>(commentsProp, defaultComments ?? [], onChangeProp);
   return (
-    <div className={cn("space-y-1", className)}>
-      <CommentList list={comments} depth={1} root={comments} onChange={onChange} me={me} maxDepth={maxDepth} l={l} ic={ic} />
+    <div {...rootProps} className={cn("space-y-1", className)}>
+      <CommentList list={comments} depth={1} root={comments} onChange={onChange} me={me} maxDepth={maxDepth} l={l} ic={ic} still={still} />
     </div>
   );
 }
 
-type ListProps = { list: Comment[]; depth: number; root: Comment[]; onChange: (c: Comment[]) => void; me: string; maxDepth: number; l: CommentThreadLabels; ic: CommentThreadIcons };
+type ListProps = { list: Comment[]; depth: number; root: Comment[]; onChange: (c: Comment[]) => void; me: string; maxDepth: number; l: CommentThreadLabels; ic: CommentThreadIcons; still: boolean };
 
 function CommentList({ list, depth, ...rest }: ListProps) {
+  const still = rest.still;
+  // Height folds below are one-off (a comment added or deleted), the allowed use of an animated height.
   return (
     <AnimatePresence initial={false}>
       {list.map((c) => (
         <motion.div
           key={c.id}
           initial={{ height: 0, opacity: 0 }}
-          animate={{ height: "auto", opacity: 1, transition: { height: springFirm, opacity: { ...fade, delay: 0.08 } } }}
-          exit={{ height: 0, opacity: 0, transition: { height: { ...springFirm, delay: 0.1 }, opacity: { duration: 0.14, ease: easeOut } } }}
+          animate={{ height: "auto", opacity: 1, transition: still ? { duration: 0 } : { height: springFirm, opacity: { ...fade, delay: 0.08 } } }}
+          exit={{ height: 0, opacity: 0, transition: still ? { duration: 0 } : { height: { ...springFirm, delay: 0.1 }, opacity: { duration: 0.14, ease: easeOut } } }}
           className="-mx-[3px] overflow-hidden px-[3px]"
         >
           <CommentItem comment={c} depth={depth} {...rest} />
@@ -166,7 +173,7 @@ function CommentList({ list, depth, ...rest }: ListProps) {
   );
 }
 
-function CommentItem({ comment: c, depth, root, onChange, me, maxDepth, l, ic }: Omit<ListProps, "list"> & { comment: Comment }) {
+function CommentItem({ comment: c, depth, root, onChange, me, maxDepth, l, ic, still }: Omit<ListProps, "list"> & { comment: Comment }) {
   const [editing, setEditing] = useState(false);
   const [replying, setReplying] = useState(false);
   const mineComment = c.author === me;
@@ -278,7 +285,7 @@ function CommentItem({ comment: c, depth, root, onChange, me, maxDepth, l, ic }:
               type="button"
               onClick={() => setReplying((v) => !v)}
               aria-expanded={replying}
-              className="h-7 rounded-full px-2.5 text-xs font-medium text-muted transition-colors hover:bg-raised hover:text-ink"
+              className="h-7 rounded-full px-2.5 text-xs font-medium text-muted transition-colors hover:bg-raised hover:text-ink focus-visible:outline-2 focus-visible:outline-accent"
             >
               {l.reply}
             </button>
@@ -291,8 +298,8 @@ function CommentItem({ comment: c, depth, root, onChange, me, maxDepth, l, ic }:
               key="reply"
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0, transition: { height: springFirm, opacity: { duration: 0.12 } } }}
-              transition={{ height: springFirm, opacity: { ...fade, delay: 0.06 } }}
+              exit={{ height: 0, opacity: 0, transition: still ? { duration: 0 } : { height: springFirm, opacity: { duration: 0.12 } } }}
+              transition={still ? { duration: 0 } : { height: springFirm, opacity: { ...fade, delay: 0.06 } }}
               className="-mx-[3px] overflow-hidden px-[3px]"
             >
               <div className="pt-3">
@@ -316,7 +323,7 @@ function CommentItem({ comment: c, depth, root, onChange, me, maxDepth, l, ic }:
 
         {c.replies && c.replies.length > 0 && (
           <div className="mt-1">
-            <CommentList list={c.replies} depth={depth + 1} root={root} onChange={onChange} me={me} maxDepth={maxDepth} l={l} ic={ic} />
+            <CommentList list={c.replies} depth={depth + 1} root={root} onChange={onChange} me={me} maxDepth={maxDepth} l={l} ic={ic} still={still} />
           </div>
         )}
       </div>
@@ -324,23 +331,9 @@ function CommentItem({ comment: c, depth, root, onChange, me, maxDepth, l, ic }:
   );
 }
 
-/** Animates its own height to whatever its content measures, so swaps inside never jump. */
+/** Keeps a 3px bleed round its content so focus rings are not clipped. The box changes size at once: no animated height. */
 function AutoHeight({ children }: { children: ReactNode }) {
-  const inner = useRef<HTMLDivElement>(null);
-  const [h, setH] = useState<number | "auto">("auto");
-  useLayoutEffect(() => {
-    const el = inner.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setH(el.offsetHeight));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  // The 3px bleed keeps focus rings inside the clip.
-  return (
-    <motion.div initial={false} animate={{ height: h }} transition={springFirm} className="-m-[3px] overflow-hidden">
-      <div ref={inner} className="p-[3px]">{children}</div>
-    </motion.div>
-  );
+  return <div className="-m-[3px] p-[3px]">{children}</div>;
 }
 
 /** The number on a reaction: the old value rolls out as the new one rolls in, in one fixed cell. */
