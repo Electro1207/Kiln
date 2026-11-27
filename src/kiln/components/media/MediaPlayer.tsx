@@ -105,7 +105,7 @@ export type MediaPlayerProps = {
   /** Replace any built-in icon. Merged over `mediaPlayerIcons`. */
   icons?: Partial<MediaPlayerIcons>;
   className?: string;
-  /** Accessibility features to add for this player only (adds to the person's settings). */
+  /** Accessibility features to add for this player only (adds to the person's settings): `calm`, `reduceMotion` and `noFlashing` replace the dancing equalizer bars with one still level and stop the cover resizing. */
   accessibilityFeatures?: AccessibilityFeaturesProp;
 
   /** Controlled playback. Leave out and use `defaultPlaying` to let the player keep its own. */
@@ -162,7 +162,8 @@ export function MediaPlayer({
   muted: mutedProp, defaultMuted = false, onMutedChange,
   currentTime, defaultCurrentTime = 0, onTimeChange,
 }: MediaPlayerProps) {
-  const { rootProps } = useA11yProps(accessibilityFeatures);
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion || a11y.noFlashing;
   const l = { ...mediaPlayerLabels, ...labels };
   const ic = useMemo(() => ({ ...mediaPlayerIcons, ...icons }), [icons]);
   const [playing, setPlaying] = useControllable(playingProp, defaultPlaying, onPlayingChange);
@@ -321,7 +322,7 @@ export function MediaPlayer({
               height={192}
               className="size-full rounded-[12px] bg-raised object-cover"
               initial={false}
-              animate={{ scale: playing ? 1 : 0.94 }}
+              animate={{ scale: playing || still ? 1 : 0.94 }}
               transition={springSoft}
             />
           </div>
@@ -332,7 +333,7 @@ export function MediaPlayer({
               <p className="truncate text-[1.0625rem] font-semibold leading-6 text-ink">{title}</p>
               <p className="truncate text-sm text-muted">{artist}</p>
             </div>
-            <Equalizer playing={playing} />
+            <Equalizer playing={playing} still={still} />
           </div>
         </div>
       </div>
@@ -482,7 +483,9 @@ const Bars = memo(function Bars({ bars, tone }: { bars: number[]; tone: string }
 });
 
 /** Three bars that dance while it plays and settle low when it stops. */
-function Equalizer({ playing }: { playing: boolean }) {
+function Equalizer({ playing, still }: { playing: boolean; still?: boolean }) {
+  // Calm, reduced motion and no flashing: one still level instead of dancing bars.
+  if (still) return <span aria-hidden className="mt-1.5 flex h-4 shrink-0 items-end gap-[3px]">{[0.7, 0.95, 0.8].map((_, i) => <span key={i} className="h-full w-[3px] origin-bottom rounded-full bg-accent" style={{ transform: `scaleY(${playing ? 0.6 : 0.25})` }} />)}</span>;
   return (
     <span aria-hidden className="mt-1.5 flex h-4 shrink-0 items-end gap-[3px]">
       {[0.7, 0.95, 0.8].map((d, i) => (

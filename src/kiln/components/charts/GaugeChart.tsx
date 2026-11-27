@@ -26,6 +26,8 @@ export type GaugeChartProps = {
 export function GaugeChart({ value, min = 0, max, label, unit, target, targetLabel, dangerAt, decimals = 0, size = 240, className, labels, accessibilityFeatures }: GaugeChartProps) {
   const l = { ...chartA11yLabels, ...labels };
   const ca = useChartA11y({ accessibilityFeatures });
+  // One-off entrances (draw, grow, fade in) are skipped under calm, reduced motion and no flashing.
+  const still = ca.a11y.calm || ca.a11y.reduceMotion || ca.a11y.noFlashing;
   const clamp = (v: number) => Math.max(0, Math.min(1, (v - min) / (max - min)));
   const t = clamp(value);
   const R = 40, cx = 50, cy = 50, sw = 9;
@@ -63,7 +65,7 @@ export function GaugeChart({ value, min = 0, max, label, unit, target, targetLab
           className={cn("transition-[stroke] duration-300", danger ? "stroke-negative" : "stroke-accent")}
           strokeWidth={sw}
           strokeLinecap="round"
-          initial={{ pathLength: 0 }}
+          initial={still ? false : { pathLength: 0 }}
           animate={{ pathLength: Math.max(0.0001, t) }}
           transition={springFirm}
         />

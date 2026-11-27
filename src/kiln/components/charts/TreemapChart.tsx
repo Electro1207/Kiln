@@ -43,7 +43,8 @@ function squarify(items: TreemapItem[], box: Rect): (TreemapItem & Rect)[] {
   return out;
 }
 
-const STRENGTH = [1, 0.72, 0.5, 0.34, 0.22, 0.14];
+const STRENGTH_BASE = [1, 0.72, 0.5, 0.34, 0.22, 0.14];
+const STRENGTH_HC = [1, 0.85, 0.7, 0.55, 0.45, 0.35];
 
 /**
  * Parts of a whole as tiles sized by value, biggest in the strongest accent.
@@ -63,9 +64,13 @@ export function TreemapChart({
 } & ChartA11yProps) {
   const l = { ...chartA11yLabels, ...labels };
   const ca = useChartA11y({ accessibilityFeatures, tableToggle });
+  const STRENGTH = ca.a11y.highContrast ? STRENGTH_HC : STRENGTH_BASE;
+  const still = ca.a11y.calm || ca.a11y.reduceMotion || ca.a11y.noFlashing;
   const [rove, setRove] = useState(0);
   const tileEls = useRef<(HTMLDivElement | null)[]>([]);
   const box = useRef<HTMLDivElement>(null);
+  // `w` is measured from the box and only feeds the absolutely positioned tiles. They add nothing to the
+  // box's own width, so this can't grow without end inside a content-sized parent (the Carousel runaway).
   const [w, setW] = useState(0);
   const [hover, setHover] = useState<number | null>(null);
   useLayoutEffect(() => {
@@ -98,7 +103,7 @@ export function TreemapChart({
       </div>
       <div
         ref={box}
-        className="relative w-full overflow-hidden rounded-card"
+        className="relative w-full min-w-0 max-w-full overflow-hidden rounded-card [contain:layout_paint]"
         style={{ height }}
         role="list"
         aria-label={`${title}. ${l.keysHint}`}
@@ -129,7 +134,7 @@ export function TreemapChart({
               }}
               className="absolute p-[1px] outline-offset-[-2px]"
               style={{ left: t.x, top: t.y, width: t.w, height: t.h, originX: 0, originY: 0 }}
-              initial={{ opacity: 0, scale: 0.96 }}
+              initial={still ? false : { opacity: 0, scale: 0.96 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ ...springSoft, delay: i * 0.03 }}

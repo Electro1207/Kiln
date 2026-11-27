@@ -25,6 +25,8 @@ export type SparklineProps = {
 export function Sparkline({ values, label, width = 72, height = 20, trend = false, className, labels, accessibilityFeatures, tableToggle }: SparklineProps) {
   const l = { ...chartA11yLabels, ...labels };
   const ca = useChartA11y({ accessibilityFeatures, tableToggle });
+  // One-off entrances (draw, grow, fade in) are skipped under calm, reduced motion and no flashing.
+  const still = ca.a11y.calm || ca.a11y.reduceMotion || ca.a11y.noFlashing;
   const min = Math.min(...values), max = Math.max(...values);
   const pad = 2;
   const px = (i: number) => pad + (i / (values.length - 1)) * (width - pad * 2);
@@ -51,7 +53,7 @@ export function Sparkline({ values, label, width = 72, height = 20, trend = fals
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
-        initial={{ pathLength: 0 }}
+        initial={still ? false : { pathLength: 0 }}
         whileInView={{ pathLength: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.9, ease: easeInOut }}
@@ -64,7 +66,7 @@ export function Sparkline({ values, label, width = 72, height = 20, trend = fals
         cy={py(values[values.length - 1])}
         r={2.25}
         className={dot}
-        initial={{ opacity: 0 }}
+        initial={still ? false : { opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.2, delay: 0.85 }}

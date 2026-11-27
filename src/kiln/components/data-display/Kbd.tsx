@@ -1,6 +1,7 @@
 import { useEffect, useState, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { cn } from "../../cn";
 import type { Size } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type KbdProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
   children: ReactNode;
@@ -9,6 +10,8 @@ export type KbdProps = Omit<HTMLAttributes<HTMLElement>, "children"> & {
   /** Height and text size. Defaults to md. */
   size?: Size;
   ref?: Ref<HTMLElement>;
+  /** Accessibility features to add for this key only (`calm`, `reduceMotion` and `noFlashing` stop the press animation; `highContrast` makes the text and border solid). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const kbdSizes: Record<Size, string> = {
@@ -18,7 +21,9 @@ const kbdSizes: Record<Size, string> = {
 };
 
 /** A keyboard key. With `listen`, it presses down when you press the real key. Other props go to the `<kbd>`. */
-export function Kbd({ children, listen, size = "md", className, ref, ...rest }: KbdProps) {
+export function Kbd({ children, listen, size = "md", className, ref, accessibilityFeatures, style, ...rest }: KbdProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion || a11y.noFlashing;
   const [down, setDown] = useState(false);
   useEffect(() => {
     if (!listen) return;
@@ -39,15 +44,18 @@ export function Kbd({ children, listen, size = "md", className, ref, ...rest }: 
     <kbd
       ref={ref}
       {...rest}
+      {...rootProps}
+      style={{ ...rootProps.style, ...style }}
       className={cn(
         "inline-flex items-center justify-center rounded-[6px] border border-b-2 border-line-strong bg-surface font-sans font-medium text-muted",
         kbdSizes[size],
-        "transition-[background-color,color,border-color] duration-100 ease-out-soft",
+        !still && "transition-[background-color,color,border-color] duration-100 ease-out-soft",
+        a11y.highContrast && "border-ink text-ink",
         down && "border-b-line bg-raised text-ink",
         className,
       )}
     >
-      <span className={cn("inline-block transition-transform duration-100 ease-out-soft", down && "translate-y-px")}>{children}</span>
+      <span className={cn("inline-block", !still && "transition-transform duration-100 ease-out-soft", down && "translate-y-px")}>{children}</span>
     </kbd>
   );
 }

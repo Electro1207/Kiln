@@ -21,6 +21,8 @@ export function FunnelChart({
 } & ChartA11yProps) {
   const l = { ...chartA11yLabels, ...labels };
   const ca = useChartA11y({ accessibilityFeatures, tableToggle });
+  // One-off entrances (draw, grow, fade in) are skipped under calm, reduced motion and no flashing.
+  const still = ca.a11y.calm || ca.a11y.reduceMotion || ca.a11y.noFlashing;
   const top = stages[0]?.value || 1;
   const lastStage = stages[stages.length - 1];
   return (
@@ -52,7 +54,7 @@ export function FunnelChart({
                     aria-hidden
                     className={cn("h-full rounded-[6px]", !ca.colourSafe && "bg-accent")}
                     style={{ width: `${share * 100}%`, opacity: ca.colourSafe ? 1 : 1 - i * (0.55 / Math.max(1, stages.length - 1)), ...(ca.colourSafe ? patternStyle(i) : null) }}
-                    initial={{ scaleX: 0 }}
+                    initial={still ? false : { scaleX: 0 }}
                     whileInView={{ scaleX: 1 }}
                     viewport={{ once: true }}
                     transition={{ ...springSoft, delay: i * 0.06 }}

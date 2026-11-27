@@ -22,6 +22,8 @@ export type LineChartProps = {
 export function LineChart({ data, compare, height = 200, format = String, title, className, labels, accessibilityFeatures, tableToggle }: LineChartProps) {
   const l = { ...chartA11yLabels, ...labels };
   const ca = useChartA11y({ accessibilityFeatures, tableToggle });
+  // One-off entrances (draw, grow, fade in) are skipped under calm, reduced motion and no flashing.
+  const still = ca.a11y.calm || ca.a11y.reduceMotion || ca.a11y.noFlashing;
   // `at` is the last spot shown, so the marker fades out where it was; `jump` skips travel on re-entry.
   const [cursor, setCursor] = useState({ hover: null as number | null, at: data.length - 1, jump: false });
   const { hover, at: lastAt, jump } = cursor;
@@ -102,7 +104,7 @@ export function LineChart({ data, compare, height = 200, format = String, title,
               strokeWidth={1.5}
               strokeDasharray="4 4"
               vectorEffect="non-scaling-stroke"
-              initial={{ opacity: 0 }}
+              initial={still ? false : { opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.5 }}
@@ -115,7 +117,7 @@ export function LineChart({ data, compare, height = 200, format = String, title,
           preserveAspectRatio="none"
           className="absolute inset-0 size-full overflow-visible"
           aria-hidden
-          initial={{ clipPath: "inset(-8px 100% -8px -8px)" }}
+          initial={still ? false : { clipPath: "inset(-8px 100% -8px -8px)" }}
           whileInView={{ clipPath: "inset(-8px -8px -8px -8px)" }}
           viewport={{ once: true }}
           transition={{ duration: 1.2, ease: easeInOut }}

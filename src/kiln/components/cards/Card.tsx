@@ -3,14 +3,21 @@ import { motion, type HTMLMotionProps } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, spring } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
-export type CardProps = HTMLMotionProps<"div"> & { padded?: boolean };
+export type CardProps = HTMLMotionProps<"div"> & {
+  padded?: boolean;
+  /** Accessibility features to add for this one only (the surface itself does not move; `highContrast` and the rest come from the page rules). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
+};
 
 /** A bordered surface. Padded by default; pass `padded={false}` to opt out. Extra props and `ref` go to the root. */
-export const Card = forwardRef<HTMLDivElement, CardProps>(function Card({ padded = true, className, ...rest }, ref) {
+export const Card = forwardRef<HTMLDivElement, CardProps>(function Card({ padded = true, className, accessibilityFeatures, ...rest }, ref) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   return (
     <motion.div
       ref={ref}
+      {...rootProps}
       className={cn("min-w-0 rounded-card border border-line bg-surface text-ink", padded && "p-5", className)}
       {...rest}
     />
@@ -40,9 +47,13 @@ export type MediaCardProps = {
   /** Makes the whole card a button, e.g. to open a detail dialog. */
   onClick?: () => void;
   className?: string;
+  /** Accessibility features to add for this one only (`calm`, `reduceMotion` and `noFlashing` stop the slow picture zoom). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
-export function MediaCard({ image, alt, title, meta, children, href, onClick, className }: MediaCardProps) {
+export function MediaCard({ image, alt, title, meta, children, href, onClick, className, accessibilityFeatures }: MediaCardProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion || a11y.noFlashing;
   const body = (
     <>
       <div className="relative aspect-[4/3] overflow-hidden bg-raised">
@@ -53,7 +64,7 @@ export function MediaCard({ image, alt, title, meta, children, href, onClick, cl
           height={480}
           loading="lazy"
           className="size-full object-cover"
-          variants={{ rest: { scale: 1 }, hover: { scale: 1.06 } }}
+          variants={{ rest: { scale: 1 }, hover: { scale: still ? 1 : 1.06 } }}
           transition={{ duration: 1.2, ease: easeOut }}
         />
       </div>
@@ -65,6 +76,7 @@ export function MediaCard({ image, alt, title, meta, children, href, onClick, cl
     </>
   );
   const shared = {
+    ...rootProps,
     initial: "rest",
     whileHover: "hover",
     whileFocus: "hover",
@@ -73,7 +85,7 @@ export function MediaCard({ image, alt, title, meta, children, href, onClick, cl
   } as const;
   if (onClick) {
     return (
-      <motion.button type="button" onClick={onClick} {...shared} className={cn(shared.className, "flex w-full cursor-pointer flex-col text-left outline-offset-2")}>
+      <motion.button type="button" onClick={onClick} {...shared} className={cn(shared.className, "flex w-full cursor-pointer flex-col text-left outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent")}>
         {body}
       </motion.button>
     );
@@ -101,28 +113,34 @@ export type InteractiveCardProps = Omit<HTMLMotionProps<"button">, "title"> & {
   selected?: boolean;
   /** Replace any built-in icon. Merged over `interactiveCardIcons`. */
   icons?: Partial<InteractiveCardIcons>;
+  /** Accessibility features to add for this one only (`calm`, `reduceMotion` and `noFlashing` stop the nudge and the press scale; `colourSafe` and `highContrast` mark the selected card with a check-like thicker border). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A card that is a button: hover lift, press, and a `selected` state for choosing between options. */
 export const InteractiveCard = forwardRef<HTMLButtonElement, InteractiveCardProps>(function InteractiveCard(
-  { title, description, leading, selected, icons, className, ...rest },
+  { title, description, leading, selected, icons, className, accessibilityFeatures, ...rest },
   ref,
 ) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion || a11y.noFlashing;
   return (
     <motion.button
       ref={ref}
       type="button"
+      {...rootProps}
       initial="rest"
       animate="rest"
       whileHover="hover"
       whileFocus="hover"
-      whileTap={{ scale: 0.985 }}
+      whileTap={still ? undefined : { scale: 0.985 }}
       transition={spring}
       aria-pressed={selected}
       className={cn(
         "flex w-full min-w-0 items-start gap-3 rounded-card border bg-surface p-4 text-left",
         "transition-[background-color,border-color] duration-200 ease-out-soft",
         selected ? "border-accent bg-accent-soft" : "border-line hover:bg-raised",
+        selected && (a11y.colourSafe || a11y.highContrast) && "border-2",
         className,
       )}
       {...rest}
@@ -135,7 +153,7 @@ export const InteractiveCard = forwardRef<HTMLButtonElement, InteractiveCardProp
       <motion.span
         aria-hidden
         className="shrink-0 text-muted [&>svg]:size-4"
-        variants={{ rest: { x: 0, y: 0, opacity: 0.5 }, hover: { x: 2, y: -2, opacity: 1 } }}
+        variants={{ rest: { x: 0, y: 0, opacity: 0.5 }, hover: { x: still ? 0 : 2, y: still ? 0 : -2, opacity: 1 } }}
         transition={spring}
       >
         {icons?.arrow ?? interactiveCardIcons.arrow}

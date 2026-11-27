@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { CopyButton } from "../buttons/CopyButton";
 
 export type DescriptionItem = {
@@ -23,10 +24,11 @@ export const descriptionListLabels: DescriptionListLabels = { copy: (term) => `C
  * stacked on phones. Values that people paste elsewhere carry a copy button
  * that keeps its place, so rows never shift.
  */
-export function DescriptionList({ items, className, title, labels }: { items: DescriptionItem[]; className?: string; title?: string; /** Override any UI text. Merged over `descriptionListLabels`. */ labels?: Partial<DescriptionListLabels> }) {
+export function DescriptionList({ items, className, title, labels, accessibilityFeatures }: { items: DescriptionItem[]; className?: string; title?: string; /** Override any UI text. Merged over `descriptionListLabels`. */ labels?: Partial<DescriptionListLabels>; /** Accessibility features to add for this list only (`highContrast` makes the term text and row lines stronger via the page rules). Adds to the person's own settings, never removes them. */ accessibilityFeatures?: AccessibilityFeaturesProp }) {
   const l = { ...descriptionListLabels, ...labels };
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   return (
-    <dl aria-label={title} className={cn("w-full overflow-hidden rounded-card border border-line bg-surface", className)}>
+    <dl {...rootProps} aria-label={title} className={cn("w-full overflow-hidden rounded-card border border-line bg-surface", className)}>
       {items.map((it) => (
         <div
           key={it.term}

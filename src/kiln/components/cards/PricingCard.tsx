@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { fade } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { Button } from "../buttons/Button";
 import { NumberTicker } from "../data-display/NumberTicker";
 
@@ -21,7 +22,9 @@ export interface BillingToggleLabels {
 export const billingToggleLabels: BillingToggleLabels = { billingPeriod: "Billing period", monthly: "Monthly", yearly: "Yearly" };
 
 /** Monthly / yearly switch with a sliding thumb. */
-export function BillingToggle({ value: valueProp, defaultValue = "monthly", onChange: onChangeProp, saving, labels }: {
+export function BillingToggle({ value: valueProp, defaultValue = "monthly", onChange: onChangeProp, saving, labels, accessibilityFeatures }: {
+  /** Accessibility features to add for this toggle only. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
   /** Controlled billing period. Leave out to let the toggle keep its own. */
   value?: Billing;
   /** Where an uncontrolled toggle starts. Default `"monthly"`. */
@@ -33,13 +36,14 @@ export function BillingToggle({ value: valueProp, defaultValue = "monthly", onCh
   labels?: Partial<BillingToggleLabels>;
 }) {
   const l = { ...billingToggleLabels, ...labels };
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const [value, onChange] = useControllable<Billing>(valueProp, defaultValue, onChangeProp);
   const opts: { id: Billing; label: string }[] = [
     { id: "monthly", label: l.monthly },
     { id: "yearly", label: l.yearly },
   ];
   return (
-    <div role="radiogroup" aria-label={l.billingPeriod} className="inline-flex rounded-full bg-active p-1 dark:bg-ground">
+    <div {...rootProps} role="radiogroup" aria-label={l.billingPeriod} className="inline-flex rounded-full bg-raised p-1">
       {opts.map((o) => {
         const on = value === o.id;
         return (
@@ -53,7 +57,7 @@ export function BillingToggle({ value: valueProp, defaultValue = "monthly", onCh
               if (e.key === "ArrowRight" || e.key === "ArrowLeft") onChange(value === "monthly" ? "yearly" : "monthly");
             }}
             tabIndex={on ? 0 : -1}
-            className={cn("relative h-8 rounded-full px-4 text-[0.8125rem] font-medium transition-colors", on ? "text-ink" : "text-muted hover:text-ink")}
+            className={cn("relative h-8 rounded-full px-4 text-[0.8125rem] font-medium outline-offset-2 transition-colors focus-visible:outline-2 focus-visible:outline-accent", on ? "text-ink" : "text-muted hover:text-ink")}
           >
             {/* The thumb has no z-index; every label sits on z-[1], so the thumb never covers a label it passes. */}
             <motion.span aria-hidden initial={false} animate={{ opacity: on ? 1 : 0 }} transition={fade} className="pointer-events-none absolute inset-0 bg-elevated" style={{ borderRadius: 999 }} />
@@ -105,17 +109,22 @@ export type PricingCardProps = {
   labels?: Partial<PricingCardLabels>;
   /** Replace any built-in icon. Merged over `pricingCardIcons`. */
   icons?: Partial<PricingCardIcons>;
+  /** Accessibility features to add for this one only (the featured plan is also named in words, so `colourSafe` needs nothing more; `highContrast` thickens its border). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** One plan in a pricing table: name, price, features and a call to action. `featured` raises it. */
-export function PricingCard({ name, description, price, billing, currency = "EUR", features, cta, featured, onSelect, className, locale, labels, icons }: PricingCardProps) {
+export function PricingCard({ name, description, price, billing, currency = "EUR", features, cta, featured, onSelect, className, locale, labels, icons, accessibilityFeatures }: PricingCardProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...pricingCardLabels, ...labels };
   const ic = { ...pricingCardIcons, ...icons };
   return (
     <div
+      {...rootProps}
       className={cn(
         "flex min-w-0 flex-col gap-6 rounded-card border p-6",
         featured ? "border-accent bg-surface" : "border-line bg-surface",
+        featured && a11y.highContrast && "border-2",
         className,
       )}
     >

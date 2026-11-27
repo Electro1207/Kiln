@@ -141,7 +141,7 @@ export function YearHeatmap({ days, unit, locale = "en-GB", className, labels, a
                 if (!grid.current?.contains(e.relatedTarget as Node)) show(null);
               }}
             >
-              <Cells days={days} lead={lead} unit={unit} locale={locale} gridRef={grid} colourSafe={ca.colourSafe} />
+              <Cells days={days} lead={lead} unit={unit} locale={locale} gridRef={grid} colourSafe={ca.colourSafe} still={ca.a11y.calm || ca.a11y.reduceMotion || ca.a11y.noFlashing} />
               <motion.span
                 aria-hidden
                 className="pointer-events-none absolute left-0 top-0 z-10 rounded-[4px] border-2 border-ink"
@@ -183,14 +183,14 @@ const Months = memo(function Months({ days, lead, locale }: { days: YearDay[]; l
 });
 
 const Cells = memo(function Cells({
-  days, lead, unit, locale, gridRef, colourSafe,
-}: { days: YearDay[]; lead: number; unit: string; locale: string; gridRef: React.RefObject<HTMLDivElement | null>; colourSafe: boolean }) {
+  days, lead, unit, locale, gridRef, colourSafe, still,
+}: { days: YearDay[]; lead: number; unit: string; locale: string; gridRef: React.RefObject<HTMLDivElement | null>; colourSafe: boolean; still: boolean }) {
   const wrap = useRef<HTMLDivElement>(null);
   const max = useMemo(() => Math.max(1, ...days.map((d) => d.count)), [days]);
   useEffect(() => {
     const el = wrap.current;
     const host = gridRef.current;
-    if (!el || !host || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!el || !host || still || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const cells = Array.from(el.children) as HTMLElement[];
     cells.forEach((c) => (c.style.visibility = "hidden"));
     const io = new IntersectionObserver(([e]) => {
@@ -206,7 +206,7 @@ const Cells = memo(function Cells({
       io.disconnect();
       cells.forEach((c) => (c.style.visibility = ""));
     };
-  }, [days, lead, gridRef]);
+  }, [days, lead, gridRef, still]);
   const last = days.length - 1;
   return (
     <div ref={wrap} className="contents">

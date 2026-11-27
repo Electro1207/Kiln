@@ -27,6 +27,8 @@ const STRENGTH = [0.9, 0.5, 0.26, 0.14];
 export function AreaChart({ labels, series, title, height = 220, format = String, className, a11yLabels, accessibilityFeatures, tableToggle }: AreaChartProps) {
   const l = { ...chartA11yLabels, ...a11yLabels };
   const ca = useChartA11y({ accessibilityFeatures, tableToggle });
+  // One-off entrances (draw, grow, fade in) are skipped under calm, reduced motion and no flashing.
+  const still = ca.a11y.calm || ca.a11y.reduceMotion || ca.a11y.noFlashing;
   const pid = `${ca.uid}-p`;
   // `at` is the last spot shown, so the marker fades out where it was; `jump` skips travel on re-entry.
   const [cursor, setCursor] = useState({ hover: null as number | null, at: labels.length - 1, jump: false });
@@ -132,7 +134,7 @@ export function AreaChart({ labels, series, title, height = 220, format = String
           preserveAspectRatio="none"
           className="absolute inset-0 size-full overflow-visible"
           aria-hidden
-          initial={{ clipPath: "inset(-8px 100% -8px -8px)" }}
+          initial={still ? false : { clipPath: "inset(-8px 100% -8px -8px)" }}
           whileInView={{ clipPath: "inset(-8px -8px -8px -8px)" }}
           viewport={{ once: true }}
           transition={{ duration: 1.2, ease: easeInOut }}

@@ -46,6 +46,8 @@ function arc(cx: number, cy: number, r: number, a0: number, a1: number) {
 export function DonutChart({ data, title, centreLabel, format = String, size = 200, thickness = 22, className, labels, accessibilityFeatures, tableToggle }: DonutChartProps) {
   const l = { ...donutChartLabels, ...labels };
   const ca = useChartA11y({ accessibilityFeatures, tableToggle });
+  // One-off entrances (draw, grow, fade in) are skipped under calm, reduced motion and no flashing.
+  const still = ca.a11y.calm || ca.a11y.reduceMotion || ca.a11y.noFlashing;
   const pid = `${ca.uid}-p`;
   const [hover, setHover] = useState<number | null>(null);
   const [rove, setRove] = useState(0);
@@ -114,7 +116,7 @@ export function DonutChart({ data, title, centreLabel, format = String, size = 2
                   opacity: ca.colourSafe ? (hover == null || hover === g.i ? 1 : 0.35) : hover == null || hover === g.i ? strength(g.i) : strength(g.i) * 0.35,
                   ...(ca.colourSafe ? { stroke: patternUrl(pid, g.i) } : null),
                 }}
-                initial={{ pathLength: 0 }}
+                initial={still ? false : { pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 * ((g.a1 - g.a0) / 360) + 0.25, ease: easeInOut, delay: (g.a0 / 360) * 0.9 }}

@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, spring, springSnappy } from "../../motion";
 import type { Size } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type TagTone = "neutral" | "accent" | "positive" | "negative" | "warning" | "info";
 
@@ -28,6 +29,8 @@ export type TagProps = Omit<HTMLMotionProps<"span">, "children"> & {
   labels?: Partial<TagLabels>;
   /** Replace any built-in icon. Merged over `tagIcons`. */
   icons?: Partial<TagIcons>;
+  /** Accessibility features to add for this one only (`calm`, `reduceMotion` and `noFlashing` skip the pop-in; `highContrast` adds a solid border; `largeTargets` is handled by the page rules for the remove button). Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 export interface TagIcons {
@@ -49,15 +52,18 @@ const tones: Record<TagTone, string> = {
 
 /** A tag or chip. Put a list of them in <TagGroup> for smooth add and remove. */
 export const Tag = forwardRef<HTMLSpanElement, TagProps>(function Tag(
-  { children, tone = "neutral", size = "md", leading, onRemove, className, labels, icons, ...rest },
+  { children, tone = "neutral", size = "md", leading, onRemove, className, labels, icons, accessibilityFeatures, ...rest },
   ref,
 ) {
   const l = { ...tagLabels, ...labels };
   const ic = { ...tagIcons, ...icons };
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion || a11y.noFlashing;
   return (
     <motion.span
       ref={ref}
-      initial={{ opacity: 0, scale: 0.85 }}
+      {...rootProps}
+      initial={still ? false : { opacity: 0, scale: 0.85 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.12, ease: easeOut } }}
       transition={spring}
@@ -66,9 +72,11 @@ export const Tag = forwardRef<HTMLSpanElement, TagProps>(function Tag(
         tagSizes[size],
         onRemove ? "pl-2.5 pr-1" : "px-2.5",
         tones[tone],
+        a11y.highContrast && "border border-current",
         className,
       )}
       {...rest}
+      style={{ ...rootProps.style, ...rest.style }}
     >
       {leading && <span className="inline-flex [&>svg]:size-3.5">{leading}</span>}
       {children}
@@ -79,7 +87,7 @@ export const Tag = forwardRef<HTMLSpanElement, TagProps>(function Tag(
           whileTap={{ scale: 0.85 }}
           transition={springSnappy}
           aria-label={l.remove(typeof children === "string" ? children : l.tag)}
-          className="k-hit grid size-5 place-items-center rounded-full opacity-70 transition-[opacity,background-color] hover:bg-ink/10 hover:opacity-100 [&>svg]:size-3 [&>svg]:stroke-[2.5]"
+          className="k-hit grid size-5 outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent place-items-center rounded-full opacity-70 transition-[opacity,background-color] hover:bg-ink/10 hover:opacity-100 [&>svg]:size-3 [&>svg]:stroke-[2.5]"
         >
           {ic.remove}
         </motion.button>
