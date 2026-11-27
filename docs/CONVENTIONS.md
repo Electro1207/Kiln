@@ -75,7 +75,7 @@ The system is in `src/kiln/a11y.tsx`; the guide is section 10 of `src/kiln/CLAUD
 8. **Text sizes are rem.** No `text-[13px]`; write `text-[0.8125rem]`, so the text scale works. SVG font-size attributes are the exception.
 9. **Focus is always visible.** `outline-none` needs a `focus-visible` replacement (ring or outline) in the same class string, unless a wrapper shows it with `focus-within`.
 10. **Keyboard and announcements.** Every drag has a keyboard path; every moved or removed thing is announced with `announce()`; animated text is `aria-hidden` with the final text available once to screen readers.
-11. **Each component with accessibility behaviour has notes** in `src/gallery/a11y-meta/<pkg>.ts` for the gallery's accessibility view.
+11. **Every component has notes** in `src/gallery/a11y-meta/<pkg>.ts` for the gallery's accessibility view (features, pattern, keys, notes). A new component is not done until it supports the features above that apply to it and has this entry.
 
 ## Testing (mandatory before calling anything done)
 

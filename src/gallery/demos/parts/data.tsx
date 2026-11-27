@@ -562,13 +562,13 @@ export function AudioSpectrumDemo() {
       </Variant>
       <Variant label="Mirrored, listening to a video you control" className="w-full max-w-[560px]">
         <video ref={videoRef} src={`${V}bbb-360.webm`} poster={`${V}bbb-poster.jpg`} crossOrigin="anonymous" controls playsInline className="aspect-video w-full rounded-control bg-surface" />
-        <AudioSpectrum className="w-full" variant="mirrored" media={videoRef} bars={48} size="lg" />
+        <AudioSpectrum className="w-full" variant="mirrored" media={videoRef} bars={48} size="lg" decorative />
       </Variant>
       <Variant label="Your microphone (asked only when you press the button)" className="w-full max-w-[560px]">
         <div className="flex w-full items-center gap-3">
           <Button size="sm" variant="outline" leading={stream ? <MicOff /> : <Mic />} onClick={toggleMic}>{stream ? "Turn the mic off" : "Turn the mic on"}</Button>
         </div>
-        <AudioSpectrum className="w-full" stream={stream} bars={40} showPeaks={false} />
+        <AudioSpectrum className="w-full" stream={stream} bars={40} showPeaks={false} decorative />
         {micNote && <p role="alert" className="text-[0.8125rem] leading-5 text-negative">{micNote}</p>}
       </Variant>
       <Variant label="Play your own MP3" className="w-full max-w-[560px]">

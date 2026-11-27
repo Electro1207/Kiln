@@ -229,7 +229,7 @@ Look here first, then open the file for props. `a11y.tsx` (in `kiln/`, next to `
 - `Testimonials` — One quotation set large, then the rest in columns
 
 ### `media/`
-- `AudioSpectrum` — A live frequency meter: bars read from the real sound of a file (`src`), a media element (`media` ref) or the microphone (`stream`); `bars`, `variant` (bars or mirrored), `size`, `showPeaks`; `calm` shows one still level
+- `AudioSpectrum` — A live frequency meter: bars read from the real sound of a file (`src`), a media element (`media` ref) or the microphone (`stream`); `bars`, `variant` (bars or mirrored), `size`, `showPeaks`, `decorative` (hides the meter from screen readers beside another player); `calm`, `reduceMotion` and `noFlashing` show one still level
 - `Carousel` — Drag or flick with momentum and it settles on a slide; arrows and keys work too
 - `CompareSlider` — Before and after with a handle you drag or move with the arrow keys
 - `Marquee` — An endless row without a seam, which eases to a stop under the pointer
@@ -485,7 +485,7 @@ Only when nothing in section 2 fits, even composed.
 2. **Imports**: `cn` from `../../cn`, presets from `../../motion`, `Size` and `useControllable` from `../../controllable`. Other Kiln components by relative path. Nothing outside `kiln/`.
 3. **Props**: export a typed `NameProps`; one-line JSDoc on the component and on every non-obvious prop; a default for every prop it can guess. Stateful: controllable via `useControllable` with the names in rule 7. A control takes `size?: Size` (default `md`) using `k-ctl-sm|md|lg`. `className` goes on the root (appended after the component's own classes); spread `...rest` onto the root element and `forwardRef` when it renders one meaningful element. Optional `label`/`aria-label` as in rule 8.
 4. **Both themes**: tokens only, check light and dark. Floating things get `shadow-float`; nothing else has a shadow.
-5. **Keyboard and a11y**: roles, labels, focus-visible, arrows/Enter/Esc as the pattern requires.
+5. **Accessibility is required, not optional.** Every new component ships with it, the same day: roles, labels, focus-visible, arrows/Enter/Esc as the pattern requires; an `accessibilityFeatures` prop read with `useA11yProps` (spread `rootProps` on the root); and it honours every feature in section 10 that applies to what it does (anything that moves on its own: `calm`, `reduceMotion`, `noFlashing`; lines and marks: `highContrast`; colour that carries meaning: `colourSafe`; timers: `extendedTime`). Purely visual parts that repeat what other controls say are `aria-hidden` (or offer a `decorative` prop). Add its entry to `src/gallery/a11y-meta/` for the gallery's accessibility view. A component is not done without these.
 6. **Motion**: follow section 5, `springSoft` by default.
 7. **Verify**: `npx tsc --noEmit` clean, look at it in a browser in light and dark, at 390px width, and keyboard through it.
 
