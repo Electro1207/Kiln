@@ -4,6 +4,7 @@ import { ChevronRight } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { easeOut, fade, springSnappy } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { ScrollArea } from "../primitives/ScrollArea";
 import { SearchField } from "../text-input/SearchField";
 
@@ -73,6 +74,8 @@ export type DocsNavProps = {
   icons?: Partial<DocsNavIcons>;
   className?: string;
   "aria-label"?: string;
+  /** Accessibility features for this nav only. Group folds and row fades follow `reduceMotion` and `calm` (instant); high contrast, large targets and text size are page-wide. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -105,8 +108,10 @@ export const docsNavIcons: DocsNavIcons = { expand: <ChevronRight /> };
 
 export function DocsNav({
   sections, value: valueProp, defaultValue, onSelect, searchable = true, shortcut = "/", placeholder, emptyText,
-  header, footer, rowHeight = 32, groupClick = "link", storageKey, labels, icons, className, "aria-label": ariaLabelProp,
+  header, footer, rowHeight = 32, groupClick = "link", storageKey, labels, icons, className, "aria-label": ariaLabelProp, accessibilityFeatures,
 }: DocsNavProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = useMemo(() => ({ ...docsNavLabels, ...labels }), [labels]);
   const ic = useMemo(() => ({ ...docsNavIcons, ...icons }), [icons]);
   const ariaLabel = ariaLabelProp ?? l.sidebar;
@@ -217,7 +222,7 @@ export function DocsNav({
   const firstHit = first ? (first.items?.[0] ? { id: first.items[0].id, g: first.id } : { id: first.id, g: first.id }) : undefined;
 
   return (
-    <div className={cn("flex h-full min-h-0 w-full flex-col", className)}>
+    <div {...rootProps} className={cn("flex h-full min-h-0 w-full flex-col", className)}>
       {header}
       {searchable && (
         <div className="shrink-0 px-3 pb-2 pt-1">
@@ -262,6 +267,7 @@ export function DocsNav({
                     isOpen={!!g.items && (q ? true : open.has(g.id))}
                     toggleMode={groupClick === "toggle"}
                     q={q}
+                    still={still}
                     rowHeight={rowHeight}
                     onToggle={toggle}
                     onReveal={reveal}
@@ -289,6 +295,8 @@ type GroupBlockProps = {
   isOpen: boolean;
   toggleMode: boolean;
   q: string;
+  /** Calm or reduced motion: groups open and close at once. */
+  still: boolean;
   rowHeight: number;
   onToggle: (id: string) => void;
   onReveal: (id: string) => void;
@@ -297,7 +305,7 @@ type GroupBlockProps = {
   ic: DocsNavIcons;
 };
 
-const GroupBlock = memo(function GroupBlock({ g, on, holds, activeItem, isOpen, toggleMode, q, rowHeight, onToggle, onReveal, onPick, l, ic }: GroupBlockProps) {
+const GroupBlock = memo(function GroupBlock({ g, on, holds, activeItem, isOpen, toggleMode, q, still, rowHeight, onToggle, onReveal, onPick, l, ic }: GroupBlockProps) {
   const leaf = !g.items;
   const uid = useId();
   const count = q ? g.items?.length : (g.count ?? g.items?.length);
@@ -355,7 +363,7 @@ const GroupBlock = memo(function GroupBlock({ g, on, holds, activeItem, isOpen, 
         )}
       </div>
       {g.items && g.items.length > 0 && (
-        <Collapse id={`${uid}-${g.id}`} open={isOpen} instant={!!q}>
+        <Collapse id={`${uid}-${g.id}`} open={isOpen} instant={!!q || still}>
           <ul className="relative ml-[13px] border-l border-line py-0.5 pl-2">
             {g.items.map((it, i) => (
               <ItemRow key={it.id} it={it} groupId={g.id} here={it.id === activeItem} index={q ? -1 : i} q={q} rowHeight={rowHeight} onPick={onPick} />
@@ -368,6 +376,7 @@ const GroupBlock = memo(function GroupBlock({ g, on, holds, activeItem, isOpen, 
 });
 
 /**
+ * Allowed exception to "never animate height": a one-off fold of a group on a click, and instant under calm or reduced motion.
  * Folds a group's rows with the grid-rows trick (0fr to 1fr) plus a fade. The rows mount on open
  * and unmount once the fold has finished, so closed groups cost nothing.
  */

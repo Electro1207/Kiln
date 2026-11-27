@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../../cn";
 import { fade, spring, springSoft } from "../../motion";
 import type { Size } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 const tabSizes: Record<Size, { underline: string; pill: string; text: string }> = {
   sm: { underline: "h-8 px-0.5", pill: "h-7 px-2.5", text: "text-[0.8125rem]" },
@@ -26,10 +27,14 @@ export type TabsProps = {
   className?: string;
   /** The tab list row only. */
   listClassName?: string;
+  /** Accessibility features for this control only. Under `calm` or `reduceMotion` the panel changes at once, with no slide and no height animation; high contrast, large targets and text size are page-wide. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Tabs with their panels. The panel area's height follows its content smoothly. */
-export function Tabs({ items, value, defaultValue, onChange, variant = "underline", label, size = "md", className, listClassName }: TabsProps) {
+export function Tabs({ items, value, defaultValue, onChange, variant = "underline", label, size = "md", className, listClassName, accessibilityFeatures }: TabsProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const id = useId();
   const [inner, setInner] = useState(defaultValue ?? items[0]?.id);
   const current = value ?? inner;
@@ -71,7 +76,7 @@ export function Tabs({ items, value, defaultValue, onChange, variant = "underlin
   const active = items[index];
 
   return (
-    <div className={cn("k-fill flex min-w-0 flex-col", className)}>
+    <div {...rootProps} className={cn("k-fill flex min-w-0 flex-col", className)}>
       <div
         ref={listRef}
         role="tablist"
@@ -120,7 +125,8 @@ export function Tabs({ items, value, defaultValue, onChange, variant = "underlin
         })}
       </div>
 
-      <motion.div animate={{ height }} transition={springSoft} className="relative overflow-clip" initial={false}>
+      {/* Allowed exception to "never animate height": one short follow of the content when a tab changes; at once when calm or reduced. */}
+      <motion.div animate={{ height }} transition={still ? { duration: 0 } : springSoft} className="relative overflow-clip" initial={false}>
         <AnimatePresence mode="popLayout" initial={false} custom={dir}>
           {active && (
             <motion.div
@@ -132,9 +138,9 @@ export function Tabs({ items, value, defaultValue, onChange, variant = "underlin
               tabIndex={0}
               custom={dir}
               variants={{
-                enter: (d: number) => ({ opacity: 0, x: d * 16 }),
+                enter: (d: number) => ({ opacity: 0, x: still ? 0 : d * 16 }),
                 center: { opacity: 1, x: 0, transition: { x: spring, opacity: { duration: 0.22, delay: 0.1 } } },
-                exit: (d: number) => ({ opacity: 0, x: d * -16, transition: { duration: 0.1 } }),
+                exit: (d: number) => ({ opacity: 0, x: still ? 0 : d * -16, transition: { duration: 0.1 } }),
               }}
               initial="enter"
               animate="center"

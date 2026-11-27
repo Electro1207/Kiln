@@ -4,6 +4,7 @@ import { AnimatePresence, animate, motion, useMotionValue } from "motion/react";
 import { ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, fade, springFirm, springSnappy, springSoft, useMotionTier } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 const FULL = 248;
 const RAIL = 64;
@@ -40,6 +41,8 @@ export type SidebarNavProps = {
   /** Replace any built-in icon. Merged over `sidebarNavIcons`. */
   icons?: Partial<SidebarNavIcons>;
   className?: string;
+  /** Accessibility features for this sidebar only. Under `calm` or `reduceMotion` the rail and the groups open and close at once; high contrast, large targets and text size are page-wide. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Icons used by SidebarNav. Pass a partial via `icons` to swap any of them. */
@@ -57,7 +60,9 @@ export const sidebarNavIcons: SidebarNavIcons = { collapse: <PanelLeftClose />, 
  * A side navigation. Each row owns its fill, which fades in when active; the whole bar folds into an icon rail.
  * Controlled with `value` + `onChange`, or uncontrolled with `defaultValue`.
  */
-export function SidebarNav({ sections, value: valueProp, defaultValue, onChange: onChangeProp, header, collapsible = true, defaultCollapsed = false, labels, icons, className }: SidebarNavProps) {
+export function SidebarNav({ sections, value: valueProp, defaultValue, onChange: onChangeProp, header, collapsible = true, defaultCollapsed = false, labels, icons, className, accessibilityFeatures }: SidebarNavProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...sidebarNavLabels, ...labels };
   const ic = useMemo(() => ({ ...sidebarNavIcons, ...icons }), [icons]);
   const [value, onChange] = useControllable<string>(valueProp, defaultValue ?? sections[0]?.items[0]?.id ?? "", onChangeProp);
@@ -66,7 +71,9 @@ export function SidebarNav({ sections, value: valueProp, defaultValue, onChange:
      page out again on every frame, which a low-end phone can't keep up with. In the "lite"
      tier the bar keeps its full width while it folds, a clip does the folding (no layout),
      and the width changes once: at the start of opening, at the end of closing. Width and
-     clip are both motion values, so they always change in the same frame. */
+     clip are both motion values, so they always change in the same frame.
+     Allowed exception to "never animate width": a one-off fold on a click, with a no-layout
+     tier above, and at once (no animation) under calm or reduced motion. */
   const lite = useMotionTier() === "lite";
   const width = useMotionValue(defaultCollapsed ? RAIL : FULL);
   const clip = useMotionValue(OPEN_CLIP);
@@ -76,7 +83,7 @@ export function SidebarNav({ sections, value: valueProp, defaultValue, onChange:
     was.current = collapsed;
     const target = collapsed ? RAIL : FULL;
     // A change of tier (no fold or unfold) just settles where it is.
-    if (!toggled) {
+    if (!toggled || still) {
       width.jump(target);
       clip.jump(OPEN_CLIP);
       return;
@@ -110,7 +117,7 @@ export function SidebarNav({ sections, value: valueProp, defaultValue, onChange:
       live = false;
       a.stop();
     };
-  }, [collapsed, lite, width, clip]);
+  }, [collapsed, lite, still, width, clip]);
   const [expanded, setExpanded] = useState<string[]>(() =>
     sections.flatMap((s) => s.items).filter((i) => i.children?.some((c) => c.id === value)).map((i) => i.id),
   );
@@ -132,7 +139,8 @@ export function SidebarNav({ sections, value: valueProp, defaultValue, onChange:
 
   return (
     <motion.aside
-      style={{ width, clipPath: clip }}
+      {...rootProps}
+      style={{ ...rootProps.style, width, clipPath: clip }}
       className={cn("flex h-full shrink-0 flex-col overflow-hidden bg-ground p-3", className)}
     >
       <div className="mb-3 flex h-9 items-center gap-2">
@@ -235,10 +243,11 @@ export function SidebarNav({ sections, value: valueProp, defaultValue, onChange:
                   <AnimatePresence initial={false}>
                     {it.children && isOpen && (
                       <motion.ul
+                        /* Allowed exception: a one-off fold of a group on a click; at once when calm or reduced. */
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={springSoft}
+                        transition={still ? { duration: 0 } : springSoft}
                         className="overflow-hidden"
                       >
                         {it.children.map((c) => (

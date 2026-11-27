@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useScroll, useSpring, useTransform } from "mot
 import { ArrowUp } from "lucide-react";
 import { cn } from "../../cn";
 import { press, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by BackToTop. Pass a partial via `labels` to translate or reword. */
 export interface BackToTopLabels {
@@ -30,10 +31,13 @@ export type BackToTopProps = {
   labels?: Partial<BackToTopLabels>;
   /** Replace any built-in icon. Merged over `backToTopIcons`. */
   icons?: Partial<BackToTopIcons>;
+  /** Accessibility features for this button only. `calm` and `reduceMotion` jump to the top instead of scrolling smoothly; high contrast, large targets and text size are page-wide. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A round button that appears once you have scrolled; its ring fills with how far down you are. */
-export function BackToTop({ container, threshold = 320, position = "fixed", className, labels, icons }: BackToTopProps) {
+export function BackToTop({ container, threshold = 320, position = "fixed", className, labels, icons, accessibilityFeatures }: BackToTopProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...backToTopLabels, ...labels };
   const ic = { ...backToTopIcons, ...icons };
   const { scrollY, scrollYProgress } = useScroll(container ? { container } : undefined);
@@ -44,7 +48,7 @@ export function BackToTop({ container, threshold = 320, position = "fixed", clas
   useEffect(() => scrollY.on("change", (y) => setShow(y > threshold)), [scrollY, threshold]);
 
   const toTop = () => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduce = a11y.calm || a11y.reduceMotion || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const el = container?.current;
     (el ?? window).scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
   };
@@ -55,6 +59,7 @@ export function BackToTop({ container, threshold = 320, position = "fixed", clas
         <motion.button
           type="button"
           aria-label={l.backToTop}
+          {...rootProps}
           onClick={toTop}
           initial={{ opacity: 0, scale: 0.6, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}

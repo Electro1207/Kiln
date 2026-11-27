@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, type ReactNode } from "react";
 import { cn } from "../../cn";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { MenuContent, type DropdownMenuIcons, type MenuEntry } from "./DropdownMenu";
 
 /** Text used by ContextMenu. Pass a partial via `labels` to translate or reword. */
@@ -18,10 +19,13 @@ export type ContextMenuProps = {
   /** Replace any built-in icon. Merged over `dropdownMenuIcons`. */
   icons?: Partial<DropdownMenuIcons>;
   className?: string;
+  /** Accessibility features for this area and its menu: the page-wide ones (high contrast, large targets, text size) apply; the menu itself has no motion of its own beyond a short fade. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Right-click (or Shift+F10 / the Menu key) anywhere inside opens a menu at the pointer. */
-export function ContextMenu({ items, children, label = "Actions", labels, icons, className }: ContextMenuProps) {
+export function ContextMenu({ items, children, label = "Actions", labels, icons, className, accessibilityFeatures }: ContextMenuProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...contextMenuLabels, ...labels };
   const areaRef = useRef<HTMLDivElement>(null);
   const point = useRef({ x: 0, y: 0 });
@@ -39,6 +43,7 @@ export function ContextMenu({ items, children, label = "Actions", labels, icons,
     <>
       <div
         ref={areaRef}
+        {...rootProps}
         tabIndex={0}
         aria-haspopup="menu"
         aria-label={l.area(label)}
@@ -64,6 +69,7 @@ export function ContextMenu({ items, children, label = "Actions", labels, icons,
         items={items}
         label={label}
         icons={icons}
+        accessibilityFeatures={accessibilityFeatures}
         onClose={(reason) => {
           setOpen(false);
           if (reason === "select") areaRef.current?.focus();

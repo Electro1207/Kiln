@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Check, ChevronRight } from "lucide-react";
 import { cn } from "../../cn";
 import { springSnappy } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { AnchoredLayer, RowHighlight, optionClass, type Placement } from "../shared/Anchored";
 
 export type MenuEntry =
@@ -39,10 +40,13 @@ type MenuContentProps = {
   initialFocus?: "first" | "last" | "none";
   /** Replace any built-in icon. Merged over `dropdownMenuIcons`. */
   icons?: Partial<DropdownMenuIcons>;
+  /** Accessibility features for this menu panel only. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** The panel of a menu. Shared by DropdownMenu and ContextMenu; submenus are nested MenuContents. */
-export function MenuContent({ open, onClose, anchor, items, placement = "bottom-start", group, restoreFocus = true, onBack, label, minWidth = 208, initialFocus = "none", icons }: MenuContentProps) {
+export function MenuContent({ open, onClose, anchor, items, placement = "bottom-start", group, restoreFocus = true, onBack, label, minWidth = 208, initialFocus = "none", icons, accessibilityFeatures }: MenuContentProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const ic = useMemo(() => ({ ...dropdownMenuIcons, ...icons }), [icons]);
   const id = useId();
   const groupId = group ?? id;
@@ -147,7 +151,7 @@ export function MenuContent({ open, onClose, anchor, items, placement = "bottom-
       style={{ minWidth }}
       className="max-h-[min(24rem,80vh)] overflow-y-auto"
     >
-      <div onPointerLeave={() => sub == null && setActive(-1)}>
+      <div {...rootProps} onPointerLeave={() => sub == null && setActive(-1)}>
         {items.map((e, i) => {
           if (e.type === "separator") return <div key={i} role="separator" className="-mx-1 my-1 h-px bg-line" />;
           if (e.type === "label") return <div key={i} className="px-2.5 pb-1 pt-2 text-xs text-muted">{e.label}</div>;
@@ -201,6 +205,7 @@ export function MenuContent({ open, onClose, anchor, items, placement = "bottom-
           restoreFocus={false}
           label={subEntry.label}
           icons={icons}
+          accessibilityFeatures={accessibilityFeatures}
           onBack={() => {
             setSub(null);
             panelRef.current?.focus({ preventScroll: true });
@@ -232,10 +237,12 @@ export type DropdownMenuProps = {
   label?: string;
   /** Replace any built-in icon. Merged over `dropdownMenuIcons`. */
   icons?: Partial<DropdownMenuIcons>;
+  /** Turn accessibility features on for the menu panel (it has no wrapper of its own, so the trigger is yours to configure). The panel is a static list that opens on demand: it needs no extra features beyond the page-wide ones (high contrast, large targets, text size). */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A menu that opens from a trigger. Items can be actions, checkboxes, labels, separators or submenus. */
-export function DropdownMenu({ items, trigger, placement = "bottom-start", label, icons }: DropdownMenuProps) {
+export function DropdownMenu({ items, trigger, placement = "bottom-start", label, icons, accessibilityFeatures }: DropdownMenuProps) {
   const ref = useRef<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
   return (
@@ -257,6 +264,7 @@ export function DropdownMenu({ items, trigger, placement = "bottom-start", label
         placement={placement}
         label={label}
         icons={icons}
+        accessibilityFeatures={accessibilityFeatures}
         onClose={(reason) => {
           setOpen(false);
           if (reason === "select") ref.current?.focus();

@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Check } from "lucide-react";
 import { cn } from "../../cn";
 import { fade, springSnappy, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type Step = { label: string; description?: string };
 
@@ -31,6 +32,8 @@ export type StepperProps = {
   labels?: Partial<StepperLabels>;
   /** Replace any built-in icon. Merged over `stepperIcons`. */
   icons?: Partial<StepperIcons>;
+  /** Accessibility features for this stepper only. Each step says its number, name and whether it is done, and the current one is `aria-current="step"` (never colour alone); the line and tick animations follow `reduceMotion`; high contrast and text size are page-wide. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 function Dot({ index, state, check }: { index: number; state: "done" | "current" | "todo"; check: ReactNode }) {
@@ -85,12 +88,13 @@ function Dot({ index, state, check }: { index: number; state: "done" | "current"
 }
 
 /** A progress indicator for multi-step flows, horizontal or vertical. Pass `onStepClick` to let people go back. */
-export function Stepper({ steps, current, onStepClick, orientation = "horizontal", className, labels, icons }: StepperProps) {
+export function Stepper({ steps, current, onStepClick, orientation = "horizontal", className, labels, icons, accessibilityFeatures }: StepperProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...stepperLabels, ...labels };
   const ic = { ...stepperIcons, ...icons };
   const vertical = orientation === "vertical";
   return (
-    <ol className={cn("flex w-full", vertical ? "flex-col" : "items-start", className)}>
+    <ol {...rootProps} className={cn("flex w-full", vertical ? "flex-col" : "items-start", className)}>
       {steps.map((s, i) => {
         const state = i < current ? "done" : i === current ? "current" : "todo";
         const clickable = !!onStepClick && i < current;

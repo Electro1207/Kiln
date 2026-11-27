@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Clock, CornerDownLeft, Search, X } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, fade, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { Portal, useModalLayer } from "../shared/useOverlay";
 import { Highlight } from "../pickers/Combobox";
 
@@ -67,6 +68,8 @@ export type SpotlightSearchProps = {
   labels?: Partial<SpotlightSearchLabels>;
   /** Replace any built-in icon. Merged over `spotlightSearchIcons`. */
   icons?: Partial<SpotlightSearchIcons>;
+  /** Accessibility features for this window only. Open, highlight and preview fades follow `reduceMotion`; high contrast and text size are page-wide. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Icons used by SpotlightSearch. Pass a partial via `icons` to swap any of them. */
@@ -104,7 +107,8 @@ export function SpotlightSearch(props: SpotlightSearchProps) {
   );
 }
 
-function Window({ onOpenChange, items, categories, onPick, placeholder, labels, icons }: SpotlightSearchProps) {
+function Window({ onOpenChange, items, categories, onPick, placeholder, labels, icons, accessibilityFeatures }: SpotlightSearchProps) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...spotlightSearchLabels, ...labels };
   const ic = useMemo(() => ({ ...spotlightSearchIcons, ...icons }), [icons]);
   const id = useId();
@@ -182,12 +186,14 @@ function Window({ onOpenChange, items, categories, onPick, placeholder, labels, 
         role="dialog"
         aria-modal="true"
         aria-label={l.dialog}
+        {...rootProps}
         initial={{ opacity: 0, scale: 0.97, y: -8 }}
         animate={{ opacity: 1, scale: 1, y: 0, transition: springSoft }}
         exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.14, ease: easeOut } }}
         className="relative flex max-h-[min(36rem,80vh)] w-full max-w-3xl flex-col overflow-hidden rounded-sheet bg-surface shadow-float"
       >
-        <div className="flex items-center gap-3 px-4">
+        {/* The input has no outline of its own; the wrapper shows focus with an underline. */}
+        <div className="flex items-center gap-3 border-b-2 border-transparent px-4 focus-within:border-accent">
           <span className="grid shrink-0 text-muted [&>svg]:size-5" aria-hidden>{ic.search}</span>
           <input
             data-autofocus

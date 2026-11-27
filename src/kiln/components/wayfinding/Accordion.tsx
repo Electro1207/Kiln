@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import { cn } from "../../cn";
 import { useControllable } from "../../controllable";
 import { easeOut, springSnappy, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Icons used by Accordion. Pass a partial via `icons` to swap any of them. */
 export interface AccordionIcons {
@@ -28,10 +29,14 @@ export type AccordionProps = {
   className?: string;
   /** Replace any built-in icon. Merged over `accordionIcons`. */
   icons?: Partial<AccordionIcons>;
+  /** Accessibility features for this accordion only. Under `calm` or `reduceMotion` the panels open and close at once; high contrast, large targets and text size are page-wide. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Rows that open to show more. Uncontrolled by default; pass `value` and `onChange` to control which are open. */
-export function Accordion({ items, type = "single", defaultOpen = [], value, onChange, variant = "lines", className, icons }: AccordionProps) {
+export function Accordion({ items, type = "single", defaultOpen = [], value, onChange, variant = "lines", className, icons, accessibilityFeatures }: AccordionProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const id = useId();
   const ic = { ...accordionIcons, ...icons };
   const [open, setOpen] = useControllable<string[]>(value, defaultOpen, onChange);
@@ -56,7 +61,7 @@ export function Accordion({ items, type = "single", defaultOpen = [], value, onC
   };
 
   return (
-    <div onKeyDown={onKey} className={cn("w-full", variant === "cards" ? "flex flex-col gap-2" : "", className)}>
+    <div {...rootProps} onKeyDown={onKey} className={cn("w-full", variant === "cards" ? "flex flex-col gap-2" : "", className)}>
       {items.map((it) => {
         const isOpen = open.includes(it.id);
         return (
@@ -95,16 +100,17 @@ export function Accordion({ items, type = "single", defaultOpen = [], value, onC
                   id={`${id}-p-${it.id}`}
                   role="region"
                   aria-labelledby={`${id}-t-${it.id}`}
+                  /* Allowed exception to "never animate height": a one-off fold of a panel on a click; at once when calm or reduced. */
                   initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1, transition: { height: springSoft, opacity: { duration: 0.25, ease: easeOut, delay: 0.05 } } }}
-                  exit={{ height: 0, opacity: 0, transition: { height: springSoft, opacity: { duration: 0.15, ease: easeOut } } }}
+                  animate={{ height: "auto", opacity: 1, transition: still ? { duration: 0 } : { height: springSoft, opacity: { duration: 0.25, ease: easeOut, delay: 0.05 } } }}
+                  exit={{ height: 0, opacity: 0, transition: still ? { duration: 0 } : { height: springSoft, opacity: { duration: 0.15, ease: easeOut } } }}
                   className="overflow-hidden"
                 >
                   <motion.div
                     initial={{ y: -6 }}
                     animate={{ y: 0 }}
                     exit={{ y: -6 }}
-                    transition={springSoft}
+                    transition={still ? { duration: 0 } : springSoft}
                     className="max-w-prose pb-5 pr-11 text-sm leading-relaxed text-ink"
                   >
                     {it.content}

@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { ArrowDown } from "lucide-react";
 import { cn } from "../../cn";
 import { springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by ScrollHint. Pass a partial via `labels` to translate or reword. */
 export interface ScrollHintLabels {
@@ -30,6 +31,8 @@ export type ScrollHintProps = {
   labels?: Partial<ScrollHintLabels>;
   /** Replace any built-in icon. Merged over `scrollHintIcons`. */
   icons?: Partial<ScrollHintIcons>;
+  /** Accessibility features for this hint only. `calm` and `reduceMotion` hold the arrow still and make the scroll instant. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /**
@@ -37,15 +40,17 @@ export type ScrollHintProps = {
  * every couple of seconds. It is a real button: pressed, it scrolls smoothly to `target` (instantly
  * with reduced motion, and the arrow then stays still). Position it yourself.
  */
-export function ScrollHint({ target, onClick, show = true, className, labels, icons }: ScrollHintProps) {
+export function ScrollHint({ target, onClick, show = true, className, labels, icons, accessibilityFeatures }: ScrollHintProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...scrollHintLabels, ...labels };
   const ic = { ...scrollHintIcons, ...icons };
   return (
     <motion.button
       type="button"
+      {...rootProps}
       onClick={() => {
         if (target) {
-          const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          const reduce = a11y.calm || a11y.reduceMotion || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
           document.getElementById(target)?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
         }
         onClick?.();

@@ -1,8 +1,9 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "../../cn";
 import { easeOut, fade, springSnappy, springSoft } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type FlyoutLink = { label: string; href: string; description?: string; icon?: ReactNode };
 export type FlyoutGroup = { title: string; links: FlyoutLink[] };
@@ -31,6 +32,8 @@ export type FlyoutNavProps = {
   /** Replace any built-in icon. Merged over `flyoutNavIcons`. */
   icons?: Partial<FlyoutNavIcons>;
   className?: string;
+  /** Accessibility features for this bar only. Panel and accordion motion follow `reduceMotion` and `calm` (the accordion folds at once); high contrast, large targets and text size are page-wide. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** Icons used by FlyoutNav. Pass a partial via `icons` to swap any of them. */
@@ -79,7 +82,9 @@ function LinkRow({ link, onNavigate, compact }: { link: FlyoutLink; onNavigate?:
  * Down opens and enters a panel; Esc closes and returns focus. Under 768px of its
  * own width the bar folds into a menu where each panel is an accordion.
  */
-export function FlyoutNav({ brand, items, action, onNavigate, labels, icons, className }: FlyoutNavProps) {
+export function FlyoutNav({ brand, items, action, onNavigate, labels, icons, className, accessibilityFeatures }: FlyoutNavProps) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.calm || a11y.reduceMotion;
   const l = { ...flyoutNavLabels, ...labels };
   const ic = useMemo(() => ({ ...flyoutNavIcons, ...icons }), [icons]);
   const id = useId();
@@ -90,19 +95,6 @@ export function FlyoutNav({ brand, items, action, onNavigate, labels, icons, cla
   const barRef = useRef<HTMLElement>(null);
   const triggers = useRef<Record<number, HTMLButtonElement | null>>({});
   const panelRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement | null>(null);
-  const [panelH, setPanelH] = useState<number | "auto">("auto");
-
-  useLayoutEffect(() => {
-    const el = contentRef.current;
-    if (open == null || !el) {
-      setPanelH("auto");
-      return;
-    }
-    const ro = new ResizeObserver(() => setPanelH(el.offsetHeight));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [open]);
 
   const schedule = (fn: () => void, ms: number) => {
     window.clearTimeout(timer.current);
@@ -160,6 +152,7 @@ export function FlyoutNav({ brand, items, action, onNavigate, labels, icons, cla
   return (
     <header
       ref={barRef}
+      {...rootProps}
       className={cn("@container relative z-20 w-full bg-surface", className)}
       onPointerLeave={(e) => e.pointerType === "mouse" && schedule(() => setOpen(null), CLOSE_DELAY)}
       onBlur={(e) => {
@@ -248,12 +241,11 @@ export function FlyoutNav({ brand, items, action, onNavigate, labels, icons, cla
             className="absolute inset-x-0 top-full hidden px-4 pt-2 @3xl:block @3xl:px-6"
           >
             <div className="rounded-sheet bg-surface p-3 shadow-float">
-              <motion.div initial={false} animate={{ height: panelH }} transition={springSoft} className="overflow-hidden">
+              {/* The panel's height is not animated: the contents cross-fade and the box follows at once. */}
               <div className="grid [&>*]:[grid-area:1/1]">
                 <AnimatePresence initial={false}>
                   <motion.div
                     key={open}
-                    ref={contentRef}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1, transition: { ...fade, delay: 0.06 } }}
                     exit={{ opacity: 0, transition: { duration: 0.08 } }}
@@ -281,7 +273,6 @@ export function FlyoutNav({ brand, items, action, onNavigate, labels, icons, cla
                   </motion.div>
                 </AnimatePresence>
               </div>
-              </motion.div>
             </div>
           </motion.div>
         )}
@@ -332,7 +323,8 @@ export function FlyoutNav({ brand, items, action, onNavigate, labels, icons, cla
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ height: springSoft, opacity: fade }}
+                        /* Allowed exception: a one-off fold of a section on a click; instant when calm or reduced. */
+                        transition={still ? { duration: 0 } : { height: springSoft, opacity: fade }}
                         className="overflow-hidden"
                       >
                         <div className="pb-2 pl-2">
