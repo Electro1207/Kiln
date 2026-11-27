@@ -1,7 +1,8 @@
 import { forwardRef, type ReactNode } from "react";
-import { motion, type HTMLMotionProps } from "motion/react";
+import { MotionConfig, motion, type HTMLMotionProps } from "motion/react";
 import { cn } from "../../cn";
 import { springSnappy } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type IconButtonProps = Omit<HTMLMotionProps<"button">, "children"> & {
   /** Required: an icon-only button has no visible name. */
@@ -10,6 +11,8 @@ export type IconButtonProps = Omit<HTMLMotionProps<"button">, "children"> & {
   variant?: "solid" | "soft" | "ghost" | "outline";
   size?: "sm" | "md" | "lg";
   shape?: "round" | "square";
+  /** Accessibility features to add for this button only. `reduceMotion` removes the press scale; `largeTargets` and `strongFocus` are answered by the page CSS. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 const variants = {
@@ -22,10 +25,11 @@ const sizes = { sm: "size-8 [&_svg]:size-4", md: "size-10 [&_svg]:size-[18px]", 
 
 /** A square or round button with only an icon. Needs an `aria-label`. Sizes sm, md and lg are 32, 40 and 48px. */
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
-  { icon, variant = "ghost", size = "md", shape = "round", className, disabled, ...rest },
+  { icon, variant = "ghost", size = "md", shape = "round", className, disabled, accessibilityFeatures, ...rest },
   ref,
 ) {
-  return (
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const el = (
     <motion.button
       ref={ref}
       type="button"
@@ -39,9 +43,12 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
         sizes[size],
         className,
       )}
+      {...rootProps}
       {...rest}
+      style={{ ...rootProps.style, ...rest.style }}
     >
       {icon}
     </motion.button>
   );
+  return a11y.reduceMotion ? <MotionConfig reducedMotion="always">{el}</MotionConfig> : el;
 });

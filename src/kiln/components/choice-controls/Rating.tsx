@@ -3,6 +3,7 @@ import { useAnimate } from "motion/react";
 import { cn } from "../../cn";
 import { springBouncy } from "../../motion";
 import { useControllable, type Size } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 const STAR_PX: Record<Size, number> = { sm: 20, md: 28, lg: 36 };
 const LABEL_TEXT: Record<Size, string> = { sm: "text-[0.8125rem]", md: "text-sm", lg: "text-[0.9375rem]" };
@@ -37,7 +38,7 @@ export const ratingIcons: RatingIcons = { star: starSvg, starOff: starSvg };
  * the row, so the gaps between stars are never dead zones. A pick makes the chosen stars hop in a wave.
  */
 export function Rating({
-  value: valueProp, defaultValue = 0, onChange, max = 5, label = "Rating", size = "md", gap = 4, readOnly, className, labels, hideLabel, uiLabels, icons,
+  value: valueProp, defaultValue = 0, onChange, max = 5, label = "Rating", size = "md", gap = 4, readOnly, className, labels, hideLabel, uiLabels, icons, accessibilityFeatures,
 }: {
   /** Controlled rating, 0 for none. Leave out to let the rating keep its own. */
   value?: number;
@@ -61,7 +62,10 @@ export function Rating({
   uiLabels?: Partial<RatingLabels>;
   /** Replace the lit and unlit icon, e.g. a heart. Merged over `ratingIcons`. */
   icons?: Partial<RatingIcons>;
+  /** Accessibility features to add for this rating only. `reduceMotion` and `calm` skip the hop when a star is picked; lit and unlit stars differ by fill as well as colour, and `screenReaderHints` is covered by the value text. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...ratingLabels, ...uiLabels };
   const ic = useMemo(() => ({ ...ratingIcons, ...icons }), [icons]);
   const px = typeof size === "number" ? size : STAR_PX[size];
@@ -87,7 +91,7 @@ export function Rating({
 
   const set = (n: number) => {
     setValue(n);
-    if (n > 0) hop(n);
+    if (n > 0 && !a11y.reduceMotion && !a11y.calm) hop(n);
   };
 
   const onKey = (e: KeyboardEvent) => {
@@ -101,7 +105,7 @@ export function Rating({
   };
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div {...rootProps} className={cn("flex flex-col gap-2", className)}>
       <span id={`${id}-l`} className={cn("text-sm font-medium text-ink", hideLabel && "sr-only")}>{label}</span>
       <div className="flex items-center gap-3">
         <div

@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { animate, motion, useMotionValue, useMotionValueEvent } from "motion/react";
+import { animate, motion, useMotionValue, useMotionValueEvent, type MotionValue } from "motion/react";
 import { cn } from "../../cn";
 import { springFirm } from "../../motion";
 import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
@@ -39,10 +39,13 @@ export const ImageCropper = forwardRef<ImageCropperHandle, {
   className?: string;
   /** Override any UI text. Merged over `imageCropperLabels`. */
   labels?: Partial<ImageCropperLabels>;
-  /** Accessibility features to add for this cropper only (adds to the person's settings). */
+  /** Accessibility features to add for this cropper only. `reduceMotion` makes zoom and pan jump instead of gliding; arrow keys pan and +/- zoom, so nothing needs a drag. Adds to the person's own settings, never removes them. */
   accessibilityFeatures?: AccessibilityFeaturesProp;
 }>(function ImageCropper({ src, size = 240, maxZoom = 3, shape = "round", className, labels, accessibilityFeatures }, ref) {
-  const { rootProps } = useA11yProps(accessibilityFeatures);
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
+  const still = a11y.reduceMotion;
+  /** Glide to a value, or jump when motion is reduced. */
+  const move = useCallback((mv: MotionValue<number>, to: number) => { if (still) mv.set(to); else animate(mv, to, springFirm); }, [still]);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const l = { ...imageCropperLabels, ...labels };
   const stage = useRef<HTMLDivElement>(null);
@@ -81,11 +84,11 @@ export const ImageCropper = forwardRef<ImageCropperHandle, {
   useMotionValueEvent(y, "change", syncPan);
 
   useEffect(() => {
-    animate(scale, zoom, springFirm);
+    move(scale, zoom);
     const { mx, my } = limits(zoom);
-    animate(x, clamp(x.get(), mx), springFirm);
-    animate(y, clamp(y.get(), my), springFirm);
-  }, [zoom, limits, scale, x, y]);
+    move(x, clamp(x.get(), mx));
+    move(y, clamp(y.get(), my));
+  }, [zoom, limits, scale, x, y, move]);
 
   const setZoomClamped = (z: number) => setZoom(Math.min(maxZoom, Math.max(1, Number(z.toFixed(3)))));
 
@@ -120,7 +123,7 @@ export const ImageCropper = forwardRef<ImageCropperHandle, {
   const onKey = (e: React.KeyboardEvent) => {
     const step = e.shiftKey ? 40 : 10;
     const { mx, my } = limits(zoom);
-    const pan = (dx: number, dy: number) => { e.preventDefault(); animate(x, clamp(x.get() + dx, mx), springFirm); animate(y, clamp(y.get() + dy, my), springFirm); };
+    const pan = (dx: number, dy: number) => { e.preventDefault(); move(x, clamp(x.get() + dx, mx)); move(y, clamp(y.get() + dy, my)); };
     if (e.key === "ArrowLeft") pan(step, 0);
     else if (e.key === "ArrowRight") pan(-step, 0);
     else if (e.key === "ArrowUp") pan(0, step);
@@ -159,8 +162,8 @@ export const ImageCropper = forwardRef<ImageCropperHandle, {
         onPointerUp={() => {
           drag.current = null;
           const { mx, my } = limits(zoom);
-          animate(x, clamp(x.get(), mx), springFirm);
-          animate(y, clamp(y.get(), my), springFirm);
+          move(x, clamp(x.get(), mx));
+          move(y, clamp(y.get(), my));
         }}
         onPointerCancel={() => { drag.current = null; }}
         className="relative cursor-grab touch-none select-none overflow-hidden rounded-card bg-ink/90 outline-offset-4 active:cursor-grabbing"

@@ -1,8 +1,9 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "../../cn";
 import { popVariants, springSnappy } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** Text used by SplitButton. Pass a partial via `labels` to translate or reword. */
 export interface SplitButtonLabels {
@@ -21,7 +22,7 @@ export const splitButtonIcons: SplitButtonIcons = { chevron: <ChevronDown /> };
 export type SplitAction = { label: string; description?: string; icon?: ReactNode; onSelect: () => void };
 
 /** A main action with a menu of related ones beside it. */
-export function SplitButton({ label, onClick, actions, className, labels, icons }: {
+export function SplitButton({ label, onClick, actions, className, labels, icons, accessibilityFeatures }: {
   label: ReactNode;
   onClick: () => void;
   actions: SplitAction[];
@@ -30,7 +31,10 @@ export function SplitButton({ label, onClick, actions, className, labels, icons 
   labels?: Partial<SplitButtonLabels>;
   /** Replace any built-in icon. Merged over `splitButtonIcons`. */
   icons?: Partial<SplitButtonIcons>;
+  /** Accessibility features to add for this button only. `reduceMotion` removes the press scale, chevron turn and menu pop. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...splitButtonLabels, ...labels };
   const ic = useMemo(() => ({ ...splitButtonIcons, ...icons }), [icons]);
   const [open, setOpen] = useState(false);
@@ -50,8 +54,8 @@ export function SplitButton({ label, onClick, actions, className, labels, icons 
 
   const close = () => { setOpen(false); trigger.current?.focus(); };
 
-  return (
-    <div ref={root} className={cn("relative inline-flex", className)}>
+  const el = (
+    <div ref={root} {...rootProps} className={cn("relative inline-flex", className)}>
       <motion.button type="button" onClick={onClick} whileTap={{ scale: 0.97 }} transition={springSnappy}
         className="h-10 rounded-l-control bg-btn-primary px-4 text-sm font-medium text-btn-primary-ink transition-colors duration-200 hover:bg-btn-primary-hover">
         {label}
@@ -112,4 +116,5 @@ export function SplitButton({ label, onClick, actions, className, labels, icons 
       </AnimatePresence>
     </div>
   );
+  return a11y.reduceMotion ? <MotionConfig reducedMotion="always">{el}</MotionConfig> : el;
 }

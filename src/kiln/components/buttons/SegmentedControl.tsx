@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { cn } from "../../cn";
 import { fade } from "../../motion";
 import { useControllable, type Size } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type Segment<T extends string> = { value: T; label: ReactNode; icon?: ReactNode };
 
@@ -24,12 +25,15 @@ export type SegmentedControlProps<T extends string> = {
   className?: string;
   /** Stretch to the container's width, segments sharing it equally. */
   fullWidth?: boolean;
+  /** Accessibility features to add for this control only. The selected segment is shown by a raised fill and `aria-checked`, never colour alone; `highContrast`, `largeTargets` and `strongFocus` are answered by the page CSS. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** A row of mutually exclusive options; the chosen one gets a raised fill that fades in place. */
 export function SegmentedControl<T extends string>({
-  options, value: valueProp, defaultValue, onChange: onChangeProp, size = "md", label, className, fullWidth,
+  options, value: valueProp, defaultValue, onChange: onChangeProp, size = "md", label, className, fullWidth, accessibilityFeatures,
 }: SegmentedControlProps<T>) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const [value, onChange] = useControllable<T>(valueProp, (defaultValue ?? options[0]?.value) as T, onChangeProp);
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const onKey = (e: KeyboardEvent, i: number) => {
@@ -41,7 +45,9 @@ export function SegmentedControl<T extends string>({
     refs.current[n]?.focus();
   };
   return (
+    // dark:bg-ground is kept for now: no token gives a track darker than the raised pill in dark mode (reported for tokens.css).
     <div
+      {...rootProps}
       role="radiogroup"
       aria-label={label}
       className={cn("relative isolate inline-flex rounded-control bg-active p-1 dark:bg-ground", fullWidth && "flex w-full", className)}

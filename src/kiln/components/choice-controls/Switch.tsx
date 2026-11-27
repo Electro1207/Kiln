@@ -1,8 +1,9 @@
-import { forwardRef, useId, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
-import { motion } from "motion/react";
+import { forwardRef, useId, useState, type ButtonHTMLAttributes, type ReactElement, type ReactNode } from "react";
+import { MotionConfig, motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut, springFirm } from "../../motion";
 import { useControllable, type Size } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 /** How far the thumb grows into a pill while pressed, in px. */
 const STRETCH = 5;
@@ -28,13 +29,16 @@ export type SwitchProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onChang
   size?: Size;
   /** Put the switch on the right of its label, as in settings rows. */
   labelFirst?: boolean;
+  /** Accessibility features to add for this switch only. `reduceMotion` drops the thumb glide and press stretch; the state is also shown by the thumb position, never colour alone; `highContrast`, `largeTargets` and `strongFocus` are answered by the page CSS. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 /** An on/off control. `<Switch label="Wi-Fi" defaultChecked />` is enough to start. */
 export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch(
-  { checked: checkedProp, defaultChecked = false, onCheckedChange, label, description, size = "md", disabled, className, labelFirst, id: idProp, ...rest },
+  { checked: checkedProp, defaultChecked = false, onCheckedChange, label, description, size = "md", disabled, className, labelFirst, id: idProp, accessibilityFeatures, ...rest },
   ref,
 ) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const [checked, setChecked] = useControllable(checkedProp, defaultChecked, onCheckedChange);
   const autoId = useId();
   const id = idProp ?? autoId;
@@ -50,6 +54,8 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
   const control = (
     <button
       {...rest}
+      {...rootProps}
+      style={{ ...rootProps.style, ...rest.style }}
       ref={ref}
       id={id}
       type="button"
@@ -76,10 +82,10 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
         animate={{ x: checked ? s.travel : 0 }}
         transition={thumbSpring}
       >
-        <motion.span className="absolute left-0 top-0 rounded-full bg-white" style={{ width: s.thumb, height: s.thumb }} initial={false} animate={{ x: a }} transition={stretchEase} />
-        <motion.span className="absolute left-0 top-0 rounded-full bg-white" style={{ width: s.thumb, height: s.thumb }} initial={false} animate={{ x: b }} transition={stretchEase} />
+        <motion.span className="absolute left-0 top-0 rounded-full bg-btn-primary-ink" style={{ width: s.thumb, height: s.thumb }} initial={false} animate={{ x: a }} transition={stretchEase} />
+        <motion.span className="absolute left-0 top-0 rounded-full bg-btn-primary-ink" style={{ width: s.thumb, height: s.thumb }} initial={false} animate={{ x: b }} transition={stretchEase} />
         <motion.span
-          className="absolute top-0 bg-white"
+          className="absolute top-0 bg-btn-primary-ink"
           style={{ left: r, width: 1, height: s.thumb, originX: 0 }}
           initial={false}
           animate={{ x: a, scaleX: Math.max(b - a, 0.001) }}
@@ -88,14 +94,15 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
       </motion.span>
     </button>
   );
-  if (!label) return <span className={className}>{control}</span>;
-  return (
+  const wrap = (el: ReactElement) => (a11y.reduceMotion ? <MotionConfig reducedMotion="always">{el}</MotionConfig> : el);
+  if (!label) return wrap(<span className={className}>{control}</span>);
+  return wrap(
     <div className={cn("flex items-start gap-3", labelFirst && "flex-row-reverse justify-between", disabled && "opacity-50", className)}>
       <span className="pt-0.5">{control}</span>
       <div className="min-w-0">
         <label htmlFor={id} className="block cursor-pointer select-none text-sm font-medium text-ink">{label}</label>
         {description && <p id={`${id}-d`} className="text-[0.8125rem] text-muted">{description}</p>}
       </div>
-    </div>
+    </div>,
   );
 });

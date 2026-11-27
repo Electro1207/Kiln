@@ -4,6 +4,7 @@ import { Pipette, Plus } from "lucide-react";
 import { cn } from "../../cn";
 import { fade } from "../../motion";
 import { useControllable } from "../../controllable";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { SegmentedControl } from "../buttons/SegmentedControl";
 import { AnchoredLayer, panelClass } from "../shared/Anchored";
 
@@ -13,6 +14,7 @@ type RGB = { r: number; g: number; b: number };
 const clamp = (n: number, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, n));
 
 /** The checkerboard that shows through transparent colours. */
+/* Colour exception (rule 3): the hex/rgb values in this file (checker, hue rail, area gradients, white thumb rims) ARE the colour being picked, so they cannot be theme tokens. */
 const checker = { background: "repeating-conic-gradient(#d6d6d6 0 25%, #ffffff 0 50%) 0 0 / 8px 8px" };
 
 export function hsvToRgb({ h, s, v }: HSVA): RGB {
@@ -162,7 +164,7 @@ type EyeDropperCtor = new () => { open: () => Promise<{ sRGBHex: string }> };
  * `onChange` fires when a change is committed (release, Enter, a swatch).
  */
 export function ColorPickerPanel({
-  value: valueProp, defaultValue = "#000000", onChange, swatches, onSwatchesChange, alpha = true, className, labels, icons,
+  value: valueProp, defaultValue = "#000000", onChange, swatches, onSwatchesChange, alpha = true, className, labels, icons, accessibilityFeatures,
 }: {
   /** Controlled colour as a hex string. Leave out to let the picker keep its own. */
   value?: string;
@@ -178,7 +180,10 @@ export function ColorPickerPanel({
   labels?: Partial<ColorPickerLabels>;
   /** Replace any built-in icon. Merged over `colorPickerIcons`. */
   icons?: Partial<ColorPickerIcons>;
+  /** Accessibility features to add for this picker only. Every control is a keyboard slider or field with a text value (hex, rgb or hsl), so colour is never the only way to read or set it; `highContrast`, `largeTargets` and `strongFocus` are answered by the page CSS. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...colorPickerLabels, ...labels };
   const ic = useMemo(() => ({ ...colorPickerIcons, ...icons }), [icons]);
   const [value, setValue] = useControllable(valueProp, defaultValue, onChange);
@@ -218,7 +223,7 @@ export function ColorPickerPanel({
   };
 
   return (
-    <div className={cn("flex w-full max-w-[280px] flex-col gap-3.5", className)}>
+    <div {...rootProps} className={cn("flex w-full max-w-[280px] flex-col gap-3.5", className)}>
       <Area s={s} v={v} hueColour={hueColour} solid={solid} onCommit={commit} t={l} />
       <div className="flex items-center gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-3">
@@ -464,7 +469,7 @@ function Fields({ t, format, h, s, v, a, alpha, read, setAll, commit }: {
             spellCheck={false}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); apply(); } }}
             onBlur={apply}
-            className="h-8 w-full min-w-0 rounded-control border border-line-strong bg-surface px-2 text-center text-[0.8125rem] text-ink tabular outline-none transition-[border-color,box-shadow] focus:border-accent focus:ring-[3px] focus:ring-accent/20"
+            className="h-8 w-full min-w-0 rounded-control border border-line-strong bg-surface px-2 text-center text-[0.8125rem] text-ink tabular outline-none transition-[border-color,box-shadow] focus-visible:border-accent focus-visible:ring-[3px] focus-visible:ring-accent/20"
           />
           <span className="text-center text-[0.71875rem] text-muted">{l === "A" ? t.alpha : l === "Hex" ? t.hex : l}</span>
         </label>
@@ -474,7 +479,7 @@ function Fields({ t, format, h, s, v, a, alpha, read, setAll, commit }: {
 }
 
 /** A swatch button that opens the picker in a popover. */
-export function ColorPicker({ value: valueProp, defaultValue = "#000000", onChange, label = "Colour", swatches, onSwatchesChange, alpha = true, className, labels, icons }: {
+export function ColorPicker({ value: valueProp, defaultValue = "#000000", onChange, label = "Colour", swatches, onSwatchesChange, alpha = true, className, labels, icons, accessibilityFeatures }: {
   /** Controlled colour as a hex string. Leave out to let the picker keep its own. */
   value?: string;
   /** Where an uncontrolled picker starts. Default `#000000`. */
@@ -490,13 +495,16 @@ export function ColorPicker({ value: valueProp, defaultValue = "#000000", onChan
   labels?: Partial<ColorPickerLabels>;
   /** Replace any built-in icon. Merged over `colorPickerIcons`. */
   icons?: Partial<ColorPickerIcons>;
+  /** Accessibility features to add for this picker only. Every control is a keyboard slider or field with a text value (hex, rgb or hsl), so colour is never the only way to read or set it; `highContrast`, `largeTargets` and `strongFocus` are answered by the page CSS. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { rootProps } = useA11yProps(accessibilityFeatures);
   const l = { ...colorPickerLabels, ...labels };
   const [value, setValue] = useControllable(valueProp, defaultValue, onChange);
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div {...rootProps} className={cn("flex flex-col gap-2", className)}>
       <span className="text-sm font-medium text-ink">{label}</span>
       <button
         ref={trigger}
@@ -515,7 +523,7 @@ export function ColorPicker({ value: valueProp, defaultValue = "#000000", onChan
         <span className="tabular uppercase">{value}</span>
       </button>
       <AnchoredLayer open={open} onClose={() => setOpen(false)} anchor={trigger} placement="bottom-start" role="dialog" aria-label={label} className={cn(panelClass, "w-[304px] p-3")}>
-        <ColorPickerPanel value={value} onChange={setValue} swatches={swatches} onSwatchesChange={onSwatchesChange} alpha={alpha} labels={labels} icons={icons} />
+        <ColorPickerPanel value={value} onChange={setValue} swatches={swatches} onSwatchesChange={onSwatchesChange} alpha={alpha} labels={labels} icons={icons} accessibilityFeatures={accessibilityFeatures} />
       </AnchoredLayer>
     </div>
   );

@@ -1,7 +1,8 @@
 import { forwardRef, useMemo, type ReactElement, type ReactNode, type Ref, type RefAttributes } from "react";
-import { AnimatePresence, motion, type HTMLMotionProps } from "motion/react";
+import { AnimatePresence, MotionConfig, motion, type HTMLMotionProps } from "motion/react";
 import { cn } from "../../cn";
 import { press, spring, springSnappy, useMotionTier } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
@@ -35,6 +36,8 @@ type ButtonOwnProps = {
   children?: ReactNode;
   /** Replace any built-in icon. Merged over `buttonIcons`. */
   icons?: Partial<ButtonIcons>;
+  /** Accessibility features to add for this button only. `calm`, `reduceMotion` and `noFlashing` drop the blur while loading (the fade stays); `largeTargets` and `strongFocus` are answered by the page CSS. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 };
 
 export type ButtonProps = Omit<HTMLMotionProps<"button">, "children"> & ButtonOwnProps & { href?: undefined };
@@ -70,9 +73,10 @@ type ButtonComponent = {
 
 /** The main action. Five variants, three sizes, optional icons and a loading state that keeps its width. Extra props and `ref` go to the `<button>`; with `href` it is an `<a>` that looks the same. */
 export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps | ButtonLinkProps>(function Button(
-  { variant = "primary", size = "md", shape = "theme", loading = false, leading, trailing, children, className, icons, ...rest },
+  { variant = "primary", size = "md", shape = "theme", loading = false, leading, trailing, children, className, icons, accessibilityFeatures, ...rest },
   ref,
 ) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const ic = useMemo(() => ({ ...buttonIcons, ...icons }), [icons]);
   const link = typeof rest.href === "string";
   const { disabled, ...buttonRest } = rest as Omit<ButtonProps, keyof ButtonOwnProps>;
@@ -88,7 +92,8 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
     className,
   );
   // Low-end devices keep the fade and scale but skip the blur, which repaints every frame.
-  const lite = useMotionTier() === "lite";
+  // Blur is allowed here (exception to the no-blur-in-motion rule): one small label at a time, only while loading flips.
+  const lite = useMotionTier() === "lite" || a11y.calm || a11y.reduceMotion || a11y.noFlashing;
   const content = (
     <>
       <motion.span
@@ -117,9 +122,10 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
     </>
   );
 
+  const wrap = (el: ReactElement) => (a11y.reduceMotion ? <MotionConfig reducedMotion="always">{el}</MotionConfig> : el);
   if (link) {
     const { external, ...anchor } = rest as Omit<ButtonLinkProps, keyof ButtonOwnProps>;
-    return (
+    return wrap(
       <motion.a
         ref={ref as Ref<HTMLAnchorElement>}
         whileTap={inert ? undefined : press}
@@ -127,13 +133,15 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
         aria-busy={loading || undefined}
         {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
         className={classes}
+        {...rootProps}
         {...anchor}
+        style={{ ...rootProps.style, ...anchor.style }}
       >
         {content}
-      </motion.a>
+      </motion.a>,
     );
   }
-  return (
+  return wrap(
     <motion.button
       ref={ref as Ref<HTMLButtonElement>}
       whileTap={inert ? undefined : press}
@@ -141,9 +149,11 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
       disabled={inert}
       aria-busy={loading || undefined}
       className={classes}
+      {...rootProps}
       {...buttonRest}
+      style={{ ...rootProps.style, ...buttonRest.style }}
     >
       {content}
-    </motion.button>
+    </motion.button>,
   );
 }) as ButtonComponent;

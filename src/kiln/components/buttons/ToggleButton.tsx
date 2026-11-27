@@ -1,7 +1,8 @@
 import { type ReactNode } from "react";
-import { motion } from "motion/react";
+import { MotionConfig, motion } from "motion/react";
 import { cn } from "../../cn";
 import { easeOut, springSnappy } from "../../motion";
+import { useA11yProps, type AccessibilityFeaturesProp } from "../../a11y";
 import { useControllable, type Size } from "../../controllable";
 
 /** A button that stays pressed: bold, mute, favourite, follow. */
@@ -9,7 +10,7 @@ import { useControllable, type Size } from "../../controllable";
 const textSwap = (show: boolean) => (show ? { duration: 0.18, delay: 0.08, ease: easeOut } : { duration: 0.09, ease: easeOut });
 
 export function ToggleButton({
-  pressed: pressedProp, defaultPressed = false, onPressedChange, children, pressedChildren, icon, pressedIcon, className, size = "md", disabled, "aria-label": ariaLabel,
+  pressed: pressedProp, defaultPressed = false, onPressedChange, children, pressedChildren, icon, pressedIcon, className, size = "md", disabled, "aria-label": ariaLabel, accessibilityFeatures,
 }: {
   /** Controlled state. Leave out and use `defaultPressed` to let the button keep its own. */
   pressed?: boolean;
@@ -25,13 +26,17 @@ export function ToggleButton({
   className?: string;
   size?: Size;
   "aria-label"?: string;
+  /** Accessibility features to add for this button only. `reduceMotion` removes the press scale and icon swap movement; the pressed state is always `aria-pressed` and a fill, never colour alone. Adds to the person's own settings, never removes them. */
+  accessibilityFeatures?: AccessibilityFeaturesProp;
 }) {
+  const { a11y, rootProps } = useA11yProps(accessibilityFeatures);
   const [pressed, setPressed] = useControllable(pressedProp, defaultPressed, onPressedChange);
   const swapIcon = !!pressedIcon;
   const swapLabel = pressedChildren != null;
-  return (
+  const el = (
     <motion.button
       type="button"
+      {...rootProps}
       aria-pressed={pressed}
       aria-label={ariaLabel}
       disabled={disabled}
@@ -67,4 +72,5 @@ export function ToggleButton({
       )}
     </motion.button>
   );
+  return a11y.reduceMotion ? <MotionConfig reducedMotion="always">{el}</MotionConfig> : el;
 }
